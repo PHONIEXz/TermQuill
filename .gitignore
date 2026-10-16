@@ -6,3 +6,7 @@ node_modules/
 test-results/
 public/assessment.js
 public/sample.js
+public/drafts.js
+public/create.html
+public/drafts.html
+public/guide.html

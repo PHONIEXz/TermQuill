@@ -9,6 +9,8 @@ async function fixture(fn,handler){const srv=handler?http.createServer(handler):
 const post=(url,body,headers={})=>fetch(url,{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(body)});
 test('serves UI and browser modules, never source secrets or package files',async()=>fixture(async base=>{
   assert.equal((await fetch(base)).status,200);assert.equal((await fetch(base+'/assessment.js')).status,200);
+  for(const page of ['create','drafts','guide']){const r=await fetch(base+'/'+page);assert.equal(r.status,200);assert.ok((await r.text()).includes(`data-page="${page}"`));}
+  assert.equal((await fetch(base+'/drafts.js')).status,200);
   for(const path of ['/.env','/package.json','/lib/generator.js'])assert.equal((await fetch(base+path)).status,404);
   const config=await(await fetch(base+'/api/config')).json();assert.equal('key' in config,false);
   const response=await fetch(base);assert.match(response.headers.get('content-security-policy'),/script-src 'self'/);

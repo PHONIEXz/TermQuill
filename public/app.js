@@ -1,9 +1,17 @@
 import {validateRequest,auditAssessment,parseModelOutput} from '/assessment.js';
 import {sampleSpec,samplePaper} from '/sample.js';
+import {readDrafts,saveDraft,deleteDraft,validateDraft} from '/drafts.js';
 const $ = id => document.getElementById(id);
 const form = $('assessment-form');
 let state = null, mode = 'student', active = null, config = {configured:false,accessRequired:false};
-const storageKey = 'lessonpress.draft.v1';
+const route=location.pathname.replace(/\/$/,'')||'/';
+const page=['/create','/drafts','/guide'].includes(route)?route.slice(1):'home';
+document.body.dataset.page=page;
+document.title=({home:'LessonPress | From lesson to assessment',create:'Create assessment | LessonPress',drafts:'My drafts | LessonPress',guide:'How it works | LessonPress'})[page];
+for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===page)link.setAttribute('aria-current','page');
+document.querySelector('.skip').href='#main-content';
+document.querySelector('.skip').textContent='Skip to main content';
+let dirty=false;
 function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function message(text) {$('live-status').textContent=text;}
 function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
@@ -22,7 +30,7 @@ function busy(on) {
   document.querySelector('.output').setAttribute('aria-busy',String(on));
   updateReview();
 }
-function hasSaved(){try{return Boolean(localStorage.getItem(storageKey));}catch{return false;}}
+function hasSaved(){try{return readDrafts(localStorage).length>0;}catch{return false;}}
 function updateReview() {
   const issues=state?auditAssessment(state.paper,state.spec):[];
   $('review-bar').hidden=!state;
@@ -34,7 +42,7 @@ function updateReview() {
   $('draft-badge').textContent=state?(state.approved?'REVIEWED':state.sample?'SAMPLE DRAFT':'REVIEW NEEDED'):'NOT STARTED';
   $('audit-status').textContent=state?(issues.length?`${issues.length} checks need attention. ${issues.slice(0,3).map(x=>`${x.index===null?'':`Q${x.index+1}: `}${x.message}`).join(' ')}`:`${state.paper.questions.length} questions · ${state.paper.questions.reduce((s,q)=>s+q.marks,0)} marks · Structural checks passed. Review accuracy and suitability before printing.`):'';
 }
-function resetApproval(){if(state)state.approved=false;updateReview();}
+function resetApproval(){if(state){state.approved=false;dirty=true;}updateReview();}
 function head(container) {
   if(state.sample)container.append(el('div','SAMPLE ASSESSMENT · Hand-authored example. Not generated from your current form.','sample-notice'));
   const header=el('div',undefined,'paper-head');
@@ -92,9 +100,10 @@ function setMode(next) {
 }
 function loadSample() {
   if(active)return;
+  if(page!=='create'){location.assign('/create?sample=1');return;}
   if(state&&!confirm('Replace the current paper with the sample? Save your draft first if you want to keep it.'))return;
   fillForm(sampleSpec);state={spec:structuredClone(sampleSpec),paper:structuredClone(samplePaper),sample:true,approved:false,model:'Hand-authored sample'};
-  setMode('student');error();message('Sample loaded. This is a hand-authored example, not a live model response.');$('workspace').scrollIntoView({behavior:'smooth',block:'start'});
+  dirty=true;setMode('student');error();message('Sample loaded. This is a hand-authored example, not a live model response.');$('workspace').scrollIntoView({behavior:'smooth',block:'start'});
 }
 for(const id of ['try-sample','empty-sample'])$(id).addEventListener('click',loadSample);
 $('sample-notes').addEventListener('click',()=>{if($('notes').value&&!confirm('Replace the notes and settings with the sample? Your current paper will remain unchanged.'))return;fillForm(sampleSpec);message('Sample notes added. Generate a fresh assessment or explore the prepared sample.');});
@@ -116,22 +125,56 @@ form.addEventListener('submit',async event=>{
     const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Access-Code':$('access-code').value},body:JSON.stringify(spec),signal:controller.signal});
     const data=await response.json();if(!response.ok)throw new Error(`${data.error||'Generation failed.'}${data.code?` (${data.code})`:''}${data.requestId?` Reference: ${data.requestId}`:''}`);
     const paper=parseModelOutput(JSON.stringify(data.paper),spec);
-    state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};setMode('edit');message('Your draft is ready. Review each question, expected answer and source quote.');
+    state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('edit');message('Your draft is ready. Review each question, expected answer and source quote.');
   }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation timed out. Try fewer questions. Your previous paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}
   finally{clearTimeout(timer);active=null;busy(false);}
 });
 $('cancel').addEventListener('click',()=>active?.abort());
 $('approved').addEventListener('change',()=>{if(!state)return;state.approved=$('approved').checked;updateReview();if(mode!=='edit')preview();});
 $('print').addEventListener('click',()=>{if(!state?.approved||auditAssessment(state.paper,state.spec).length||mode==='edit')return;preview();window.print();});
-$('save').addEventListener('click',()=>{if(!state)return;try{localStorage.setItem(storageKey,JSON.stringify({...state,approved:false}));updateReview();message('Draft saved in this browser on this device. Anyone using this browser profile may be able to access it.');}catch{error('This browser could not save the draft. Download the JSON file instead.');}});
+$('save').addEventListener('click',()=>{if(!state)return;try{state=saveDraft(localStorage,state);dirty=false;updateReview();message('Draft saved to My drafts on this device. You can reopen it from the navigation above.');}catch(e){error(`Could not save: ${e.message} Export a JSON backup if device storage is unavailable.`);}});
 $('restore').addEventListener('click',()=>{
-  if(state&&!confirm('Replace this paper with the saved draft?'))return;
-  try{const raw=localStorage.getItem(storageKey);if(!raw||raw.length>200000)throw new Error();const saved=JSON.parse(raw),spec=validateRequest(saved.spec),paper=parseModelOutput(JSON.stringify(saved.paper),spec);state={spec,paper,sample:saved.sample===true,approved:false,model:typeof saved.model==='string'?saved.model.slice(0,100):'Restored draft'};fillForm(spec);setMode('edit');error();message('Draft restored. Review it again before printing.');}catch{error('The saved draft is unavailable or failed validation.');}
+  if(state&&!confirm('Replace this paper with the most recently saved draft?'))return;
+  try{const drafts=readDrafts(localStorage);if(!drafts.length)throw new Error();state=validateDraft(drafts[0]);dirty=false;fillForm(state.spec);setMode('edit');error();message('Draft restored. Review it again before printing.');}catch{error('The saved draft is unavailable or failed validation.');}
 });
-$('clear').addEventListener('click',()=>{try{localStorage.removeItem(storageKey);updateReview();message('Saved device draft cleared. The paper currently open in this tab is unchanged.');}catch{error('Could not clear device storage.');}});
+$('clear').textContent='Remove this saved copy';
+$('clear').addEventListener('click',()=>{if(!state?.id){message('This paper has not been saved yet.');return;}if(!confirm('Remove this paper from My drafts? Download a backup first if you want to keep it.'))return;try{deleteDraft(localStorage,state.id);delete state.id;dirty=true;updateReview();message('Saved copy removed. The paper currently open in this tab is unchanged.');}catch{error('Could not remove this saved copy.');}});
 $('download').addEventListener('click',()=>{if(!state)return;const blob=new Blob([JSON.stringify({...state,approved:false},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='lessonpress-assessment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('Editable JSON downloaded. Keep it somewhere private if the notes are sensitive.');});
 $('about-button').addEventListener('click',()=>$('about').showModal());$('close-about').addEventListener('click',()=>$('about').close());
 window.addEventListener('beforeprint',()=>{if(!state?.approved||mode==='edit'||auditAssessment(state.paper,state.spec).length){$('preview').replaceChildren(el('p','This draft has not been approved for printing. Review it in LessonPress, confirm your review, and choose Student paper or Marking guide.'));}});
 window.addEventListener('afterprint',()=>{if(state)preview();});
 updateCount();setMode('student');busy(false);
-fetch('/api/config').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(data=>{config=data;$('access-wrap').hidden=!data.accessRequired;$('connection').textContent=data.configured?'Hosted generation connected. Provider quota and availability apply.':'Generation is not connected yet. Explore the sample to try editing and printing.';busy(false);}).catch(()=>{$('connection').textContent='Could not check generation availability. Refresh to retry. The sample still works.';busy(false);});
+if(page==='create')fetch('/api/config').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(data=>{config=data;$('access-wrap').hidden=!data.accessRequired;$('connection').textContent=data.configured?'Hosted generation connected. Provider quota and availability apply.':'Generation is not connected yet. Explore the sample to try editing and printing.';busy(false);}).catch(()=>{$('connection').textContent='Could not check generation availability. Refresh to retry. The sample still works.';busy(false);});
+
+function libraryMessage(text,failed=false){$('library-status').textContent=failed?'':text;$('library-error').hidden=!failed;$('library-error').textContent=failed?text:'';}
+function downloadDraft(draft){const blob=new Blob([JSON.stringify({...draft,approved:false},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='lessonpress-assessment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function renderLibrary(){
+  if(page!=='drafts')return;
+  const container=$('draft-list');container.replaceChildren();
+  let drafts;try{drafts=readDrafts(localStorage);}catch{libraryMessage('Could not read saved drafts. Browser storage may be disabled, full or damaged. Import a JSON backup to recover a paper.',true);return;}
+  $('draft-count').textContent=drafts.length;
+  const query=$('draft-search').value.trim().toLowerCase();
+  const matching=drafts.filter(d=>`${d.spec.title} ${d.spec.subject} ${d.spec.level}`.toLowerCase().includes(query));
+  if(!matching.length){const empty=el('div',undefined,'library-empty');empty.append(el('h3',query?'No matching papers.':'Your next paper belongs here.'),el('p',query?'Try another title, subject or class.':'Create an assessment and choose Save on this device. You can also import an exported JSON draft.'));if(!query){const link=el('a','Create an assessment →');link.href='/create';empty.append(link);}container.append(empty);return;}
+  for(const draft of matching){
+    const card=el('article',undefined,'draft-card');card.append(el('span',draft.sample?'SAMPLE / EDITABLE DRAFT':'SAVED ASSESSMENT','sample-label'),el('h3',draft.spec.title),el('p',`${draft.spec.subject} · ${draft.spec.level}`),el('p',`${draft.spec.count} questions · ${draft.spec.count*draft.spec.marksEach} marks · ${draft.spec.minutes} minutes`),el('p',`Saved ${new Date(draft.savedAt).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}`));
+    const actions=el('div',undefined,'card-actions'),open=el('a','Open paper →','outline');open.href=`/create?draft=${encodeURIComponent(draft.id)}`;
+    const download=el('button','Export JSON','quiet');download.addEventListener('click',()=>downloadDraft(draft));
+    const remove=el('button','Remove','quiet');remove.addEventListener('click',()=>{if(!confirm(`Remove “${draft.spec.title}” from this device? Export a backup first if you want to keep it.`))return;try{deleteDraft(localStorage,draft.id);libraryMessage('Draft removed from this device.');renderLibrary();}catch{libraryMessage('Could not remove this draft.',true);}});
+    actions.append(open,download,remove);card.append(actions);container.append(card);
+  }
+}
+$('draft-search').addEventListener('input',renderLibrary);
+$('import-button').addEventListener('click',()=>$('import-file').click());
+$('import-file').addEventListener('change',async()=>{
+  const file=$('import-file').files?.[0];if(!file)return;
+  try{if(file.size>200000)throw new Error('Choose a LessonPress JSON file smaller than 200 KB.');const value=JSON.parse(await file.text());const draft=validateDraft(value);draft.id=crypto.randomUUID();saveDraft(localStorage,draft);libraryMessage('Draft imported. Open the paper and review it before printing.');renderLibrary();}catch(e){libraryMessage(`Could not import this file. ${e instanceof SyntaxError?'Choose a valid LessonPress JSON export.':e.message}`,true);}finally{$('import-file').value='';}
+});
+if(page==='drafts')renderLibrary();
+if(page==='create'){
+  const params=new URLSearchParams(location.search),id=params.get('draft');
+  if(id){try{const saved=readDrafts(localStorage).find(d=>d.id===id);if(!saved)throw new Error();state=validateDraft(saved);fillForm(state.spec);dirty=false;setMode('edit');message('Saved paper opened. Review it again before printing.');}catch{error('This draft could not be opened on this browser. Open My drafts or import its JSON backup.');}}
+  else if(params.get('sample')==='1')loadSample();
+}
+document.addEventListener('click',event=>{const a=event.target.closest?.('a[href]');if(!a||!dirty||page!=='create')return;const target=new URL(a.href,location.href);if(target.pathname!==location.pathname&&!confirm('Leave without saving this paper? Choose Cancel, then Save on this device to keep it.'))event.preventDefault();});
+window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});

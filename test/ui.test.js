@@ -4,13 +4,15 @@ import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 import { sampleSpec,samplePaper } from '../lib/sample.js';
 import { auditAssessment,validateRequest,parseModelOutput } from '../lib/assessment.js';
+import {readDrafts,saveDraft,deleteDraft,validateDraft,DRAFTS_KEY} from '../lib/drafts.js';
 const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
 const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
-async function setup(generate) {
-  const dom=new JSDOM(html,{url:'http://localhost:3000',runScripts:'outside-only'}),w=dom.window;
-  Object.assign(w,{structuredClone,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper});
+async function setup(generate,route="/create",seed) {
+  const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
+  Object.assign(w,{structuredClone,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
+  if(seed)w.localStorage.setItem(DRAFTS_KEY,JSON.stringify(seed));
   w.eval(script);await new Promise(r=>setTimeout(r,0));
   return {dom,w,$:id=>w.document.getElementById(id)};
 }
@@ -54,4 +56,28 @@ test('generation failure preserves current paper and exposes retryable error',as
 test('cancel stops waiting and preserves draft',async()=>{
   const {dom,w,$}=await setup((url,{signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')))));
   try{$('try-sample').click();$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal($('cancel').hidden,false);$('cancel').click();await new Promise(r=>setTimeout(r,10));assert.match($('error').textContent,/cancelled/);assert.equal(w.document.querySelectorAll('.question').length,6);}finally{dom.window.close();}
+});
+test('distinct pages set active navigation and page titles',async()=>{
+  for(const name of ['home','create','drafts','guide']){
+    const {dom,w}=await setup(null,name==='home'?'/':`/${name}`);
+    try{assert.equal(w.document.body.dataset.page,name);assert.equal(w.document.querySelector('[aria-current=page]').dataset.nav,name);if(name==='drafts')assert.match(w.document.title,/My drafts/);}finally{dom.window.close();}
+  }
+});
+test('draft library lists, searches and removes individual papers',async()=>{
+  const first=validateDraft({spec:sampleSpec,paper:samplePaper}),second=validateDraft({spec:{...sampleSpec,title:'Another chemistry paper',level:'SS2'},paper:samplePaper});
+  const {dom,w,$}=await setup(null,'/drafts',[first,second]);try{
+    assert.equal(w.document.querySelectorAll('.draft-card').length,2);$('draft-search').value='SS2';$('draft-search').dispatchEvent(new w.Event('input'));assert.equal(w.document.querySelectorAll('.draft-card').length,1);
+    assert.equal(w.document.querySelector('.draft-card a').getAttribute('href'),`/create?draft=${second.id}`);
+    [...w.document.querySelectorAll('.draft-card button')].find(b=>b.textContent==='Remove').click();assert.equal(readDrafts(w.localStorage).length,1);
+  }finally{dom.window.close();}
+});
+test('saved URL opens the right assessment with approval reset',async()=>{
+  const draft=validateDraft({spec:sampleSpec,paper:samplePaper});const {dom,w,$}=await setup(null,`/create?draft=${draft.id}`,[draft]);try{assert.equal($('tab-edit').getAttribute('aria-selected'),'true');assert.equal($('approved').checked,false);assert.equal($('title').value,sampleSpec.title);assert.match($('live-status').textContent,/Saved paper opened/);}finally{dom.window.close();}
+});
+test('JSON import validates and saves a separate editable copy',async()=>{
+  const {dom,w,$}=await setup(null,'/drafts');try{
+    Object.defineProperty($('import-file'),'files',{value:[{size:5000,text:async()=>JSON.stringify({spec:sampleSpec,paper:samplePaper,approved:true})}],configurable:true});
+    $('import-file').dispatchEvent(new w.Event('change'));await new Promise(r=>setTimeout(r,10));assert.equal(readDrafts(w.localStorage).length,1);assert.equal(readDrafts(w.localStorage)[0].approved,false);assert.match($('library-status').textContent,/imported/);
+    Object.defineProperty($('import-file'),'files',{value:[{size:200001,text:()=>assert.fail()}],configurable:true});$('import-file').dispatchEvent(new w.Event('change'));await new Promise(r=>setTimeout(r,10));assert.equal(readDrafts(w.localStorage).length,1);assert.equal($('library-error').hidden,false);
+  }finally{dom.window.close();}
 });

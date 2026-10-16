@@ -37,7 +37,7 @@ function updateReview() {
   $('approved').checked=Boolean(state?.approved);
   $('approved').disabled=Boolean(active)||issues.length>0;
   $('print').disabled=!state||!state.approved||issues.length>0||mode==='edit'||Boolean(active);
-  for(const id of ['save','download'])$(id).disabled=!state||Boolean(active);
+  for(const id of ['save','download','send-school'])$(id).disabled=!state||Boolean(active);
   $('restore').disabled=!hasSaved()||Boolean(active);
   $('draft-badge').textContent=state?(state.approved?'REVIEWED':state.sample?'SAMPLE DRAFT':'REVIEW NEEDED'):'NOT STARTED';
   $('audit-status').textContent=state?(issues.length?`${issues.length} checks need attention. ${issues.slice(0,3).map(x=>`${x.index===null?'':`Q${x.index+1}: `}${x.message}`).join(' ')}`:`${state.paper.questions.length} questions · ${state.paper.questions.reduce((s,q)=>s+q.marks,0)} marks · Structural checks passed. Review accuracy and suitability before printing.`):'';
@@ -178,3 +178,5 @@ if(page==='create'){
 }
 document.addEventListener('click',event=>{const a=event.target.closest?.('a[href]');if(!a||!dirty||page!=='create')return;const target=new URL(a.href,location.href);if(target.pathname!==location.pathname&&!confirm('Leave without saving this paper? Choose Cancel, then Save on this device to keep it.'))event.preventDefault();});
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
+
+$('send-school').addEventListener('click',()=>{try{if(!state||active)return;const draft=validateDraft({...state,savedAt:new Date().toISOString()});if(JSON.stringify(draft).length>90000)throw new Error('This paper is too large for school sharing.');sessionStorage.setItem('lessonpress.school-transfer',JSON.stringify(draft));dirty=false;location.href='/school/library';}catch(e){error(e.message);}});

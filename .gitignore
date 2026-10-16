@@ -10,3 +10,6 @@ public/drafts.js
 public/create.html
 public/drafts.html
 public/guide.html
+
+public/school/
+school-verification.sql

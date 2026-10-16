@@ -90,3 +90,23 @@ Provider recovery: after two transient 5xx errors from the primary Gemma, the ap
 Separate pages and multiple saved drafts make the create → review → save → reopen → print workflow usable across sessions. Saving updates the same draft rather than silently adding duplicates. Imported papers get a new ID and always need review. Unsaved papers show a warning before leaving the creator. All storage is browser-local; there is no user account or cloud backup.
 
 Next milestone: classroom pilot. Review outputs in Chemistry, Basic Science and one non-science subject; inspect student/teacher PDFs; check a real phone; collect feedback from two teachers and measure preparation/editing time without inventing results.
+
+## School Review Pilot
+
+School accounts use Supabase Auth. The existing account-free assessment builder and browser drafts remain available. `/school`, `/school/library`, `/school/reviews`, `/school/team` and `/school/paper` provide school management, a departmental library and independent approval.
+
+Apply `migrations/001_school_review.sql` to the provisioned Supabase database before deploying. The Vercel Marketplace integration supplies `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (legacy anon keys are also supported). The app never uses the service-role key or database password. For local development, put the public URL/key in your private `.env`.
+
+Accounts require email verification and a password of at least 12 characters. In Supabase Auth, configure the production Site URL and allowed redirect URL as `https://lessonpress-pi.vercel.app/school`, and configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. After confirming an email, users can return to `/school` to sign in. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
+
+A principal creates a school, departments and email-bound invitation links for teachers or department heads. Invitations expire after seven days, are single use and can be revoked. The app displays a link for the principal to share; it does not send invitations. School creation does not verify institutional ownership. One account can create at most three schools in this pilot.
+
+Use **Send to school** from the assessment builder, or import a LessonPress JSON file in the department library. This explicitly uploads the questions and source notes to Supabase. Personal drafts remain in browser storage. School staff must avoid student records and confidential live exam material during the pilot. Removing a member removes workspace access but preserves their school papers and audit records.
+
+Permissions are checked in the database on every call, from verified Supabase user identity and current membership, never client role metadata. Principals oversee all school departments; department heads review their own department; teachers can edit their own papers and read the approved copy of their department's other papers. Direct table access is revoked; RLS is enabled without permissive table policies. A public invoker RPC wraps the guarded private-schema function with an empty search path. Anonymous callers cannot execute it. The private schema must not be added to Supabase's exposed schemas.
+
+Each save appends a version, preserving prior copies. Submitted papers lock editing. An independent principal or department head can comment, request changes or approve the current version. An author cannot approve their own paper. Review decisions include the expected revision so stale reviews fail. Editing an approved paper creates a draft while the earlier approved version remains available to the department. These records are append-only through the app; database administrators retain database access.
+
+`test/school-db.test.js` runs the migration in the PGlite Postgres engine, with test Auth identities, and exercises school/department isolation, restricted invitations, review roles, self-approval denial, stale versions, immutable approved copies, removed membership and direct access denial. These tests do not prove email delivery or a signed-in production browser flow. Account rate limits are per server instance plus Supabase's provider limits, not a distributed abuse-control system.
+
+Curriculum accreditation/compliance, students, grading, mastery analytics, LTI, gradebook/calendar sync and real-time coauthoring are later milestones. No enterprise readiness or automatic factual correctness is claimed.

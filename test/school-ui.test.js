@@ -16,3 +16,28 @@ test('paper views keep answers off the student copy and require review before pr
 test('invitation token is removed from the address and retained only for acceptance',async()=>{const {dom,w,$}=await setup('/school?invite=one-time-token',()=>({user:null}));try{assert.equal(w.location.search,'');assert.equal(w.sessionStorage.getItem('lessonpress.invite'),'one-time-token');assert.match($('school-status').textContent,/invited email/);}finally{dom.window.close();}});
 
 test('email confirmation fragments are discarded instead of trusting URL credentials',async()=>{const {dom,w}=await setup('/school#access_token=discarded&refresh_token=discarded',()=>({user:null}));try{assert.equal(w.location.hash,'');assert.equal(w.sessionStorage.length,0);}finally{dom.window.close();}});
+
+
+test('a principal can create a department directly from the empty library, then choose it for a paper',async()=>{
+ const state={...dashboard,departments:[]};const calls=[];
+ const handler=(url,body)=>{
+  if(url==='/api/account')return {user:{id:'u1',email:'principal@example.com'}};
+  if(body.action==='bootstrap')return {schools:[school]};
+  if(body.action==='dashboard')return state;
+  if(body.action==='create_department'){calls.push(body.payload);state.departments=[{id:'science',name:body.payload.name}];return {id:'science'};}
+  return {};
+ };
+ const {dom,w,$}=await setup('/school/library?school=s1',handler);
+ try{
+  const toggle=w.document.querySelector('[data-action=create-department]');assert.ok(toggle);assert.equal(toggle.getAttribute('aria-expanded'),'false');
+  toggle.click();await new Promise(r=>setTimeout(r,10));const f=$('department-form');assert.equal(f.hidden,false);assert.equal(toggle.getAttribute('aria-expanded'),'true');
+  const input=f.querySelector('input');assert.equal(w.document.activeElement,input);input.value='Science';f.dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,25));
+  assert.equal(calls.length,1);assert.equal(calls[0].school_id,'s1');assert.equal(calls[0].name,'Science');assert.match($('school-status').textContent,/Science.*ready/);
+  assert.ok([...w.document.querySelectorAll('option')].some(o=>o.value==='science'));
+  assert.equal(w.document.querySelector('.school-import').open,false);
+ }finally{dom.window.close();}
+});
+test('department controls stay restricted to principals and a department head gets guidance',async()=>{
+ const {dom,w,$}=await setup('/school/team', (url,body)=>url==='/api/account'?{user:{id:'u1',email:'hod@example.com'}}:body.action==='bootstrap'?{schools:[{...school,role:'hod'}]}:dashboard);
+ try{assert.equal(w.document.querySelector('[data-action=create-department]'),null);assert.match($('school-content').textContent,/principal manages/);}finally{dom.window.close();}
+});

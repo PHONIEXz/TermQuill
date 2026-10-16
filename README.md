@@ -63,7 +63,7 @@ npm run check
 npm run build
 ```
 
-Automated checks include 51 unit, HTTP, DOM and Postgres interaction tests. Provider responses are simulated in tests; they do not establish live Gemma quality, real quota availability or willingness to pay. A production smoke test generated three Chemistry questions on its first attempt in about 67 seconds. This is one successful test, not an accuracy or reliability benchmark. See `docs/verification.md` for current browser evidence and remaining work.
+Automated checks include 53 unit, HTTP, DOM and Postgres interaction tests. Provider responses are simulated in tests; they do not establish live Gemma quality, real quota availability or willingness to pay. A production smoke test generated three Chemistry questions on its first attempt in about 67 seconds. This is one successful test, not an accuracy or reliability benchmark. See `docs/verification.md` for current browser evidence and remaining work.
 
 Gemma 4 requests use `thinkingLevel: minimal` to avoid the optional thinking pass for this structured drafting task. A provider 5xx response gets one short retry, within the existing overall timeout. Quota (429) and access errors are not blindly retried. Safe error codes distinguish quota, access, unavailable model, rejected request, timeout and connectivity failures. Logs include a random request reference and status code, never raw provider messages, keys or notes. The UI displays that reference for investigation. A provider quota remains an account/provider constraint; application retries cannot remove it.
 
@@ -110,3 +110,12 @@ Each save appends a version, preserving prior copies. Submitted papers lock edit
 `test/school-db.test.js` runs the migration in the PGlite Postgres engine, with test Auth identities, and exercises school/department isolation, restricted invitations, review roles, self-approval denial, stale versions, immutable approved copies, removed membership and direct access denial. These tests do not prove email delivery or a signed-in production browser flow. Account rate limits are per server instance plus Supabase's provider limits, not a distributed abuse-control system.
 
 Curriculum accreditation/compliance, students, grading, mastery analytics, LTI, gradebook/calendar sync and real-time coauthoring are later milestones. No enterprise readiness or automatic factual correctness is claimed.
+
+
+## Guided setup and public pages
+
+The home page explains personal preparation versus school collaboration. `/guide#school-guide` walks through departments, invitations, papers and review decisions. `/privacy` describes current data handling, providers, browser storage, school access, retention and privacy-request limitations.
+
+The principal can use **Create your first department** directly in an empty School papers page or school overview. The form opens inline; **Save department** updates the department choices immediately. **Departments & people** lists existing departments and provides **Add another department**. Teachers and department heads receive guidance to ask the principal instead of an unauthorised creation control. Restoring a JSON backup is optional, not a required starting step.
+
+Before broad institutional adoption, publish a dedicated private support/privacy contact and finish production email configuration. The current privacy page uses minimal project-support contact to arrange a private channel and explicitly asks users not to post private records in GitHub issues.

@@ -114,7 +114,7 @@ form.addEventListener('submit',async event=>{
   const timer=setTimeout(()=>controller.abort('timeout'),115000);
   try{
     const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Access-Code':$('access-code').value},body:JSON.stringify(spec),signal:controller.signal});
-    const data=await response.json();if(!response.ok)throw new Error(data.error||'Generation failed.');
+    const data=await response.json();if(!response.ok)throw new Error(`${data.error||'Generation failed.'}${data.code?` (${data.code})`:''}${data.requestId?` Reference: ${data.requestId}`:''}`);
     const paper=parseModelOutput(JSON.stringify(data.paper),spec);
     state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};setMode('edit');message('Your draft is ready. Review each question, expected answer and source quote.');
   }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation timed out. Try fewer questions. Your previous paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}

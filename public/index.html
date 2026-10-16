@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#124d46"><meta name="description" content="Turn the notes you teach from into assessments you can stand behind. Edit questions, review source quotes, and print separate student papers and marking guides.">
+  <title>LessonPress | From lesson to assessment</title>
+  <link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#workspace">Skip to workspace</a>
+  <header class="topbar"><a class="brand" href="/" aria-label="LessonPress home"><img src="/favicon.svg" alt="" width="34" height="34">Lesson<span>Press</span></a><span class="edition">THE TEACHER'S WORKBENCH</span><button id="about-button" class="quiet">How it works ↗</button></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow"><span class="dot"></span> LESS PAPERWORK. MORE TEACHING.</p><h1>You taught the lesson.<br><em>Let’s make the paper.</em></h1><p class="lede">Your notes become a test you can edit, check and print.<br class="desktop"> Every question comes with a source quote. You make the final call.</p><div class="intro-actions"><button id="try-sample" class="primary">Explore a sample <span>↗</span></button><span class="micro">No account needed · No model download</span></div></div><aside class="note-card"><span class="note-tag">BUILT AROUND YOUR LESSON</span><h2>A paper you can<br>stand behind.</h2><ul><li><span>01</span> Start with what you actually taught</li><li><span>02</span> Review questions alongside the notes</li><li><span>03</span> Keep answers off the student copy</li></ul><div class="note-bottom">A little less Sunday-night admin. <span>✦</span></div></aside></section>
+    <section id="workspace" class="workspace" aria-label="Assessment workspace">
+      <aside class="setup"><div class="panel-heading"><span class="step">01</span><div><h2>Build your assessment</h2><p>Start with the lesson, not a blank page.</p></div></div>
+        <form id="assessment-form">
+          <label for="title">Paper title</label><input id="title" name="title" minlength="3" maxlength="100" value="Elements, compounds & mixtures" required>
+          <div class="two"><div><label for="subject">Subject</label><input id="subject" name="subject" maxlength="60" minlength="2" value="Chemistry" required></div><div><label for="level">Class / level</label><input id="level" name="level" maxlength="50" minlength="2" value="SS1" required></div></div>
+          <div class="label-row"><label for="notes">Your lesson notes</label><button type="button" id="sample-notes" class="text-button">Use sample notes</button></div>
+          <textarea id="notes" name="notes" rows="9" minlength="120" maxlength="18000" placeholder="Paste the lesson notes you want to assess. Include definitions, examples and explanations." required aria-describedby="notes-help"></textarea>
+          <div class="notes-footer"><span id="notes-help">At least 120 characters. No student details.</span><span id="notes-count">0 / 18,000</span></div>
+          <div class="two"><div><label for="format">Question format</label><select id="format" name="format"><option value="mixed">Multiple choice + short answer</option><option value="mcq">Multiple choice only</option><option value="short">Short answer only</option></select></div><div><label for="difficulty">Thinking level</label><select id="difficulty" name="difficulty"><option value="mixed">A balanced mix</option><option value="recall">Recall the lesson</option><option value="application">Apply the ideas</option></select></div></div>
+          <div class="three"><div><label for="count">Questions</label><input id="count" name="count" type="number" min="3" max="20" value="6" required></div><div><label for="marksEach">Marks each</label><input id="marksEach" name="marksEach" type="number" min="1" max="10" value="2" required></div><div><label for="minutes">Minutes</label><input id="minutes" name="minutes" type="number" min="5" max="180" value="20" required></div></div>
+          <div class="summary-line"><span>Assessment total</span><strong id="total-marks">12 marks</strong></div>
+          <div id="access-wrap" hidden><label for="access-code">Pilot access code</label><input id="access-code" type="password" autocomplete="off" maxlength="200"></div>
+          <p class="privacy">When you generate, your notes are sent to the hosted model provider. Avoid confidential material. Drafts stay in this tab unless you choose to save them on this device.</p>
+          <button id="generate" class="primary full" type="submit">Create my assessment <span>→</span></button>
+          <button id="cancel" class="quiet full" type="button" hidden>Cancel generation</button>
+          <p id="connection" class="micro">Checking generation availability…</p>
+        </form>
+      </aside>
+      <section class="output" aria-label="Assessment preview" aria-busy="false">
+        <div class="output-header"><div><span class="eyebrow">02 / REVIEW & REFINE</span><h2>Your paper, your judgement.</h2></div><span id="draft-badge" class="pill">NOT STARTED</span></div>
+        <div class="toolbar"><div class="tabs" role="tablist" aria-label="Assessment view"><button id="tab-student" role="tab" aria-selected="true" aria-controls="preview">Student paper</button><button id="tab-teacher" role="tab" aria-selected="false" aria-controls="preview">Marking guide</button><button id="tab-edit" role="tab" aria-selected="false" aria-controls="preview">Edit & review</button></div><button id="print" class="outline" disabled>Print / PDF ↗</button></div>
+        <div id="live-status" role="status" aria-live="polite"></div>
+        <div id="error" role="alert" hidden></div>
+        <div id="preview" role="tabpanel" aria-labelledby="tab-student"><div class="empty"><div class="paper-icon"><span></span><span></span><span></span></div><p class="eyebrow">THE NEXT GOOD QUESTION STARTS HERE</p><h3>Your lesson. A fresh perspective.</h3><p>Add your notes on the left, or explore the sample.<br>You’ll get a student paper and a separate marking guide.</p><button id="empty-sample" class="outline">Open sample assessment →</button></div></div>
+        <div id="review-bar" hidden><label class="check-label"><input id="approved" type="checkbox"> I reviewed every question, answer and source quote.</label><p id="audit-status"></p></div>
+        <div class="draft-actions"><button id="save" class="quiet" disabled>Save on this device</button><button id="restore" class="quiet" disabled>Restore saved draft</button><button id="download" class="quiet" disabled>Download editable JSON</button><button id="clear" class="quiet">Clear saved draft</button></div>
+      </section>
+    </section>
+    <section class="footnote"><span>✦</span><p><strong>Assistance, with accountability.</strong> Automated checks catch structural problems, not every factual mistake. A real quote can still be used incorrectly. Review before giving a paper to students.</p></section>
+  </main>
+  <footer><span>LessonPress <span class="muted">/ Made for the work behind the lesson.</span></span><span>Built by Paul Ayoade David</span></footer>
+  <dialog id="about"><button id="close-about" class="quiet">Close ✕</button><p class="eyebrow">FROM NOTES TO PAPER</p><h2>A small tool for a busy teacher.</h2><p>1. Paste your lesson notes and choose your assessment settings.</p><p>2. Gemma drafts questions with verbatim supporting quotes. The app checks counts, formats, answer fields and marks, then retries once if needed.</p><p>3. Edit and review each question. Confirm the review, then print the student paper and marking guide separately.</p><p>The sample is hand-authored, not a live AI response. Hosted generation needs the owner’s server-side API configuration. No payments or subscriptions are collected in this pilot.</p><p>Notes are sent to Google when you generate. Device saving is optional and uses this browser’s local storage. Clearing a saved draft does not delete a JSON file you downloaded.</p></dialog>
+</body></html>

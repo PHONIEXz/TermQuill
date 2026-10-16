@@ -1,0 +1,137 @@
+import {validateRequest,auditAssessment,parseModelOutput} from '/assessment.js';
+import {sampleSpec,samplePaper} from '/sample.js';
+const $ = id => document.getElementById(id);
+const form = $('assessment-form');
+let state = null, mode = 'student', active = null, config = {configured:false,accessRequired:false};
+const storageKey = 'lessonpress.draft.v1';
+function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
+function message(text) {$('live-status').textContent=text;}
+function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
+function fieldValues() {
+  const values=Object.fromEntries(new FormData(form));
+  for(const key of ['count','marksEach','minutes'])values[key]=Number(values[key]);
+  return values;
+}
+function fillForm(spec) {for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;updateCount();}
+function updateCount() {$('notes-count').textContent=`${$('notes').value.length.toLocaleString()} / 18,000`;$('total-marks').textContent=`${Number($('count').value)*Number($('marksEach').value)} marks`;}
+function busy(on) {
+  for(const item of form.elements)item.disabled=on;
+  $('generate').disabled=on||!config.configured;
+  for(const id of ['try-sample','sample-notes','empty-sample','restore'])if($(id))$(id).disabled=on||(id==='restore'&&!hasSaved());
+  $('cancel').disabled=false;$('cancel').hidden=!on;
+  document.querySelector('.output').setAttribute('aria-busy',String(on));
+  updateReview();
+}
+function hasSaved(){try{return Boolean(localStorage.getItem(storageKey));}catch{return false;}}
+function updateReview() {
+  const issues=state?auditAssessment(state.paper,state.spec):[];
+  $('review-bar').hidden=!state;
+  $('approved').checked=Boolean(state?.approved);
+  $('approved').disabled=Boolean(active)||issues.length>0;
+  $('print').disabled=!state||!state.approved||issues.length>0||mode==='edit'||Boolean(active);
+  for(const id of ['save','download'])$(id).disabled=!state||Boolean(active);
+  $('restore').disabled=!hasSaved()||Boolean(active);
+  $('draft-badge').textContent=state?(state.approved?'REVIEWED':state.sample?'SAMPLE DRAFT':'REVIEW NEEDED'):'NOT STARTED';
+  $('audit-status').textContent=state?(issues.length?`${issues.length} checks need attention. ${issues.slice(0,3).map(x=>`${x.index===null?'':`Q${x.index+1}: `}${x.message}`).join(' ')}`:`${state.paper.questions.length} questions · ${state.paper.questions.reduce((s,q)=>s+q.marks,0)} marks · Structural checks passed. Review accuracy and suitability before printing.`):'';
+}
+function resetApproval(){if(state)state.approved=false;updateReview();}
+function head(container) {
+  if(state.sample)container.append(el('div','SAMPLE ASSESSMENT · Hand-authored example. Not generated from your current form.','sample-notice'));
+  const header=el('div',undefined,'paper-head');
+  header.append(el('div',mode==='teacher'?'TEACHER COPY / MARKING GUIDE':'STUDENT COPY / ASSESSMENT','kicker'),el('h2',state.spec.title),el('p',`${state.spec.subject} · ${state.spec.level} · ${state.spec.minutes} minutes · ${state.spec.count*state.spec.marksEach} marks`));
+  if(mode==='student'){const names=el('div',undefined,'name-line');names.append(el('span','Name: __________________________'),el('span','Date: ______________'));header.append(names);}
+  container.append(header,el('p',state.paper.instructions,'instructions'));
+}
+function preview() {
+  const target=$('preview');target.replaceChildren();if(!state)return;
+  if(mode==='edit'){renderEditor(target);return;}
+  head(target);
+  state.paper.questions.forEach((q,i)=>{
+    const section=el('section',undefined,'question'),title=el('div',undefined,'question-title');
+    title.append(el('span',String(i+1).padStart(2,'0'),'number'),el('p',q.prompt),el('span',`[${q.marks} marks]`,'marks'));section.append(title);
+    if(q.kind==='mcq'){const options=el('ul',undefined,'options');q.options.forEach((o,j)=>options.append(el('li',`${'ABCD'[j]}. ${o}`)));section.append(options);}
+    if(mode==='teacher'){
+      const answer=el('div',undefined,'teacher-answer');answer.append(el('strong',q.kind==='mcq'?`${'ABCD'[q.correctIndex]}. ${q.answer}`:q.answer));
+      const points=el('ul');q.marking.forEach(p=>points.append(el('li',`${p.point} (${p.marks} ${p.marks===1?'mark':'marks'})`)));answer.append(points,el('div',`From the lesson notes: “${q.evidence}”`,'evidence'));section.append(answer);
+    }else if(q.kind==='short')section.append(el('div',undefined,'answer-lines'));
+    target.append(section);
+  });
+  target.append(el('p',`${state.approved?'Teacher review confirmed':'DRAFT · Awaiting teacher review'} · Prepared with LessonPress`,'print-note'));
+}
+function editable(container,label,value,onInput,{multiline=true,max=1200}={}) {
+  const id=`field-${crypto.randomUUID()}`,l=el('label',label);l.htmlFor=id;
+  const input=el(multiline?'textarea':'input');input.id=id;input.value=value;input.maxLength=max;if(multiline)input.rows=2;
+  input.addEventListener('input',()=>{onInput(input.value);resetApproval();});container.append(l,input);return input;
+}
+function renderEditor(target) {
+  target.append(el('p','Edit freely. Every change resets approval. Check the answers and supporting quotes before printing.','instructions'));
+  editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
+  state.paper.questions.forEach((q,i)=>{
+    const box=el('section',undefined,'editor');box.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} marks`));
+    editable(box,'Question',q.prompt,v=>q.prompt=v);
+    if(q.kind==='mcq'){
+      q.options.forEach((option,j)=>editable(box,`Option ${'ABCD'[j]}`,option,v=>{q.options[j]=v;if(q.correctIndex===j){q.answer=v;q.marking=[{point:`Select ${'ABCD'[j]}: ${v}`,marks:q.marks}];}},{multiline:false,max:400}));
+      const label=el('label','Correct option'),select=el('select');select.id=`correct-${i}`;label.htmlFor=select.id;
+      q.options.forEach((_,j)=>{const o=el('option',`Option ${'ABCD'[j]}`);o.value=j;select.append(o);});select.value=q.correctIndex;
+      select.addEventListener('change',()=>{q.correctIndex=Number(select.value);q.answer=q.options[q.correctIndex];q.marking=[{point:`Select ${'ABCD'[q.correctIndex]}: ${q.answer}`,marks:q.marks}];resetApproval();preview();});box.append(label,select);
+    }else editable(box,'Expected answer',q.answer,v=>q.answer=v);
+    q.marking.forEach((p,j)=>{
+      editable(box,`Marking point ${j+1}`,p.point,v=>p.point=v,{max:600});
+      const l=el('label',`Marks for point ${j+1}`),n=el('input');n.type='number';n.min=1;n.max=10;n.value=p.marks;n.id=`marks-${i}-${j}`;l.htmlFor=n.id;
+      n.addEventListener('input',()=>{p.marks=Number(n.value);resetApproval();});box.append(l,n);
+    });
+    editable(box,'Supporting quote (copy exactly from your lesson notes)',q.evidence,v=>q.evidence=v);
+    const details=el('details'),summary=el('summary','Read original lesson notes');details.append(summary,el('p',state.spec.notes));box.append(details);target.append(box);
+  });
+}
+function setMode(next) {
+  mode=next;
+  for(const name of ['student','teacher','edit']){const tab=$(`tab-${name}`);tab.setAttribute('aria-selected',String(name===mode));tab.tabIndex=name===mode?0:-1;}
+  $('preview').setAttribute('aria-labelledby',`tab-${mode}`);
+  if(state)preview();updateReview();
+}
+function loadSample() {
+  if(active)return;
+  if(state&&!confirm('Replace the current paper with the sample? Save your draft first if you want to keep it.'))return;
+  fillForm(sampleSpec);state={spec:structuredClone(sampleSpec),paper:structuredClone(samplePaper),sample:true,approved:false,model:'Hand-authored sample'};
+  setMode('student');error();message('Sample loaded. This is a hand-authored example, not a live model response.');$('workspace').scrollIntoView({behavior:'smooth',block:'start'});
+}
+for(const id of ['try-sample','empty-sample'])$(id).addEventListener('click',loadSample);
+$('sample-notes').addEventListener('click',()=>{if($('notes').value&&!confirm('Replace the notes and settings with the sample? Your current paper will remain unchanged.'))return;fillForm(sampleSpec);message('Sample notes added. Generate a fresh assessment or explore the prepared sample.');});
+for(const name of ['student','teacher','edit'])$(`tab-${name}`).addEventListener('click',()=>setMode(name));
+document.querySelector('.tabs').addEventListener('keydown',event=>{
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();
+  const modes=['student','teacher','edit'];let i=modes.indexOf(mode);
+  i=event.key==='Home'?0:event.key==='End'?2:(i+(event.key==='ArrowRight'?1:2))%3;
+  setMode(modes[i]);$(`tab-${modes[i]}`).focus();
+});
+form.addEventListener('input',updateCount);
+form.addEventListener('submit',async event=>{
+  event.preventDefault();if(active)return;error();let spec;
+  try{spec=validateRequest(fieldValues());}catch(e){error(e.message);return;}
+  if(state&&!confirm('Generate a new paper? This replaces the current paper only if generation succeeds.'))return;
+  const controller=new AbortController();active=controller;busy(true);message('Drafting your assessment, then checking questions, quotes and marks…');
+  const timer=setTimeout(()=>controller.abort('timeout'),115000);
+  try{
+    const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Access-Code':$('access-code').value},body:JSON.stringify(spec),signal:controller.signal});
+    const data=await response.json();if(!response.ok)throw new Error(data.error||'Generation failed.');
+    const paper=parseModelOutput(JSON.stringify(data.paper),spec);
+    state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};setMode('edit');message('Your draft is ready. Review each question, expected answer and source quote.');
+  }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation timed out. Try fewer questions. Your previous paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}
+  finally{clearTimeout(timer);active=null;busy(false);}
+});
+$('cancel').addEventListener('click',()=>active?.abort());
+$('approved').addEventListener('change',()=>{if(!state)return;state.approved=$('approved').checked;updateReview();if(mode!=='edit')preview();});
+$('print').addEventListener('click',()=>{if(!state?.approved||auditAssessment(state.paper,state.spec).length||mode==='edit')return;preview();window.print();});
+$('save').addEventListener('click',()=>{if(!state)return;try{localStorage.setItem(storageKey,JSON.stringify({...state,approved:false}));updateReview();message('Draft saved in this browser on this device. Anyone using this browser profile may be able to access it.');}catch{error('This browser could not save the draft. Download the JSON file instead.');}});
+$('restore').addEventListener('click',()=>{
+  if(state&&!confirm('Replace this paper with the saved draft?'))return;
+  try{const raw=localStorage.getItem(storageKey);if(!raw||raw.length>200000)throw new Error();const saved=JSON.parse(raw),spec=validateRequest(saved.spec),paper=parseModelOutput(JSON.stringify(saved.paper),spec);state={spec,paper,sample:saved.sample===true,approved:false,model:typeof saved.model==='string'?saved.model.slice(0,100):'Restored draft'};fillForm(spec);setMode('edit');error();message('Draft restored. Review it again before printing.');}catch{error('The saved draft is unavailable or failed validation.');}
+});
+$('clear').addEventListener('click',()=>{try{localStorage.removeItem(storageKey);updateReview();message('Saved device draft cleared. The paper currently open in this tab is unchanged.');}catch{error('Could not clear device storage.');}});
+$('download').addEventListener('click',()=>{if(!state)return;const blob=new Blob([JSON.stringify({...state,approved:false},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='lessonpress-assessment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('Editable JSON downloaded. Keep it somewhere private if the notes are sensitive.');});
+$('about-button').addEventListener('click',()=>$('about').showModal());$('close-about').addEventListener('click',()=>$('about').close());
+window.addEventListener('beforeprint',()=>{if(!state?.approved||mode==='edit'||auditAssessment(state.paper,state.spec).length){$('preview').replaceChildren(el('p','This draft has not been approved for printing. Review it in LessonPress, confirm your review, and choose Student paper or Marking guide.'));}});
+window.addEventListener('afterprint',()=>{if(state)preview();});
+updateCount();setMode('student');busy(false);
+fetch('/api/config').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(data=>{config=data;$('access-wrap').hidden=!data.accessRequired;$('connection').textContent=data.configured?'Hosted generation connected. Provider quota and availability apply.':'Generation is not connected yet. Explore the sample to try editing and printing.';busy(false);}).catch(()=>{$('connection').textContent='Could not check generation availability. Refresh to retry. The sample still works.';busy(false);});

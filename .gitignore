@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.vercel/
+test-results/
+public/assessment.js
+public/sample.js

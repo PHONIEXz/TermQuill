@@ -61,7 +61,7 @@ npm run check
 npm run build
 ```
 
-Automated checks include 29 unit, HTTP and DOM interaction tests. Provider responses are simulated in tests; they do not establish live Gemma quality, real quota availability or willingness to pay. A production smoke test generated three Chemistry questions on its first attempt in about 67 seconds. This is one successful test, not an accuracy or reliability benchmark. See `docs/verification.md` for current browser evidence and remaining work.
+Automated checks include 33 unit, HTTP and DOM interaction tests. Provider responses are simulated in tests; they do not establish live Gemma quality, real quota availability or willingness to pay. A production smoke test generated three Chemistry questions on its first attempt in about 67 seconds. This is one successful test, not an accuracy or reliability benchmark. See `docs/verification.md` for current browser evidence and remaining work.
 
 Gemma 4 requests use `thinkingLevel: minimal` to avoid the optional thinking pass for this structured drafting task. A provider 5xx response gets one short retry, within the existing overall timeout. Quota (429) and access errors are not blindly retried. Safe error codes distinguish quota, access, unavailable model, rejected request, timeout and connectivity failures. Logs include a random request reference and status code, never raw provider messages, keys or notes. The UI displays that reference for investigation. A provider quota remains an account/provider constraint; application retries cannot remove it.
 
@@ -80,3 +80,5 @@ Target a narrow paid use case: tutors who repeatedly prepare tests from their ow
 Submission needs a working demo or video, public code link and an English DEV write-up using the official template. Writing quality is weighted most heavily. Publish before the official deadline and note any commits after that deadline in this README. Do not claim a sale or user test that has not happened.
 
 AI coding assistance was used. Paul Ayoade David owns the product direction and review. Third-party runtime dependencies are listed in `package.json` and `package-lock.json`; no code was copied from earlier Phoenix projects.
+
+Provider recovery: after two transient 5xx errors from the primary Gemma, the app switches once to `gemma-4-31b-it` on the same Google service. Set `GOOGLE_FALLBACK_MODEL` to a different available Gemma or to an empty value to disable. Quota, access and invalid-request failures do not trigger fallback. Successful responses report the actual model, fallback use and provider call count. One structural repair is still allowed, with at most four total provider calls and the existing 105-second overall deadline. This is not a cross-provider outage solution and cannot guarantee availability.

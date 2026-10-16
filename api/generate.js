@@ -23,6 +23,7 @@ export function createHandler({generate = generateAssessment, limiter = allow} =
     res.on('close',disconnect);
     try {
       const result = await generate(spec,{signal:controller.signal});
+      console.info(JSON.stringify({event:'generation_completed',model:result.model,fallbackUsed:result.fallbackUsed===true,providerCalls:result.providerCalls}));
       if (!res.destroyed) json(res,200,{...result,spec,generatedAt:new Date().toISOString()});
     } catch (error) {
       const failure=publicFailure(error,controller.signal.aborted),requestId=randomUUID();

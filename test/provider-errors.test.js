@@ -28,5 +28,22 @@ test('quota is not blindly retried',async()=>{
 });
 test('aborted request does not retry',async()=>{
   const controller=new AbortController();controller.abort();let calls=0;
-  await assert.rejects(()=>generateAssessment(sampleSpec,{key:'test',signal:controller.signal,generate:async()=>{calls++;throw Object.assign(new Error('busy'),{statusCode:503});}}));assert.equal(calls,1);
+  await assert.rejects(()=>generateAssessment(sampleSpec,{key:'test',signal:controller.signal,generate:async()=>{calls++;throw Object.assign(new Error('busy'),{statusCode:503});}}));assert.equal(calls,0);
+});
+test('two primary 500s fall back to another Gemma and report the actual model',async()=>{
+  const models=[];const result=await generateAssessment(sampleSpec,{key:'test',sleep:async()=>{},generate:async options=>{
+    models.push(options.model.modelId);if(models.length<3)throw Object.assign(new Error('internal'),{statusCode:500});return {text:JSON.stringify(samplePaper)};
+  }});
+  assert.deepEqual(models,['gemma-4-26b-a4b-it','gemma-4-26b-a4b-it','gemma-4-31b-it']);assert.equal(result.model,'gemma-4-31b-it');assert.equal(result.fallbackUsed,true);assert.equal(result.providerCalls,3);
+});
+test('fallback failure is bounded and does not loop',async()=>{
+  let calls=0;await assert.rejects(()=>generateAssessment(sampleSpec,{key:'test',sleep:async()=>{},generate:async()=>{calls++;throw Object.assign(new Error('internal'),{statusCode:500});}}));assert.equal(calls,3);
+});
+test('fallback is not used for access, quota or invalid request errors',async()=>{
+  for(const statusCode of [400,401,403,404,429]){let calls=0;await assert.rejects(()=>generateAssessment(sampleSpec,{key:'test',sleep:async()=>{},generate:async()=>{calls++;throw Object.assign(new Error('failed'),{statusCode});}}));assert.equal(calls,1);}
+});
+test('validation repair stays on the successful fallback model',async()=>{
+  const models=[];const result=await generateAssessment(sampleSpec,{key:'test',sleep:async()=>{},generate:async options=>{
+    models.push(options.model.modelId);if(models.length<3)throw Object.assign(new Error('internal'),{statusCode:500});return {text:models.length===3?'{}':JSON.stringify(samplePaper)};
+  }});assert.deepEqual(models,['gemma-4-26b-a4b-it','gemma-4-26b-a4b-it','gemma-4-31b-it','gemma-4-31b-it']);assert.equal(result.attempts,2);assert.equal(result.providerCalls,4);
 });

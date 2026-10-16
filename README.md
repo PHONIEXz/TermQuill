@@ -43,15 +43,15 @@ Optional `LESSONPRESS_ACCESS_CODE` restricts generation to a small invited pilot
 
 Import the new repository, use the included `vercel.json`, and add `GOOGLE_GENERATIVE_AI_API_KEY`, `GOOGLE_MODEL`, and a pilot access code as server environment variables. Redeploy after changing variables. Build command: `npm run build`. Output: `public`. API functions: `api/`.
 
-The build copies shared validation, draft-storage and sample modules into `public`; do not edit those generated copies. Local development serves the original `lib` files through an explicit allowlist. No database is required.
+The build copies shared validation, draft-storage and sample modules into `public`; do not edit those generated copies. Local development serves the original `lib` files through an explicit allowlist. The account-free builder needs no database. School workspaces require the Supabase migration below.
 
-Before a public launch, add durable rate limits and platform protections. The included limits (8 generations per client/hour and 100 total/hour) are in-memory per server instance and reset when instances restart; distributed instances do not share them. They are not a reliable account-wide spending cap. Configure provider spending controls separately. The deployed Vercel path still needs a real deployment smoke test.
+Before a public launch, add durable rate limits and platform protections. The included limits (8 generations per client/hour and 100 total/hour) are in-memory per server instance and reset when instances restart; distributed instances do not share them. They are not a reliable account-wide spending cap. Configure provider spending controls separately. Current deployment verification is recorded in `docs/verification.md`.
 
 ## Privacy and review
 
-Generation sends the submitted lesson notes and settings to Google. This app does not persist them on the server or log them. Provider retention is governed by the account's terms; do not claim end-to-end local privacy. Do not submit student names, marks, personal records or sensitive material.
+Generation sends the submitted lesson notes and settings to Google. Generation does not persist notes on the app server or log them. Sending a paper to a school explicitly stores its questions and source notes in Supabase. Provider retention is governed by the account's terms; do not claim end-to-end local privacy. Do not submit student names, marks, personal records or sensitive material.
 
-Drafts remain in the tab unless the teacher explicitly saves to browser localStorage or downloads JSON. LocalStorage is accessible to anyone sharing that browser profile. Removing a draft removes the selected device copy, not downloaded files. Restoring requires structural validation and resets review approval.
+Drafts remain in the tab unless the teacher explicitly saves to browser localStorage, downloads JSON, or sends a copy to a school workspace. LocalStorage is accessible to anyone sharing that browser profile. Removing a draft removes the selected device copy, not downloaded files. Restoring requires structural validation and resets review approval.
 
 Exact quote matching proves only that the quote occurs in the notes. It does not prove the quote supports the answer, the source notes are correct, the MCQ has only one defensible answer, or the assessment is age-appropriate. Duplicate detection catches normalized identical wording, not semantic paraphrases. A teacher must check these. Any edit resets approval. Print views are separated by explicit rendering; the teacher guide contains answers and must be handled accordingly.
 
@@ -63,7 +63,7 @@ npm run check
 npm run build
 ```
 
-Automated checks include 43 unit, HTTP and DOM interaction tests. Provider responses are simulated in tests; they do not establish live Gemma quality, real quota availability or willingness to pay. A production smoke test generated three Chemistry questions on its first attempt in about 67 seconds. This is one successful test, not an accuracy or reliability benchmark. See `docs/verification.md` for current browser evidence and remaining work.
+Automated checks include 51 unit, HTTP, DOM and Postgres interaction tests. Provider responses are simulated in tests; they do not establish live Gemma quality, real quota availability or willingness to pay. A production smoke test generated three Chemistry questions on its first attempt in about 67 seconds. This is one successful test, not an accuracy or reliability benchmark. See `docs/verification.md` for current browser evidence and remaining work.
 
 Gemma 4 requests use `thinkingLevel: minimal` to avoid the optional thinking pass for this structured drafting task. A provider 5xx response gets one short retry, within the existing overall timeout. Quota (429) and access errors are not blindly retried. Safe error codes distinguish quota, access, unavailable model, rejected request, timeout and connectivity failures. Logs include a random request reference and status code, never raw provider messages, keys or notes. The UI displays that reference for investigation. A provider quota remains an account/provider constraint; application retries cannot remove it.
 
@@ -87,7 +87,7 @@ Provider recovery: after two transient 5xx errors from the primary Gemma, the ap
 
 ## Milestone 2: teacher workspace
 
-Separate pages and multiple saved drafts make the create → review → save → reopen → print workflow usable across sessions. Saving updates the same draft rather than silently adding duplicates. Imported papers get a new ID and always need review. Unsaved papers show a warning before leaving the creator. All storage is browser-local; there is no user account or cloud backup.
+Separate pages and multiple saved drafts make the create → review → save → reopen → print workflow usable across sessions. Saving updates the same draft rather than silently adding duplicates. Imported papers get a new ID and always need review. Unsaved papers show a warning before leaving the creator. This personal draft library uses browser storage. The School Review Pilot below adds separate accounts and shared cloud storage.
 
 Next milestone: classroom pilot. Review outputs in Chemistry, Basic Science and one non-science subject; inspect student/teacher PDFs; check a real phone; collect feedback from two teachers and measure preparation/editing time without inventing results.
 
@@ -97,7 +97,7 @@ School accounts use Supabase Auth. The existing account-free assessment builder 
 
 Apply `migrations/001_school_review.sql` to the provisioned Supabase database before deploying. The Vercel Marketplace integration supplies `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (legacy anon keys are also supported). The app never uses the service-role key or database password. For local development, put the public URL/key in your private `.env`.
 
-Accounts require email verification and a password of at least 12 characters. The Supabase Auth production Site URL is configured as `https://lessonpress-pi.vercel.app/school`, Configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. After confirming an email, users can return to `/school` to sign in. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
+Accounts require email verification and a password of at least 12 characters. The Supabase Auth production Site URL is configured as `https://lessonpress-pi.vercel.app/school`. Configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. After confirming an email, users can return to `/school` to sign in. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
 
 A principal creates a school, departments and email-bound invitation links for teachers or department heads. Invitations expire after seven days, are single use and can be revoked. The app displays a link for the principal to share; it does not send invitations. School creation does not verify institutional ownership. One account can create at most three schools in this pilot.
 

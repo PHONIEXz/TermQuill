@@ -1,5 +1,7 @@
 import {validateDraft} from '/drafts.js';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
+// Confirmation links may contain Supabase tokens. Users sign in explicitly; discard the fragment.
+if(location.hash)history.replaceState(null,'',location.pathname+location.search);
 const view=location.pathname.split('/')[2]||'overview';
 let user=null,schools=[],school=null,data=null,openPaper=null,editing=false,dirty=false,working=false;
 let invite=params.get('invite')||sessionStorage.getItem('lessonpress.invite');

@@ -41,3 +41,8 @@ test('department controls stay restricted to principals and a department head ge
  const {dom,w,$}=await setup('/school/team', (url,body)=>url==='/api/account'?{user:{id:'u1',email:'hod@example.com'}}:body.action==='bootstrap'?{schools:[{...school,role:'hod'}]}:dashboard);
  try{assert.equal(w.document.querySelector('[data-action=create-department]'),null);assert.match($('school-content').textContent,/principal manages/);}finally{dom.window.close();}
 });
+
+test('invitation form starts with a safe teacher role and an available department',async()=>{
+ const {dom,w}=await setup('/school/team',signedHandler());
+ try{const f=[...w.document.querySelectorAll('form')].find(f=>f.textContent.includes('Give a colleague access'));assert.ok(f);const selects=f.querySelectorAll('select');assert.equal(selects[0].value,'teacher');assert.equal(selects[1].value,'d1');assert.match(f.textContent,/Only that address can accept/);}finally{dom.window.close();}
+});

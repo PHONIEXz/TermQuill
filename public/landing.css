@@ -3,3 +3,5 @@
 @media print{.landing-section,.guide-school{display:none!important}.legal-layout{display:block}.legal-nav,.legal-page header,.legal-page footer{display:none!important}.legal-page main{display:block!important}.legal-main{padding:0}.legal-content section{break-inside:avoid}}
 
 body[data-page=home] .landing-trust{display:grid}@media print{body.legal-page main{display:block!important}}
+
+.primary{text-decoration:none}body[data-page=home] .footnote{display:none}

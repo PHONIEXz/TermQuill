@@ -50,3 +50,5 @@ Milestone 2 adds Home, Create, My drafts and Guide URLs with active navigation. 
 - Custom formats allow supported question kinds in different orders. Invalid kinds, wrong counts, answer/option errors, mark totals and unsupported source quotes remain rejected. Exact adherence to custom teaching preferences is not automatically certified.
 - Added tests for validation bounds, prompt propagation, custom ordering, invalid kinds/evidence, UI visibility/required state, request payload and save/restore preservation.
 - Added a proposed AI roadmap for lesson planning, advisory paper review, curriculum mapping, permission-scoped library discovery and data-grounded planning insights. These proposed capabilities are not presented as deployed features.
+
+- First live custom example was rejected after both validation attempts. Tightened the prompt with exact supported kind labels and complete per-kind JSON examples. Final validation failures now log the bounded structural-check messages only, without raw model output or lesson content, so rejection causes can be diagnosed. Live retest follows deployment.

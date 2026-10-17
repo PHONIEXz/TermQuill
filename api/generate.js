@@ -29,7 +29,7 @@ export function createHandler({generate = generateAssessment, limiter = allow} =
       const failure=publicFailure(error,controller.signal.aborted),requestId=randomUUID();
       // Log only whitelisted diagnostic values, never the raw provider error,
       // response body, request headers, lesson notes, or API key.
-      console.warn(JSON.stringify({event:'generation_failed',requestId,code:failure.code,providerStatus:providerStatus(error)}));
+      console.warn(JSON.stringify({event:'generation_failed',requestId,code:failure.code,providerStatus:providerStatus(error),...(failure.code==='ASSESSMENT_VALIDATION'&&typeof error.validationChecks==='string'?{validationChecks:error.validationChecks.slice(0,1200)}:{})}));
       if(failure.code==='PROVIDER_QUOTA')res.setHeader('Retry-After','60');
       if (!res.destroyed) json(res,failure.status,{error:failure.error,code:failure.code,requestId});
     } finally {clearTimeout(timer);res.off('close',disconnect);}

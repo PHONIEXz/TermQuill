@@ -35,3 +35,7 @@ test('manual format permits different supported ordering but still rejects inval
  p.questions[0].kind='image';assert.ok(auditAssessment(p,spec).some(x=>/written-response/.test(x.message)));
  p.questions[1].evidence='This is not from the notes';assert.ok(auditAssessment(p,spec).some(x=>/supporting quote/.test(x.message)));
 });
+
+test('custom prompts give valid JSON examples with exact supported kind strings',()=>{
+ const prompt=buildPrompt({...sampleSpec,format:'custom',formatInstructions:'Three written comparisons.'});assert.match(prompt,/ONLY valid kind strings/);assert.ok(prompt.includes('"kind":"short"'));assert.ok(prompt.includes('"kind":"mcq"'));assert.ok(!prompt.includes('"kind":"mcq or short"'));
+});

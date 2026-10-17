@@ -37,7 +37,7 @@ async function load(){
 }
 const statusNames={draft:'Draft',submitted:'Waiting for review',changes_requested:'Changes requested',approved:'Approved'};
 function hint(input,text){const note=el('p',text,'field-help');note.id=input.id+'-help';input.setAttribute('aria-describedby',note.id);(input.type==='checkbox'&&input.closest('label')?input.closest('label'):input).after(note);return input;}
-function explain(box,title,meaning,benefit,next){const panel=el('aside',undefined,'school-explainer no-print');panel.append(el('p','A LITTLE GUIDANCE','eyebrow'),el('h3',title),el('p',meaning));const why=el('p');why.append(el('strong','How it helps. '),document.createTextNode(benefit));const how=el('p');how.append(el('strong','Your next step. '),document.createTextNode(next));panel.append(why,how);box.append(panel);}
+function explain(box,title,meaning,benefit,next){const panel=el('aside',undefined,'school-explainer no-print');panel.append(el('h3',title),el('p',meaning));const details=el('details'),summary=el('summary','How this helps & what to do');const why=el('p');why.append(el('strong','How it helps. '),document.createTextNode(benefit));const how=el('p');how.append(el('strong','Your next step. '),document.createTextNode(next));details.append(summary,why,how);panel.append(details);box.append(panel);}
 function departmentSetup(box){
  if(school.role!=='principal'){
   if(!data.departments.length)explain(box,'A department is your teaching team.','A department groups related subjects or classes, such as Science or Primary school.','It keeps shared papers and reviews with the right colleagues.','Ask your principal to create a department and invite you to it.');

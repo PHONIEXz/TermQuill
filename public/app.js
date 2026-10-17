@@ -27,6 +27,7 @@ function updateCount() {$('notes-count').textContent=`${$('notes').value.length.
 function busy(on) {
   for(const item of form.elements)item.disabled=on;
   $('generate').disabled=on||!config.configured;
+  $('generate').textContent=on?'Preparing assessment…':'Create my assessment →';
   for(const id of ['try-sample','sample-notes','empty-sample','restore'])if($(id))$(id).disabled=on||(id==='restore'&&!hasSaved());
   $('cancel').disabled=false;$('cancel').hidden=!on;
   document.querySelector('.output').setAttribute('aria-busy',String(on));
@@ -78,20 +79,22 @@ function renderEditor(target) {
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{
     const box=el('section',undefined,'editor');box.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} marks`));
-    editable(box,'Question',q.prompt,v=>q.prompt=v);
+    const grid=el('div',undefined,'editor-grid'),fields=el('div',undefined,'editor-fields'),evidence=el('aside',undefined,'editor-evidence');
+    evidence.setAttribute('aria-label',`Supporting evidence for question ${i+1}`);
+    editable(fields,'Question',q.prompt,v=>q.prompt=v);
     if(q.kind==='mcq'){
-      q.options.forEach((option,j)=>editable(box,`Option ${'ABCD'[j]}`,option,v=>{q.options[j]=v;if(q.correctIndex===j){q.answer=v;q.marking=[{point:`Select ${'ABCD'[j]}: ${v}`,marks:q.marks}];}},{multiline:false,max:400}));
+      q.options.forEach((option,j)=>editable(fields,`Option ${'ABCD'[j]}`,option,v=>{q.options[j]=v;if(q.correctIndex===j){q.answer=v;q.marking=[{point:`Select ${'ABCD'[j]}: ${v}`,marks:q.marks}];}},{multiline:false,max:400}));
       const label=el('label','Correct option'),select=el('select');select.id=`correct-${i}`;label.htmlFor=select.id;
       q.options.forEach((_,j)=>{const o=el('option',`Option ${'ABCD'[j]}`);o.value=j;select.append(o);});select.value=q.correctIndex;
-      select.addEventListener('change',()=>{q.correctIndex=Number(select.value);q.answer=q.options[q.correctIndex];q.marking=[{point:`Select ${'ABCD'[q.correctIndex]}: ${q.answer}`,marks:q.marks}];resetApproval();preview();});box.append(label,select);
-    }else editable(box,'Expected answer',q.answer,v=>q.answer=v);
+      select.addEventListener('change',()=>{q.correctIndex=Number(select.value);q.answer=q.options[q.correctIndex];q.marking=[{point:`Select ${'ABCD'[q.correctIndex]}: ${q.answer}`,marks:q.marks}];resetApproval();preview();});fields.append(label,select);
+    }else editable(fields,'Expected answer',q.answer,v=>q.answer=v);
     q.marking.forEach((p,j)=>{
-      editable(box,`Marking point ${j+1}`,p.point,v=>p.point=v,{max:600});
+      editable(fields,`Marking point ${j+1}`,p.point,v=>p.point=v,{max:600});
       const l=el('label',`Marks for point ${j+1}`),n=el('input');n.type='number';n.min=1;n.max=10;n.value=p.marks;n.id=`marks-${i}-${j}`;l.htmlFor=n.id;
-      n.addEventListener('input',()=>{p.marks=Number(n.value);resetApproval();});box.append(l,n);
+      n.addEventListener('input',()=>{p.marks=Number(n.value);resetApproval();});fields.append(l,n);
     });
-    editable(box,'Supporting quote (copy exactly from your lesson notes)',q.evidence,v=>q.evidence=v);
-    const details=el('details'),summary=el('summary','Read original lesson notes');details.append(summary,el('p',state.spec.notes));box.append(details);target.append(box);
+    editable(evidence,'Supporting quote (copy exactly from your lesson notes)',q.evidence,v=>q.evidence=v);
+    const details=el('details'),summary=el('summary','Read original lesson notes');details.append(summary,el('p',state.spec.notes));evidence.append(details);grid.append(fields,evidence);box.append(grid);target.append(box);
   });
 }
 function setMode(next) {

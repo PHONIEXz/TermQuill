@@ -4,6 +4,8 @@
 
 Live pilot: https://lessonpress-pi.vercel.app/
 
+UI direction and future design rules: [design/DESIGN.md](design/DESIGN.md). The workspace uses grouped school navigation, a sectioned assessment builder, a responsive menu and a distinct supporting-evidence area during editing.
+
 Created by **Paul Ayoade David** for private tutors and classroom teachers. This new project began on October 16, 2026 for DEV's Hacktoberfest Week 2: Side Hustle challenge. Phoenix Offline AI is a separate, paused project.
 
 LessonPress turns teacher-supplied notes into an editable assessment and separate marking guide. Each generated question includes a verbatim supporting quote. Deterministic checks validate question counts, formats, expected answers, duplicates and marking totals. The teacher reviews the content before printing. It is a draft assistant, not a factual certification tool.

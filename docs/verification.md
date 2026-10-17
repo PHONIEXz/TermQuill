@@ -73,3 +73,13 @@ Milestone 2 adds Home, Create, My drafts and Guide URLs with active navigation. 
 - Private school points require principal access and explicit school-point confirmation. Public listing defaults off, requires a verified school and returns only rounded public location/name/area. New SQL retains membership checks, denies staff edits/direct table access and uses version checks with a private sequence to prevent stale edits after remove/recreate.
 - Nearby requests use coarse search bounds; precise origin and distance calculations stay in page memory. No AI prompts, background watching or browser storage of a search point. External map links are user-initiated and identify their recipient.
 - All 75 tests pass, plus syntax and build checks. Hosted migration 003 and rollback-only SQL verification passed. Temporary point/listing fixtures were rolled back, and the query editor returned to read-only mode. No actual school point, real GPS fix or public listing was created by the agent.
+
+
+### Design toolkit applied to LessonPress, 17 October 2026
+
+- Added a shared visual layer with readable working text, larger controls, consistent focus styles, quieter surfaces and an explicit reduced-motion fallback. No external font or animation dependency was added.
+- Grouped school navigation into work, team and settings. It becomes a rail on wider screens and grouped links above content on narrow screens. Shared primary navigation progressively gains a compact menu with expanded-state semantics, Escape dismissal and focus handling when the breakpoint changes.
+- Divided assessment setup into semantic fieldsets. The question editor separates editable question/answer content from supporting evidence and expandable original notes. School explanations keep their purpose visible and move longer guidance into native expandable help.
+- All 77 tests pass, including existing generation/draft/review/print/security checks and new menu interaction tests. Syntax checks and build pass. Shared CSS parses, and all four page templates have unique IDs and valid label targets. Local HTTP tests confirm both new shared assets are served.
+- Browser visual verification was unavailable in this session. CSS parsing and DOM tests do not verify actual layout, motion, mobile appearance or printed pagination. No new live model or hosted-account test was performed for this presentation change.
+- The cross-project selection preference and LessonPress rules are recorded in design/DESIGN.md and referenced by project guidance. This is durable project documentation, not a claim that an account-level memory was written.

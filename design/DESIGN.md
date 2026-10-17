@@ -8,7 +8,7 @@ The broader Phoenix UI Playbook is the reusable reference. This contract records
 
 ## Direction
 
-Calm educational identity with practical institutional structure. Preserve forest green, warm off-white surfaces and editorial headings. Use system sans-serif text for working controls. No external font request, decorative glass, 3D runtime or animation library.
+Expressive educational studio with practical institutional structure. Forest green anchors cream, peach/coral, lavender, mint and soft blue surfaces. Strong display typography and layered paper artwork make marketing pages distinctive; working pages use solid reading surfaces and the same palette. Preserve 18 px reading/input text and readable controls. No external font request, 3D runtime or animation library.
 
 References informing the design:
 - Apple hierarchy and materials: https://developer.apple.com/design/human-interface-guidelines/
@@ -16,7 +16,11 @@ References informing the design:
 - Carbon table structure: https://www.carbondesignsystem.com/building-blocks/core/components/data-table/specifications
 - Clear form patterns: https://design-system.service.gov.uk/patterns/question-pages/
 
-These are design references, not dependencies or a claim to reproduce native platform behavior.
+Additional GitHub references studied for this increment:
+- StyleKit editorial typography and spacing: https://github.com/AnxForever/stylekit/blob/main/lib/styles/editorial.ts (reference blob bc6ba3406330b02fdcde602f1493357074ab886b).
+- Auteur purposeful motion, easing and reduced-motion patterns: https://github.com/agiwhitelist/auteur/blob/main/reference/motion.md (reference blob bed1b763cc2682d42a520df8b8ba752d8484c924).
+
+The multicolor direction is an original adaptation, not StyleKit's monochrome editorial theme. No reference code, assets, skill or package is installed or redistributed. These are design references, not dependencies or a claim to reproduce native platform behavior.
 
 ## Shared rules
 
@@ -33,3 +37,9 @@ These are design references, not dependencies or a claim to reproduce native pla
 ## Verification boundary
 
 DOM tests and simulated API responses verify interaction logic. They do not establish visual fidelity, actual device usability, live model quality or hosted database availability. Record deployment and verification results in `docs/verification.md`.
+
+## Expressive layer and motion
+
+The hero uses original inline SVG orbit artwork, layered HTML paper and peach/blue annotation cards. Marketing sections use colored surfaces and varied composition. The interactive three-stage example is hand-authored, explicitly illustrative, and never calls an AI endpoint. Its stages support arrows, Home/End, focus and selected-state semantics. Without JavaScript, all example content remains readable.
+
+Motion is limited to hero entry, two gently drifting annotations, one-time section entrances and short state transitions. A header control pauses decorative motion, and system reduced-motion preferences take precedence. There is no scroll hijacking, autoplay media, cursor replacement or animation of text while reading. Content is never hidden waiting for JavaScript or an observer. Longer marketing entrances explain sequence; form interactions remain immediate.

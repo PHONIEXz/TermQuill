@@ -88,3 +88,12 @@ Milestone 2 adds Home, Create, My drafts and Guide URLs with active navigation. 
 ### Reading comfort correction, 17 October 2026
 
 User feedback showed the first design pass still required zoom. Increased default reading/input text to 18 px, working labels/help/navigation to 16 px and secondary-text contrast. Removed smaller mobile text overrides, stacked long question-setting selects, and switched the compact-menu breakpoint to 1100 px to accommodate larger navigation. Print text retains its previous 14 px sizing. Visual/device verification remains unavailable; the user's normal-zoom reading experience needs checking on the deployed update.
+
+
+### Expressive editorial design, 17 October 2026
+
+- Rebuilt the home hero around deep green, cream, coral, lavender and blue, with original inline SVG artwork, layered paper and gently moving annotations. Extended the palette to builder, drafts, guide, school and directory surfaces while retaining the readability correction.
+- Added a clearly labelled hand-authored, three-stage workflow preview. It has tab semantics, arrow/Home/End keyboard control and no model request. Content remains readable if scripts fail.
+- Added a visible pause/resume control and live device reduced-motion handling. Scroll entrances enhance visible content once; there is no scroll interception or hidden-until-JS content. Existing form and review behavior is preserved.
+- All 80 tests pass, including example interaction/no-network tests and motion preference checks. Syntax and build checks pass. Shared CSS parses; template IDs and controlled-panel references are valid. Live visual checks are recorded separately after deployment.
+- GitHub StyleKit/Auteur sources informed typography and motion decisions; implementation and artwork are original and no external runtime was installed. No measured performance score, real school adoption or live model-quality improvement is claimed.

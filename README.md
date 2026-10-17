@@ -4,7 +4,7 @@
 
 Live pilot: https://lessonpress-pi.vercel.app/
 
-UI direction and future design rules: [design/DESIGN.md](design/DESIGN.md). The workspace uses grouped school navigation, a sectioned assessment builder, a responsive menu and a distinct supporting-evidence area during editing.
+UI direction and future design rules: [design/DESIGN.md](design/DESIGN.md). The interface combines an original multicolor editorial landing page and interactive workflow example with grouped school navigation, a sectioned assessment builder and a distinct supporting-evidence area. Decorative motion can be paused and respects device reduced-motion preferences.
 
 Created by **Paul Ayoade David** for private tutors and classroom teachers. This new project began on October 16, 2026 for DEV's Hacktoberfest Week 2: Side Hustle challenge. Phoenix Offline AI is a separate, paused project.
 

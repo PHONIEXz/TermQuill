@@ -22,6 +22,12 @@ test('invalid response repairs once using original settings and notes',async()=>
   const r=await generateAssessment(sampleSpec,{key:'test-not-a-real-key',generate});assert.equal(r.attempts,2);assert.ok(calls[1].prompt.includes(sampleSpec.notes));assert.ok(calls[1].prompt.includes('Previous attempt failed'));assert.equal(calls[0].maxRetries,0);
 });
 test('two invalid outputs fail honestly rather than returning a sample',async()=>{let calls=0;await assert.rejects(()=>generateAssessment(sampleSpec,{key:'test',generate:async()=>{calls++;return {text:'{}'};}}),/could not produce/);assert.equal(calls,2);});
+test('quote repair receives the rejected paper without relaxing source checks',async()=>{
+ const invalid=copy();invalid.questions[0].evidence='An element is a pure substance made of only one type of atom. Water is a compound made of hydrogen and oxygen.';
+ assert.throws(()=>parseModelOutput(JSON.stringify(invalid),sampleSpec),/supporting quote/);
+ const calls=[];const result=await generateAssessment(sampleSpec,{key:'test',generate:async args=>{calls.push(args);return {text:JSON.stringify(calls.length===1?invalid:samplePaper)};}});
+ assert.equal(result.attempts,2);assert.ok(!calls[0].prompt.includes('PREVIOUS RESPONSE:'));assert.ok(calls[1].prompt.includes(JSON.stringify(JSON.stringify(invalid))));assert.match(calls[1].prompt,/ONE continuous verbatim passage/);assert.match(calls[1].prompt,/Q1: The supporting quote/);
+});
 test('per-client and global limits expire',()=>{const allow=makeLimiter(2,100,3);assert.equal(allow('a',1),true);assert.equal(allow('a',2),true);assert.equal(allow('a',3),false);assert.equal(allow('b',4),true);assert.equal(allow('c',5),false);assert.equal(allow('a',102),true);});
 
 test('manual preferences are bounded and remain attached to validated drafts',()=>{

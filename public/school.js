@@ -19,7 +19,7 @@ function field(form,label,{type='text',value='',max=100,required=true,options}={
 function form(title,fn){const f=el('form',undefined,'school-form');f.append(el('h3',title));f.addEventListener('submit',e=>{e.preventDefault();run(()=>fn(f));});return f;}
 function submit(f,text){const b=el('button',text,'primary');b.type='submit';f.append(b);}
 function department(id){return data.departments.find(d=>d.id===id)?.name||'Department';}
-const date=value=>new Date(value).toLocaleString();
+const date=value=>new Date(value).toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
 function route(path,extra={}){return path+'?'+new URLSearchParams({school:school.id,...extra});}
 async function bootstrap(preferred=params.get('school')||localStorage.getItem('lessonpress.school')){
  const result=await rpc('bootstrap');schools=result.schools;school=schools.find(s=>s.id===preferred)||schools[0]||null;
@@ -55,7 +55,7 @@ function departmentSetup(box){
 }
 function setupJourney(box){
  const panel=el('section',undefined,'school-journey no-print');panel.append(el('h3','A simple path from setup to a shared paper'));
- const items=[['1','Create a department','A home for related subjects or classes.',data.departments.length>0,'/school/team'],['2','Bring in a colleague','Teachers write; department heads review.',data.members.some(m=>m.user_id!==user.id),'/school/team'],['3','Add your first paper','Create from notes, then choose Send to school.',data.papers.length>0,'/create'],['4','Review and share','Submit a draft. Another reviewer approves it.',data.papers.some(p=>p.approved_revision),'/school/reviews']];
+ const items=[['1','Create a department','A home for related subjects or classes.',data.departments.length>0,'/school/team'],(data.verification?.status==='verified'?['2','Bring in a colleague','Teachers write; department heads review.',data.members.some(m=>m.user_id!==user.id),'/school/team']:['2','Verify your school','Request an independent identity and authority check.',false,'/school/trust']),['3','Add your first paper','Create from notes, then choose Send to school.',data.papers.length>0,'/create'],['4','Review and share','Submit a draft. Another reviewer approves it.',data.papers.some(p=>p.approved_revision),'/school/reviews']];
  const list=el('ol');for(const [num,title,text,done,path] of items){const item=el('li');item.append(el('span',done?'✓':num,'journey-number'));const copy=el('div');copy.append(link(title,path==='/create'?path:route(path)),el('p',text),el('span',done?'Started':'Next step','field-help'));item.append(copy);list.append(item);}panel.append(list);box.append(panel);
 }
 function overview(box){
@@ -97,7 +97,7 @@ function libraryView(box){
 }
 function teamView(box){
  box.append(el('h2','Departments & people'));
- explain(box,'Put the right people around each paper.','Departments organise teaching teams. An invitation gives a colleague access to one department.','Teachers can write papers; a department head can review colleagues’ submissions. The principal oversees the school.','Create a department first. Then enter a colleague’s email, choose their responsibility and share their invitation link privately.');
+ explain(box,'Put the right people around each paper.','Departments organise teaching teams. An invitation gives a colleague access to one department.','Teachers can write papers; a department head can review colleagues’ submissions. The principal oversees the school.',school.role!=='principal'?'Your principal manages departments and invitations. Ask them if your team or access needs changing.':data.verification?.status==='verified'?'Create a department first. Then enter a colleague’s email, choose their responsibility and share their invitation link privately.':'Create a department first, then request a school identity check from School trust & activity. New invitations become available after independent verification.');
  if(school.role!=='principal'){box.append(el('p','Your principal manages school membership. Department heads review papers within their department. Teachers can edit their own papers and reuse approved departmental copies.'));return;}
  departmentSetup(box);
  if(data.departments.length&&data.verification?.status!=='verified'){box.append(el('div','New invitations require an independent school verification check. Your existing workspace and invitations remain available.','school-notice'),link('Request school verification →',route('/school/trust')));}
@@ -154,7 +154,7 @@ function download(content){const blob=new Blob([JSON.stringify({...content,id:cr
 $('account-form').addEventListener('submit',e=>{e.preventDefault();const action=e.submitter.value;run(async()=>{const out=await request('/api/account',{action,email:$('school-email').value,password:$('school-password').value});$('school-password').value='';if(out.verifyEmail){status('Check your email to verify your account. After verification, return here and sign in.');return;}await start();});});
 $('logout').addEventListener('click',()=>run(async()=>{await request('/api/account',{action:'logout'});location.href='/school';}));
 $('new-school-toggle').addEventListener('click',()=>{$('new-school').hidden=!$('new-school').hidden;$('new-school-toggle').setAttribute('aria-expanded',String(!$('new-school').hidden));if(!$('new-school').hidden)$('school-name').focus();});
-$('new-school').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('create_school',{name:$('school-name').value});$('new-school').hidden=true;await bootstrap(out.id);status('Your school is ready. Open Departments & people to create your first department.');});});
+$('new-school').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('create_school',{name:$('school-name').value});$('new-school').hidden=true;await bootstrap(out.id);status('Your workspace is created. Add a department, then request a school identity check from School trust & activity before inviting staff.');});});
 $('school-select').addEventListener('change',()=>run(async()=>{school=schools.find(s=>s.id===$('school-select').value);if(school){location.href=route('/school');}}));
 $('accept-invite').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('accept_invite',{token:invite});invite=null;sessionStorage.removeItem('lessonpress.invite');await bootstrap(out.id);status('You have joined your school.');});});
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});

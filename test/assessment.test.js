@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateRequest,auditAssessment,parseModelOutput,expectedKinds,buildPrompt } from '../lib/assessment.js';
+import { validateRequest,auditAssessment,parseModelOutput,expectedKinds,buildPrompt,sourcePassages } from '../lib/assessment.js';
 import { sampleSpec,samplePaper } from '../lib/sample.js';
 import { generateAssessment } from '../lib/generator.js';
 import { makeLimiter } from '../lib/http.js';
@@ -27,6 +27,14 @@ test('quote repair receives the rejected paper without relaxing source checks',a
  assert.throws(()=>parseModelOutput(JSON.stringify(invalid),sampleSpec),/supporting quote/);
  const calls=[];const result=await generateAssessment(sampleSpec,{key:'test',generate:async args=>{calls.push(args);return {text:JSON.stringify(calls.length===1?invalid:samplePaper)};}});
  assert.equal(result.attempts,2);assert.ok(!calls[0].prompt.includes('PREVIOUS RESPONSE:'));assert.ok(calls[1].prompt.includes(JSON.stringify(JSON.stringify(invalid))));assert.match(calls[1].prompt,/ONE continuous verbatim passage/);assert.match(calls[1].prompt,/Q1: The supporting quote/);
+});
+test('source IDs resolve to original notes and invalid or oversized ranges fail',()=>{
+ const raw=copy(),passages=sourcePassages(sampleSpec.notes);
+ raw.questions[0].sourceStart=1;raw.questions[0].sourceEnd=passages.length;raw.questions[0].evidence='Ignored model-written text';
+ const paper=parseModelOutput(JSON.stringify(raw),sampleSpec);assert.equal(paper.questions[0].evidence,sampleSpec.notes);assert.equal(paper.questions[0].sourceStart,undefined);
+ for(const [start,end] of [[0,1],[1,999],[2,1],[1.5,2],['1',2]]){raw.questions[0].sourceStart=start;raw.questions[0].sourceEnd=end;assert.throws(()=>parseModelOutput(JSON.stringify(raw),sampleSpec),/supporting quote/);}
+ const longSpec={...sampleSpec,notes:sampleSpec.notes.repeat(3)};raw.questions[0].sourceStart=1;raw.questions[0].sourceEnd=sourcePassages(longSpec.notes).length;assert.throws(()=>parseModelOutput(JSON.stringify(raw),longSpec),/supporting quote/);
+ for(const passage of sourcePassages('  A\n\n'+ 'x'.repeat(700)+'   ending. ')){assert.equal(passage.text,('  A\n\n'+'x'.repeat(700)+'   ending. ').slice(passage.start,passage.end));assert.ok(passage.text.length<=500);}
 });
 test('per-client and global limits expire',()=>{const allow=makeLimiter(2,100,3);assert.equal(allow('a',1),true);assert.equal(allow('a',2),true);assert.equal(allow('a',3),false);assert.equal(allow('b',4),true);assert.equal(allow('c',5),false);assert.equal(allow('a',102),true);});
 

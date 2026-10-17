@@ -9,3 +9,4 @@
 .primary{text-decoration:none}
 
 .school-question h3{white-space:pre-wrap}
+.school-activity-panel{margin-top:2rem;padding-top:1.5rem;border-top:1px solid #ccd8cc}.school-activity-panel .school-toolbar{align-items:end;display:grid;grid-template-columns:minmax(160px,1fr) minmax(180px,2fr)}.school-activity-panel .school-audit{padding-left:1.3rem}.school-activity-panel .school-audit li{padding:1rem .5rem;border-bottom:1px solid #dbe2d7;overflow-wrap:anywhere}.school-activity-panel .school-audit p{margin:.35rem 0;font-size:.88rem}.school-notice{padding:1rem;background:#fff3d5;border:1px solid #ddc98e;border-radius:10px;margin:1rem 0}.school-card form{margin-top:1rem}@media(max-width:600px){.school-activity-panel .school-toolbar{grid-template-columns:1fr}}

@@ -95,11 +95,11 @@ Next milestone: classroom pilot. Review outputs in Chemistry, Basic Science and 
 
 School accounts use Supabase Auth. The existing account-free assessment builder and browser drafts remain available. `/school`, `/school/library`, `/school/reviews`, `/school/team` and `/school/paper` provide school management, a departmental library and independent approval.
 
-Apply `migrations/001_school_review.sql` to the provisioned Supabase database before deploying. The Vercel Marketplace integration supplies `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (legacy anon keys are also supported). The app never uses the service-role key or database password. For local development, put the public URL/key in your private `.env`.
+Apply `migrations/001_school_review.sql`, then `migrations/002_pilot_trust.sql` to the provisioned Supabase database before deploying. The Vercel Marketplace integration supplies `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (legacy anon keys are also supported). The app never uses the service-role key or database password. For local development, put the public URL/key in your private `.env`.
 
 Accounts require email verification and a password of at least 12 characters. The Supabase Auth production Site URL is configured as `https://lessonpress-pi.vercel.app/school`. Configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. After confirming an email, users can return to `/school` to sign in. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
 
-A principal creates a school, departments and email-bound invitation links for teachers or department heads. Invitations expire after seven days, are single use and can be revoked. The app displays a link for the principal to share; it does not send invitations. School creation does not verify institutional ownership. One account can create at most three schools in this pilot.
+A principal creates a school, departments and email-bound invitation links for teachers or department heads. Invitations expire after seven days, are single use and can be revoked. The app displays a link for the principal to share; it does not send invitations. School creation does not verify institutional ownership. Principals request an independent check on School trust & activity; only the platform operator can record a decision after checking school identity and authority. New invitations require verification, with a persistent database limit of 20 per school per hour. Existing invitations retain their prior validity rules. One account can create at most three schools in this pilot.
 
 Use **Send to school** from the assessment builder, or import a LessonPress JSON file in the department library. This explicitly uploads the questions and source notes to Supabase. Personal drafts remain in browser storage. School staff must avoid student records and confidential live exam material during the pilot. Removing a member removes workspace access but preserves their school papers and audit records.
 
@@ -126,3 +126,10 @@ Before broad institutional adoption, publish a dedicated private support/privacy
 In Question format or Thinking level, choose **Describe my own** to enter 3–600 characters of instructions. The request is validated server-side, included in the model prompt, and kept with saved/imported/shared drafts. Inactive fields are excluded. Preset choices retain deterministic type ordering; a custom format allows the model to choose the ordering of supported four-option MCQ and written-response questions. Counts, marks, evidence and answer checks still apply. Exact compliance with custom wording, proportions or cognitive demand remains a teacher review task. Image, audio, upload and interactive questions are not supported.
 
 See `docs/ai-roadmap.md` for proposed AI workflows beyond assessment generation. These are plans, not deployed features.
+
+
+## School pilot trust controls
+
+`/school/trust` explains verification and provides principals with activity pagination, event filters, search within loaded records and JSON downloads of those matching records. This is not a complete school-data export. Each page contains up to 50 events. New paper-save, submission, review and print-request events identify a revision. Print records report a request, not completed physical printing. Old events remain unchanged and can lack revision metadata. Staff can view the school verification status, but cannot read school-wide activity or submit verification decisions.
+
+Migration 002 adds a guarded wrapper around the original workspace implementation. The original implementation and the operator verification function are not executable by application roles. New verification and invitation-usage tables have RLS and no direct application access. See `docs/pilot-operations.md` for operator checks and outstanding production dependencies.

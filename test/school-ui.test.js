@@ -8,7 +8,7 @@ const html=await readFile(new URL('../public/school.html',import.meta.url),'utf8
 const script=(await readFile(new URL('../public/school.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
 const school={id:'s1',name:'School <script>unsafe()</script>',role:'principal'};
 async function setup(path,handler){const dom=new JSDOM(html,{url:`https://lessonpress.test${path}`,runScripts:'outside-only'});const w=dom.window;Object.assign(w,{structuredClone,validateDraft});w.confirm=()=>true;w.fetch=async(url,opts)=>{const out=await handler(url,opts?.body?JSON.parse(opts.body):null);return {ok:out.status!==403,json:async()=>out.body||out};};w.eval(script);await new Promise(r=>setTimeout(r,25));return {dom,w,$:id=>w.document.getElementById(id)};}
-const dashboard={departments:[{id:'d1',name:'Science'}],members:[],invitations:[],audit:[],papers:[]};
+const dashboard={verification:{status:'verified'},departments:[{id:'d1',name:'Science'}],members:[],invitations:[],audit:[],papers:[]};
 function signedHandler(extra){return (url,body)=>url==='/api/account'?{user:{id:'u1',email:'teacher@example.com'}}:body.action==='bootstrap'?{schools:[school]}:body.action==='dashboard'?dashboard:extra?.(body)||{};}
 test('school sign in is shown without exposing workspace content',async()=>{const {dom,$}=await setup('/school',()=>({user:null}));try{assert.equal($('account-panel').hidden,false);assert.equal($('signed-panel').hidden,true);assert.match($('school-status').textContent,/Sign in/);}finally{dom.window.close();}});
 test('school overview escapes names and provides genuine page navigation',async()=>{const {dom,w,$}=await setup('/school',signedHandler());try{assert.equal($('workspace-panel').hidden,false);assert.match($('school-heading').textContent,/<script>/);assert.equal($('school-heading').querySelector('script'),null);assert.equal(w.document.querySelector('[data-view=library]').getAttribute('href'),'/school/library?school=s1');assert.match($('school-content').textContent,/School activity/);}finally{dom.window.close();}});
@@ -45,4 +45,33 @@ test('department controls stay restricted to principals and a department head ge
 test('invitation form starts with a safe teacher role and an available department',async()=>{
  const {dom,w}=await setup('/school/team',signedHandler());
  try{const f=[...w.document.querySelectorAll('form')].find(f=>f.textContent.includes('Give a colleague access'));assert.ok(f);const selects=f.querySelectorAll('select');assert.equal(selects[0].value,'teacher');assert.equal(selects[1].value,'d1');assert.match(f.textContent,/Only that address can accept/);}finally{dom.window.close();}
+});
+
+test('unverified schools get clear guidance and cannot create invitations from the UI',async()=>{
+ const state={...dashboard,verification:{status:'unverified'}};
+ const {dom,w,$}=await setup('/school/team', (url,body)=>url==='/api/account'?{user:{id:'u1',email:'principal@example.com'}}:body.action==='bootstrap'?{schools:[school]}:state);
+ try{assert.equal([...w.document.querySelectorAll('form')].some(f=>f.textContent.includes('Give a colleague access')),false);assert.match($('school-content').textContent,/independent school verification/);assert.ok([...w.document.querySelectorAll('a')].some(a=>a.href.includes('/school/trust')));}finally{dom.window.close();}
+});
+test('trust page submits a request without self-approval and filters safely rendered activity',async()=>{
+ const calls=[];let requested=false;
+ const {dom,w,$}=await setup('/school/trust?school=s1',(url,body)=>{
+  if(url==='/api/account')return {user:{id:'u1',email:'principal@example.com'}};
+  if(body.action==='bootstrap')return {schools:[school]};
+  if(body.action==='dashboard')return {...dashboard,verification:{status:requested?'pending':'unverified'}};
+  if(body.action==='verification_request'){calls.push(body);requested=true;return {status:'pending'};}
+  if(body.action==='audit_list')return {events:[{id:'1',action:'save_paper',actor_label:'person<script>@school.test',paper_id:'p1',paper_title:'Chemistry <script>',detail:{revision:2},created_at:new Date().toISOString()}],next_before:null};return {};
+ });
+ try{assert.match($('school-content').textContent,/Not yet verified/);assert.equal($('school-content').querySelector('script'),null);assert.match($('school-content').textContent,/Version 2/);
+ const search=w.document.querySelector('input[type=search]');search.value='nonexistent';search.dispatchEvent(new w.Event('input'));assert.match($('school-content').textContent,/0 matching records/);
+ const form=[...w.document.querySelectorAll('form')].find(f=>f.querySelector('h3')?.textContent==='Request an independent check');form.querySelector('input[type=url]').value='https://school.example/about';form.querySelector('textarea').value='Principal; confirm through the public office contact listed on our website.';form.dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,30));assert.equal(calls.length,1);assert.equal(calls[0].payload.school_id,'s1');assert.equal(calls[0].payload.status,undefined);assert.match($('school-content').textContent,/Verification requested/);assert.match($('school-content').textContent,/approval is not automatic/);
+ }finally{dom.window.close();}
+});
+test('staff trust page shows status without requesting the school activity log',async()=>{
+ const calls=[];const {dom,$}=await setup('/school/trust',(url,body)=>{if(url==='/api/account')return {user:{id:'u2',email:'teacher@example.com'}};calls.push(body.action);return body.action==='bootstrap'?{schools:[{...school,role:'teacher'}]}:{...dashboard,verification:{status:'pending'}};});try{assert.match($('school-content').textContent,/Verification requested/);assert.equal(calls.includes('audit_list'),false);assert.match($('school-content').textContent,/available to the principal/);}finally{dom.window.close();}
+});
+
+test('printing records the authorised version and chosen copy before opening the dialog',async()=>{
+ const calls=[];const content={spec:sampleSpec,paper:samplePaper,sample:true};const paper={id:'p1',author_id:'u1',department_id:'d1',status:'approved',revision:2,current_revision:2,approved_revision:2,content,versions:[{revision:2,created_at:new Date().toISOString()}],reviews:[]};
+ const {dom,w,$}=await setup('/school/paper?school=s1&paper=p1',signedHandler(body=>{calls.push(body);return body.action==='print_request'?{ok:true}:paper;}));let printed=false;w.print=()=>{printed=true;assert.equal(calls.at(-1).action,'print_request');};
+ try{[...w.document.querySelectorAll('button')].find(b=>b.textContent==='Marking guide').click();await new Promise(r=>setTimeout(r,10));const check=w.document.querySelector('.school-toolbar input[type=checkbox]');check.checked=true;check.dispatchEvent(new w.Event('change'));[...w.document.querySelectorAll('button')].find(b=>b.textContent==='Print / PDF').click();await new Promise(r=>setTimeout(r,15));assert.equal(printed,true);assert.deepEqual(JSON.parse(JSON.stringify(calls.at(-1).payload)),{school_id:'s1',paper_id:'p1',revision:2,copy:'teacher'});assert.match($('school-status').textContent,/does not confirm a completed print/);}finally{dom.window.close();}
 });

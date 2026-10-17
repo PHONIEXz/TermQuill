@@ -5,4 +5,4 @@ for(const page of ['create','drafts','guide'])await writeFile(new URL(`../public
 console.log('Browser modules prepared.');
 
 await mkdir(new URL('../public/school/',import.meta.url),{recursive:true});
-for(const page of ['library','reviews','team','paper'])await copyFile(new URL('../public/school.html',import.meta.url),new URL(`../public/school/${page}.html`,import.meta.url));
+for(const page of ['library','reviews','team','paper','trust'])await copyFile(new URL('../public/school.html',import.meta.url),new URL(`../public/school/${page}.html`,import.meta.url));

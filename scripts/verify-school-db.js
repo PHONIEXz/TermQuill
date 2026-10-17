@@ -11,6 +11,8 @@ begin
   perform set_config('request.jwt.claim.sub',a::text,true);
   s:=(public.lp_workspace('create_school','{"name":"Transient verification school"}')->>'id')::uuid;
   d:=(public.lp_workspace('create_department',jsonb_build_object('school_id',s,'name','Science'))->>'id')::uuid;
+  perform public.lp_workspace('verification_request',jsonb_build_object('school_id',s,'public_reference','https://example.invalid/school','authority_note','Isolated rollback fixture for operator verification checks.'));
+  perform lessonpress.record_verification(s,'verified','Rollback smoke test','Verification fixture only; all records are rolled back.');
   i:=public.lp_workspace('invite',jsonb_build_object('school_id',s,'department_id',d,'email','lp-test-teacher-'||b||'@example.invalid','role','teacher'));
   perform set_config('request.jwt.claim.sub',b::text,true);
   perform public.lp_workspace('accept_invite',jsonb_build_object('token',i->>'token'));
@@ -23,6 +25,11 @@ begin
   if (r->>'approved_revision')::int<>1 then raise exception 'Approval missing'; end if;
   perform set_config('request.jwt.claim.sub',outsider::text,true);
   begin perform public.lp_workspace('dashboard',jsonb_build_object('school_id',s)); raise exception 'Outsider access allowed'; exception when insufficient_privilege then null; end;
+  perform set_config('request.jwt.claim.sub',a::text,true);
+  perform public.lp_workspace('print_request',jsonb_build_object('school_id',s,'paper_id',p,'revision',1,'copy','student'));
+  r:=public.lp_workspace('audit_list',jsonb_build_object('school_id',s,'event','print_requested'));
+  if jsonb_array_length(r->'events')<>1 then raise exception 'Print audit missing'; end if;
+  if has_function_privilege('authenticated','lessonpress.workspace_v1(text,jsonb)','EXECUTE') or has_function_privilege('authenticated','lessonpress.record_verification(uuid,text,text,text)','EXECUTE') then raise exception 'Private workflow bypass'; end if;
   if has_table_privilege('authenticated','lessonpress.revisions','UPDATE') or has_table_privilege('anon','lessonpress.papers','SELECT') or has_function_privilege('anon','public.lp_workspace(text,jsonb)','EXECUTE') then raise exception 'Direct access privilege leak'; end if;
   pass:=true;
   raise exception using errcode='ZX001',message='rollback verification fixtures';

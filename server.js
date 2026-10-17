@@ -7,7 +7,7 @@ import account from './api/account.js';
 import school from './api/school.js';
 import { securityHeaders, json } from './lib/http.js';
 const routes = new Map([
-  ...['/school','/school/library','/school/reviews','/school/team','/school/paper'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
+  ...['/school','/school/library','/school/reviews','/school/team','/school/paper','/school/trust'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
   ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],
   ['/assessment.js','lib/assessment.js'],['/drafts.js','lib/drafts.js'],['/sample.js','lib/sample.js'],['/favicon.svg','public/favicon.svg']
 ]);

@@ -8,11 +8,16 @@ test('real Postgres engine enforces school isolation, review roles, concurrency 
  const db=new PGlite();
  await db.exec(`create role anon; create role authenticated; create schema auth; create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,banned_until timestamptz); create function auth.uid() returns uuid language sql as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated;`);
  await db.exec(await readFile(new URL('../migrations/001_school_review.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../migrations/002_pilot_trust.sql',import.meta.url),'utf8'));
  const ids=Array.from({length:5},(_,i)=>`00000000-0000-4000-8000-00000000000${i+1}`);
  for(let i=0;i<ids.length;i++)await db.query('insert into auth.users values($1,$2,now(),null)',[ids[i],`u${i}@example.com`]);
  let actor=ids[0];
  async function rpc(action,payload={}){await db.query("select set_config('request.jwt.claim.sub',$1,false)",[actor]);await db.exec('set role authenticated');try{return (await db.query('select public.lp_workspace($1,$2) as data',[action,JSON.stringify(payload)])).rows[0].data;}finally{await db.exec('reset role');}}
  const a=await rpc('create_school',{name:'School A'});const dep=await rpc('create_department',{school_id:a.id,name:'Science'});const art=await rpc('create_department',{school_id:a.id,name:'Arts'});
+ await rpc('verification_request',{school_id:a.id,public_reference:'https://example.com/school',authority_note:'Principal requesting verification for the isolated test school.'});
+ await assert.rejects(rpc('invite',{school_id:a.id,department_id:dep.id,email:'blocked@example.com',role:'teacher'}),/verification/);
+ await db.exec('set role authenticated');await assert.rejects(db.query("select lessonpress.record_verification($1,'verified','Self approved','This attempt must never be authorised.')",[a.id]));await assert.rejects(db.query("select lessonpress.workspace_v1('invite',$1)",[JSON.stringify({school_id:a.id,department_id:dep.id,email:'bypass@example.com',role:'teacher'})]));await assert.rejects(db.query("update lessonpress.school_verification set status='verified'"));await db.exec('reset role');
+ await db.query("select lessonpress.record_verification($1,'verified','Test operator','Independent authority check performed for test fixture only.')",[a.id]);
  const invite=await rpc('invite',{school_id:a.id,department_id:dep.id,email:'u1@example.com',role:'teacher'});
  actor=ids[2];await assert.rejects(rpc('accept_invite',{token:invite.token}));
  actor=ids[1];await rpc('accept_invite',{token:invite.token});await assert.rejects(rpc('accept_invite',{token:invite.token}));
@@ -30,12 +35,17 @@ test('real Postgres engine enforces school isolation, review roles, concurrency 
  const sharedInvite=await rpc('invite',{school_id:a.id,department_id:dep.id,email:'u2@example.com',role:'teacher'});
  const hodInvite=await rpc('invite',{school_id:a.id,department_id:art.id,email:'u3@example.com',role:'hod'});
  actor=ids[2];await rpc('accept_invite',{token:sharedInvite.token});const shared=await rpc('paper',{school_id:a.id,paper_id:paper.id});assert.equal(shared.revision,2);
+ await rpc('print_request',{school_id:a.id,paper_id:paper.id,revision:2,copy:'student'});await assert.rejects(rpc('audit_list',{school_id:a.id}));
  actor=ids[1];await rpc('save_paper',{school_id:a.id,paper_id:paper.id,expected_revision:2,content:{spec:{...sampleSpec,title:'Third draft'},paper:samplePaper}});
  actor=ids[2];assert.equal((await rpc('paper',{school_id:a.id,paper_id:paper.id})).content.spec.title,'Revised chemistry');await assert.rejects(rpc('paper',{school_id:a.id,paper_id:paper.id,revision:3}));
+ await assert.rejects(rpc('print_request',{school_id:a.id,paper_id:paper.id,revision:3,copy:'teacher'}));await assert.rejects(rpc('verification_request',{school_id:a.id,public_reference:'https://example.com',authority_note:'A teacher cannot request verification for the school.'}));
  actor=ids[3];await rpc('accept_invite',{token:hodInvite.token});await assert.rejects(rpc('paper',{school_id:a.id,paper_id:paper.id}));
- actor=ids[4];const b=await rpc('create_school',{name:'School B'});await assert.rejects(rpc('dashboard',{school_id:a.id}));await assert.rejects(rpc('paper',{school_id:b.id,paper_id:paper.id}));
+ actor=ids[4];const b=await rpc('create_school',{name:'School B'});await assert.rejects(rpc('dashboard',{school_id:a.id}));await assert.rejects(rpc('paper',{school_id:b.id,paper_id:paper.id}));await assert.rejects(rpc('audit_list',{school_id:a.id}));
  actor=ids[0];await rpc('remove_member',{school_id:a.id,user_id:ids[2]});actor=ids[2];await assert.rejects(rpc('dashboard',{school_id:a.id}));
- actor=ids[0];assert.ok((await rpc('dashboard',{school_id:a.id})).audit.length>10);
+ actor=ids[0];const activity=await rpc('audit_list',{school_id:a.id});assert.ok(activity.events.some(e=>e.action==='print_requested'&&e.detail.revision===2&&e.detail.copy==='student'));assert.ok(activity.events.some(e=>e.action==='save_paper'&&e.detail.revision===3));assert.ok(activity.events.some(e=>e.action==='verification_decided'&&e.actor_id===null&&e.actor_label==='Test operator'));
+ const onlyPrint=await rpc('audit_list',{school_id:a.id,event:'print_requested'});assert.equal(onlyPrint.events.length,1);assert.ok(onlyPrint.events.every(e=>e.action==='print_requested'));const older=await rpc('audit_list',{school_id:a.id,before_id:activity.events.at(-1).id});assert.equal(older.events.length,0);
+ for(let i=0;i<17;i++)await rpc('invite',{school_id:a.id,department_id:dep.id,email:`limit${i}@example.com`,role:'teacher'});await assert.rejects(rpc('invite',{school_id:a.id,department_id:dep.id,email:'over-limit@example.com',role:'teacher'}),e=>e.code==='P0429');assert.equal((await db.query('select attempts from lessonpress.invite_usage where school_id=$1',[a.id])).rows[0].attempts,20);await db.query("update lessonpress.invite_usage set window_start=now()-interval '2 hours' where school_id=$1",[a.id]);await rpc('invite',{school_id:a.id,department_id:dep.id,email:'after-window@example.com',role:'teacher'});
+ assert.ok((await rpc('dashboard',{school_id:a.id})).audit.length>10);
  await db.exec('set role authenticated');await assert.rejects(db.query('select * from lessonpress.revisions'));await assert.rejects(db.query("update lessonpress.revisions set content='{}'"));await db.exec('reset role;set role anon');await assert.rejects(db.query("select public.lp_workspace('bootstrap','{}')"));await db.exec('reset role');
  await db.close();
 });

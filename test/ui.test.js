@@ -89,3 +89,17 @@ test('landing-only content stays off the create, draft and guide pages',async()=
   const {dom,w}=await setup(null,page);try{const style=w.document.createElement('style');style.textContent=styles+'\n'+landing;w.document.head.append(style);assert.equal(w.getComputedStyle(w.document.querySelector('.landing-trust')).display,page==='/'?'grid':'none');}finally{dom.window.close();}
  }
 });
+
+test('custom assessment inputs toggle, reach generation and survive save/reopen',async()=>{
+ let sent;const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({paper:samplePaper,model:'mock-gemma'})};});
+ try{
+  $('sample-notes').click();assert.equal($('custom-format-wrap').hidden,true);
+  $('format').value='custom';$('format').dispatchEvent(new w.Event('change'));$('difficulty').value='custom';$('difficulty').dispatchEvent(new w.Event('change'));
+  assert.equal($('formatInstructions').disabled,false);assert.equal($('difficultyInstructions').required,true);
+  $('formatInstructions').value='Three multiple-choice questions, then three written explanations.';$('difficultyInstructions').value='Start with remembering facts, then explain reasons.';
+  $('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,15));
+  assert.equal(sent.format,'custom');assert.match(sent.formatInstructions,/written explanations/);assert.equal(sent.difficulty,'custom');assert.match(sent.difficultyInstructions,/explain reasons/);
+  $('save').click();$('restore').click();assert.equal($('format').value,'custom');assert.equal($('custom-format-wrap').hidden,false);assert.equal($('formatInstructions').value,sent.formatInstructions);
+  $('format').value='mcq';$('format').dispatchEvent(new w.Event('change'));assert.equal($('custom-format-wrap').hidden,true);assert.equal($('formatInstructions').disabled,true);assert.equal($('formatInstructions').required,false);
+ }finally{dom.window.close();}
+});

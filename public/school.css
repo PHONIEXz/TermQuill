@@ -7,3 +7,5 @@
 @media print{body[data-page=school] .school-glossary,body[data-page=school] .school-explainer{display:none!important}}
 
 .primary{text-decoration:none}
+
+.school-question h3{white-space:pre-wrap}

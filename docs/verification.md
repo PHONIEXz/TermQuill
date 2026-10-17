@@ -42,3 +42,11 @@ Milestone 2 adds Home, Create, My drafts and Guide URLs with active navigation. 
 - Live landing page, privacy navigation and readable policy sections verified. School walkthrough and existing department selection checked through the signed-in browser. Remaining institution-wide email and private-contact limitations remain visible.
 
 - Final browser check caught a landing-only layout rule appearing above the guide heading. Scoped the layout to the home page and added a computed-style regression test for home/create/drafts/guide.
+
+### Manual format and thinking-level input, 17 October 2026
+
+- Added custom choices and conditional, labelled instruction fields with examples and supported-format limits.
+- Server validation bounds active custom instructions to 3–600 characters. Preferences are included in generation prompts and preserved by the shared draft validation used for local save/import and school sharing.
+- Custom formats allow supported question kinds in different orders. Invalid kinds, wrong counts, answer/option errors, mark totals and unsupported source quotes remain rejected. Exact adherence to custom teaching preferences is not automatically certified.
+- Added tests for validation bounds, prompt propagation, custom ordering, invalid kinds/evidence, UI visibility/required state, request payload and save/restore preservation.
+- Added a proposed AI roadmap for lesson planning, advisory paper review, curriculum mapping, permission-scoped library discovery and data-grounded planning insights. These proposed capabilities are not presented as deployed features.

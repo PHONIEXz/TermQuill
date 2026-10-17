@@ -20,7 +20,9 @@ function fieldValues() {
   for(const key of ['count','marksEach','minutes'])values[key]=Number(values[key]);
   return values;
 }
-function fillForm(spec) {for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;updateCount();}
+function fillForm(spec) {for(const name of ['formatInstructions','difficultyInstructions'])form.elements[name].value=spec[name]||'';for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;syncCustomSettings();updateCount();}
+function syncCustomSettings(){for(const [select,name,wrap] of [['format','formatInstructions','custom-format-wrap'],['difficulty','difficultyInstructions','custom-difficulty-wrap']]){const custom=$(select).value==='custom';$(wrap).hidden=!custom;$(name).disabled=!custom||Boolean(active);$(name).required=custom;}}
+for(const id of ['format','difficulty'])$(id).addEventListener('change',syncCustomSettings);
 function updateCount() {$('notes-count').textContent=`${$('notes').value.length.toLocaleString()} / 18,000`;$('total-marks').textContent=`${Number($('count').value)*Number($('marksEach').value)} marks`;}
 function busy(on) {
   for(const item of form.elements)item.disabled=on;
@@ -28,7 +30,7 @@ function busy(on) {
   for(const id of ['try-sample','sample-notes','empty-sample','restore'])if($(id))$(id).disabled=on||(id==='restore'&&!hasSaved());
   $('cancel').disabled=false;$('cancel').hidden=!on;
   document.querySelector('.output').setAttribute('aria-busy',String(on));
-  updateReview();
+  syncCustomSettings();updateReview();
 }
 function hasSaved(){try{return readDrafts(localStorage).length>0;}catch{return false;}}
 function updateReview() {

@@ -63,7 +63,7 @@ npm run check
 npm run build
 ```
 
-Automated checks include 55 unit, HTTP, DOM and Postgres interaction tests. Provider responses are simulated in tests; they do not establish live Gemma quality, real quota availability or willingness to pay. A production smoke test generated three Chemistry questions on its first attempt in about 67 seconds. This is one successful test, not an accuracy or reliability benchmark. See `docs/verification.md` for current browser evidence and remaining work.
+Automated checks include 58 unit, HTTP, DOM and Postgres interaction tests. Provider responses are simulated in tests; they do not establish live Gemma quality, real quota availability or willingness to pay. A production smoke test generated three Chemistry questions on its first attempt in about 67 seconds. This is one successful test, not an accuracy or reliability benchmark. See `docs/verification.md` for current browser evidence and remaining work.
 
 Gemma 4 requests use `thinkingLevel: minimal` to avoid the optional thinking pass for this structured drafting task. A provider 5xx response gets one short retry, within the existing overall timeout. Quota (429) and access errors are not blindly retried. Safe error codes distinguish quota, access, unavailable model, rejected request, timeout and connectivity failures. Logs include a random request reference and status code, never raw provider messages, keys or notes. The UI displays that reference for investigation. A provider quota remains an account/provider constraint; application retries cannot remove it.
 
@@ -119,3 +119,10 @@ The home page explains personal preparation versus school collaboration. `/guide
 The principal can use **Create your first department** directly in an empty School papers page or school overview. The form opens inline; **Save department** updates the department choices immediately. **Departments & people** lists existing departments and provides **Add another department**. Teachers and department heads receive guidance to ask the principal instead of an unauthorised creation control. Restoring a JSON backup is optional, not a required starting step.
 
 Before broad institutional adoption, publish a dedicated private support/privacy contact and finish production email configuration. The current privacy page uses minimal project-support contact to arrange a private channel and explicitly asks users not to post private records in GitHub issues.
+
+
+## Manual assessment preferences
+
+In Question format or Thinking level, choose **Describe my own** to enter 3–600 characters of instructions. The request is validated server-side, included in the model prompt, and kept with saved/imported/shared drafts. Inactive fields are excluded. Preset choices retain deterministic type ordering; a custom format allows the model to choose the ordering of supported four-option MCQ and written-response questions. Counts, marks, evidence and answer checks still apply. Exact compliance with custom wording, proportions or cognitive demand remains a teacher review task. Image, audio, upload and interactive questions are not supported.
+
+See `docs/ai-roadmap.md` for proposed AI workflows beyond assessment generation. These are plans, not deployed features.

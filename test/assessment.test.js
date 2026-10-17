@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateRequest,auditAssessment,parseModelOutput,expectedKinds } from '../lib/assessment.js';
+import { validateRequest,auditAssessment,parseModelOutput,expectedKinds,buildPrompt } from '../lib/assessment.js';
 import { sampleSpec,samplePaper } from '../lib/sample.js';
 import { generateAssessment } from '../lib/generator.js';
 import { makeLimiter } from '../lib/http.js';
@@ -23,3 +23,15 @@ test('invalid response repairs once using original settings and notes',async()=>
 });
 test('two invalid outputs fail honestly rather than returning a sample',async()=>{let calls=0;await assert.rejects(()=>generateAssessment(sampleSpec,{key:'test',generate:async()=>{calls++;return {text:'{}'};}}),/could not produce/);assert.equal(calls,2);});
 test('per-client and global limits expire',()=>{const allow=makeLimiter(2,100,3);assert.equal(allow('a',1),true);assert.equal(allow('a',2),true);assert.equal(allow('a',3),false);assert.equal(allow('b',4),true);assert.equal(allow('c',5),false);assert.equal(allow('a',102),true);});
+
+test('manual preferences are bounded and remain attached to validated drafts',()=>{
+ const custom=validateRequest({...sampleSpec,format:'custom',difficulty:'custom',formatInstructions:'Four written questions, followed by two multiple-choice questions.',difficultyInstructions:'Start with recall and finish with everyday application.'});
+ assert.match(buildPrompt(custom),/Four written questions/);assert.match(buildPrompt(custom),/Start with recall/);assert.ok(!buildPrompt(custom).includes('[null,null'));assert.match(custom.formatInstructions,/Four written/);assert.match(custom.difficultyInstructions,/everyday/);
+ for(const patch of [{formatInstructions:''},{formatInstructions:'x'.repeat(601)},{difficultyInstructions:''},{difficultyInstructions:7}])assert.throws(()=>validateRequest({...custom,...patch}));
+ assert.equal('formatInstructions' in validateRequest({...sampleSpec,formatInstructions:'ignored inactive input'}),false);
+});
+test('manual format permits different supported ordering but still rejects invalid kinds and evidence',()=>{
+ const spec=validateRequest({...sampleSpec,format:'custom',formatInstructions:'Written questions first, followed by multiple choice.'});const p=copy();p.questions=[...p.questions.slice(3),...p.questions.slice(0,3)];assert.deepEqual(auditAssessment(p,spec),[]);
+ p.questions[0].kind='image';assert.ok(auditAssessment(p,spec).some(x=>/written-response/.test(x.message)));
+ p.questions[1].evidence='This is not from the notes';assert.ok(auditAssessment(p,spec).some(x=>/supporting quote/.test(x.message)));
+});

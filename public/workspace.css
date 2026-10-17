@@ -224,5 +224,5 @@ button:disabled {opacity: .55;}
 @media print {
   .school-layout {display: block; margin: 0;}
   .school-nav, .setup-section, .navigation-toggle {display: none !important;}
-  .workspace, .output, #preview {padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: #fff;}
+  .workspace, .output, #preview {padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: #fff; min-height: 0;}
 }

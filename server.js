@@ -4,10 +4,12 @@ import { fileURLToPath } from 'node:url';
 import generate from './api/generate.js';
 import config from './api/config.js';
 import account from './api/account.js';
+import places from './api/places.js';
 import school from './api/school.js';
 import { securityHeaders, json } from './lib/http.js';
 const routes = new Map([
-  ...['/school','/school/library','/school/reviews','/school/team','/school/paper','/school/trust'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
+  ...['/school','/school/library','/school/reviews','/school/team','/school/paper','/school/trust','/school/location'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
+  ['/find-schools','public/find-schools.html'],['/places.js','public/places.js'],['/places.css','public/places.css'],['/location.js','lib/location.js'],
   ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],
   ['/assessment.js','lib/assessment.js'],['/drafts.js','lib/drafts.js'],['/sample.js','lib/sample.js'],['/favicon.svg','public/favicon.svg']
 ]);
@@ -16,6 +18,7 @@ export const server = http.createServer(async (req,res) => {
   if (path === '/api/generate') return generate(req,res);
   if (path === '/api/config') return config(req,res);
   if (path === '/api/account') return account(req,res);
+  if (path === '/api/places') return places(req,res);
   if (path === '/api/school') return school(req,res);
   if (req.method !== 'GET' && req.method !== 'HEAD') return json(res,405,{error:'Use GET.'});
   const file = routes.get(path);

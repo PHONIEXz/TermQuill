@@ -66,3 +66,10 @@ Milestone 2 adds Home, Create, My drafts and Guide URLs with active navigation. 
 - No custom sender domain or email integration was present. Marketplace CLI discovery required CLI authentication; no email provider, billing or DNS changes were made. Automatic invitations, recovery, principal MFA, broader durable quotas, full school export/deletion and verified paid AI configuration remain outstanding. See `docs/pilot-operations.md`.
 
 - Signed-in production browser: verified real school status and request guidance, activity event filtering, empty-result search, disabled empty export and downloaded JSON containing exactly the two selected department events. No owner-school verification request or decision was fabricated. Updated setup guidance to lead unverified schools to verification before invitations; activity timestamps now include the browser timezone.
+
+### Optional school location and nearby directory, 17 October 2026
+
+- Added reusable location helpers, an explicit one-shot device lookup, cancellation/error handling and manual coordinates/marker-link import. Added `/school/location` and `/find-schools` with purpose-specific explanations and no automatic device lookup.
+- Private school points require principal access and explicit school-point confirmation. Public listing defaults off, requires a verified school and returns only rounded public location/name/area. New SQL retains membership checks, denies staff edits/direct table access and uses version checks with a private sequence to prevent stale edits after remove/recreate.
+- Nearby requests use coarse search bounds; precise origin and distance calculations stay in page memory. No AI prompts, background watching or browser storage of a search point. External map links are user-initiated and identify their recipient.
+- All 75 tests pass, plus syntax and build checks. Hosted migration 003 and rollback-only SQL verification passed. Temporary point/listing fixtures were rolled back, and the query editor returned to read-only mode. No actual school point, real GPS fix or public listing was created by the agent.

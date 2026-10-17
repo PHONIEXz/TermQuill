@@ -95,7 +95,7 @@ Next milestone: classroom pilot. Review outputs in Chemistry, Basic Science and 
 
 School accounts use Supabase Auth. The existing account-free assessment builder and browser drafts remain available. `/school`, `/school/library`, `/school/reviews`, `/school/team` and `/school/paper` provide school management, a departmental library and independent approval.
 
-Apply `migrations/001_school_review.sql`, then `migrations/002_pilot_trust.sql` to the provisioned Supabase database before deploying. The Vercel Marketplace integration supplies `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (legacy anon keys are also supported). The app never uses the service-role key or database password. For local development, put the public URL/key in your private `.env`.
+Apply `migrations/001_school_review.sql`, then `migrations/002_pilot_trust.sql` and `migrations/003_school_locations.sql` to the provisioned Supabase database before deploying. The Vercel Marketplace integration supplies `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (legacy anon keys are also supported). The app never uses the service-role key or database password. For local development, put the public URL/key in your private `.env`.
 
 Accounts require email verification and a password of at least 12 characters. The Supabase Auth production Site URL is configured as `https://lessonpress-pi.vercel.app/school`. Configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. After confirming an email, users can return to `/school` to sign in. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
 
@@ -133,3 +133,16 @@ See `docs/ai-roadmap.md` for proposed AI workflows beyond assessment generation.
 `/school/trust` explains verification and provides principals with activity pagination, event filters, search within loaded records and JSON downloads of those matching records. This is not a complete school-data export. Each page contains up to 50 events. New paper-save, submission, review and print-request events identify a revision. Print records report a request, not completed physical printing. Old events remain unchanged and can lack revision metadata. Staff can view the school verification status, but cannot read school-wide activity or submit verification decisions.
 
 Migration 002 adds a guarded wrapper around the original workspace implementation. The original implementation and the operator verification function are not executable by application roles. New verification and invitation-usage tables have RLS and no direct application access. See `docs/pilot-operations.md` for operator checks and outstanding production dependencies.
+
+
+## Optional location features
+
+`/school/location` lets principals review and save a private school point, using one-time device geolocation, manual coordinates or a parsed OpenStreetMap marker link. The point is visible to current authorised school members. Changing or deleting a point requires principal permission and the expected location version. The app records location action/version/visibility metadata without copying coordinates into audit details. Location versions use a private sequence to avoid stale-version collisions after removal and recreation.
+
+`/find-schools` is a public, opt-in school directory. Only independently verified schools with an explicitly enabled public listing appear. The public RPC returns school ID/name/area and coordinates rounded to three decimals, never account emails, private source/accuracy, notes or full-precision points. Listings are school-supplied, not GPS-verified. Browse/search is paginated; nearby results are ordered among currently loaded schools and use approximate straight-line distances.
+
+`lib/location.js` is a reusable, side-effect-free location toolkit: coordinate validation, one-shot permission-based device lookup with timeout/cancellation, error messages, map-link parsing, coarse search bounds and Haversine distance. A device position is requested only from explicit button handlers. Search positions stay in page memory; coarse bounding areas based on a tenth-degree grid go to the directory API. There is no background tracking or location history. Precise school points are sent only on confirmed school saves. No location is added to model prompts.
+
+Maps use user-opened HTTPS OpenStreetMap links, not automatically loaded map tiles. The link shares the selected school/preview point with OpenStreetMap and never includes a nearby visitor's origin. Principals can move a marker in OpenStreetMap's Share panel and import its full marker link locally. The app does not fetch imported URLs.
+
+Permissions-Policy permits same-origin geolocation while retaining camera/microphone restrictions. HTTPS and browser permission are still required. `scripts/verify-location-db.js` generates a rollback-only hosted smoke test. Tests use synthetic locations; an actual device GPS fix must be checked by a user on their own device. See `/privacy#location` and `docs/location-design.md`.

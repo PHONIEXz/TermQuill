@@ -40,3 +40,5 @@ Milestone 2 adds Home, Create, My drafts and Guide URLs with active navigation. 
 - Live browser: owner's Biology department and pending invitation were present during verification. Confirmed the new Add another department control opens the form with focus, rejects an existing Biology name without adding a duplicate, and supports cancellation. Avoided creating an unnecessary test department in the actual school.
 - Corrected a discovered select-default bug: invitation responsibility and department now start with valid values (Teacher and the first available department) rather than a blank selection. A regression test covers both.
 - Live landing page, privacy navigation and readable policy sections verified. School walkthrough and existing department selection checked through the signed-in browser. Remaining institution-wide email and private-contact limitations remain visible.
+
+- Final browser check caught a landing-only layout rule appearing above the guide heading. Scoped the layout to the home page and added a computed-style regression test for home/create/drafts/guide.

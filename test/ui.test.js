@@ -81,3 +81,11 @@ test('JSON import validates and saves a separate editable copy',async()=>{
     Object.defineProperty($('import-file'),'files',{value:[{size:200001,text:()=>assert.fail()}],configurable:true});$('import-file').dispatchEvent(new w.Event('change'));await new Promise(r=>setTimeout(r,10));assert.equal(readDrafts(w.localStorage).length,1);assert.equal($('library-error').hidden,false);
   }finally{dom.window.close();}
 });
+
+
+test('landing-only content stays off the create, draft and guide pages',async()=>{
+ const styles=await readFile(new URL('../public/styles.css',import.meta.url),'utf8');const landing=await readFile(new URL('../public/landing.css',import.meta.url),'utf8');
+ for(const page of ['/create','/drafts','/guide','/']){
+  const {dom,w}=await setup(null,page);try{const style=w.document.createElement('style');style.textContent=styles+'\n'+landing;w.document.head.append(style);assert.equal(w.getComputedStyle(w.document.querySelector('.landing-trust')).display,page==='/'?'grid':'none');}finally{dom.window.close();}
+ }
+});

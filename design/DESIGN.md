@@ -8,7 +8,7 @@ The broader Phoenix UI Playbook is the reusable reference. This contract records
 
 ## Direction
 
-Expressive educational studio with practical institutional structure. Forest green anchors cream, peach/coral, lavender, mint and soft blue surfaces. Strong display typography and layered paper artwork make marketing pages distinctive; working pages use solid reading surfaces and the same palette. Preserve 18 px reading/input text and readable controls. No external font request, 3D runtime or animation library.
+Expressive educational studio with practical institutional structure. Forest green anchors cream, peach/coral, lavender, mint and soft blue surfaces. Strong display typography and layered paper artwork make marketing pages distinctive; working pages use solid reading surfaces and the same palette. Preserve 18 px reading/input text and readable controls. Inter variable is self-hosted with its SIL Open Font License, using medium-weight body text and fuller semibold headings. No third-party font request, 3D runtime or animation library.
 
 References informing the design:
 - Apple hierarchy and materials: https://developer.apple.com/design/human-interface-guidelines/
@@ -43,3 +43,7 @@ DOM tests and simulated API responses verify interaction logic. They do not esta
 The hero uses original inline SVG orbit artwork, layered HTML paper and peach/blue annotation cards. Marketing sections use colored surfaces and varied composition. The interactive three-stage example is hand-authored, explicitly illustrative, and never calls an AI endpoint. Its stages support arrows, Home/End, focus and selected-state semantics. Without JavaScript, all example content remains readable.
 
 Motion is limited to hero entry, two gently drifting annotations, one-time section entrances and short state transitions. A header control pauses decorative motion, and system reduced-motion preferences take precedence. There is no scroll hijacking, autoplay media, cursor replacement or animation of text while reading. Content is never hidden waiting for JavaScript or an observer. Longer marketing entrances explain sequence; form interactions remain immediate.
+
+## Typography correction
+
+User feedback: type across the website felt too slim. Use self-hosted Inter for all screen text, including display headings and preview papers. Body/input weight is 500, controls/labels 600, headings 650, hero 700, with 700 for strong emphasis. Preserve 18 px reading sizes and avoid light serif/italic display styles. The original font is sourced from rsms/inter, blob 5a8d3e72ad7ffb62af3b146e1b1f54ab5813a212; the license is public/fonts/Inter-OFL.txt. The hashed font URL can be cached long term. Print body weight stays 400 for clean paper output.

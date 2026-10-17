@@ -12,6 +12,7 @@ test('serves UI and browser modules, never source secrets or package files',asyn
   for(const page of ['create','drafts','guide']){const r=await fetch(base+'/'+page);assert.equal(r.status,200);assert.ok((await r.text()).includes(`data-page="${page}"`));}
   assert.equal((await fetch(base+'/drafts.js')).status,200);
   const privacy=await fetch(base+'/privacy');assert.equal(privacy.status,200);assert.match(await privacy.text(),/Privacy, in plain language/);assert.equal((await fetch(base+'/landing.css')).status,200);
+  const font=await fetch(base+'/fonts/InterVariable-5a8d3e72.woff2');assert.equal(font.status,200);assert.equal(font.headers.get('content-type'),'font/woff2');assert.equal(Buffer.from(await font.arrayBuffer()).subarray(0,4).toString(),'wOF2');
   for(const path of ['/find-schools','/places.js','/places.css','/location.js','/school/location','/workspace.css','/navigation.js','/experience.js'])assert.equal((await fetch(base+path)).status,200);
   for(const path of ['/.env','/package.json','/lib/generator.js'])assert.equal((await fetch(base+path)).status,404);
   const config=await(await fetch(base+'/api/config')).json();assert.equal('key' in config,false);

@@ -10,7 +10,7 @@ import { securityHeaders, json } from './lib/http.js';
 const routes = new Map([
   ...['/school','/school/library','/school/reviews','/school/team','/school/paper','/school/trust','/school/location'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
   ['/find-schools','public/find-schools.html'],['/places.js','public/places.js'],['/places.css','public/places.css'],['/location.js','lib/location.js'],
-  ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],['/workspace.css','public/workspace.css'],['/navigation.js','public/navigation.js'],['/experience.js','public/experience.js'],
+  ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],['/workspace.css','public/workspace.css'],['/navigation.js','public/navigation.js'],['/experience.js','public/experience.js'],['/fonts/InterVariable-5a8d3e72.woff2','public/fonts/InterVariable-5a8d3e72.woff2'],['/fonts/Inter-OFL.txt','public/fonts/Inter-OFL.txt'],
   ['/assessment.js','lib/assessment.js'],['/drafts.js','lib/drafts.js'],['/sample.js','lib/sample.js'],['/favicon.svg','public/favicon.svg']
 ]);
 export const server = http.createServer(async (req,res) => {
@@ -27,7 +27,7 @@ export const server = http.createServer(async (req,res) => {
     let body = await readFile(new URL(file,import.meta.url));
     if(file==='public/index.html')body=Buffer.from(body.toString().replace('data-page="home"',`data-page="${path==='/'?'home':path.slice(1)}"`));
     const ext = file.split('.').pop();
-    res.writeHead(200,{...securityHeaders,'Content-Type':{html:'text/html; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml'}[ext]});
+    res.writeHead(200,{...securityHeaders,'Content-Type':{html:'text/html; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',woff2:'font/woff2',txt:'text/plain; charset=utf-8'}[ext]});
     res.end(req.method === 'HEAD' ? undefined : body);
   } catch {json(res,500,{error:'Could not load this page.'});}
 });

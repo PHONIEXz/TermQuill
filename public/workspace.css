@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/InterVariable-5a8d3e72.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
 /* LessonPress design contract: design/DESIGN.md. Load after page styles. */
 :root {
   --ink: #20352e;
@@ -530,3 +537,35 @@ html[data-motion=reduced] *, html[data-motion=reduced] *::before, html[data-moti
   .paper-stack::before {inset:5px -5px -8px 5px;}
   .studio-chip {font-size:15px;}
 }
+
+/* Stronger, consistent typography across marketing and working pages. */
+:root {--font-ui:'Inter','Segoe UI',Arial,sans-serif; font-family:var(--font-ui); font-optical-sizing:auto;}
+body {font-family:var(--font-ui); font-weight:500;}
+button, input, textarea, select {font-family:var(--font-ui); font-weight:500;}
+h1, h2, h3, h4, h5, h6,
+.landing-hero h1, .landing-paper h2, .landing-section h2, .landing-paths h3,
+.landing-last h3, .demo-stage h3, .page-intro h1, .school-hero h1,
+.school-panel h2, .school-explainer h3, .department-setup h3,
+.guide-grid h2, .guide-school h2, .legal-intro h1, .legal-content h2,
+.draft-card h3, .library-heading h2, .library-empty h3, .empty h3,
+.paper-head h2, .output-header h2, .places-intro h1,
+.places-results-heading h2, .places-invite h2, .places-empty h3, dialog h2 {
+  font-family:var(--font-ui); font-weight:650; letter-spacing:-.025em;
+}
+h1 em, h2 em, h3 em, .landing-hero h1 em, .places-intro h1 em {
+  font-family:var(--font-ui); font-style:normal; font-weight:650; letter-spacing:inherit;
+}
+label, .editor label, .school-form label, .setup-section legend,
+.primary, .outline, .tabs button, .school-nav a, .topbar nav a,
+.demo-tabs button strong, summary, .school-tag, .pill {font-weight:600;}
+strong, b, .topbar nav a[aria-current=page], .school-nav a[aria-current=page],
+.tabs button[aria-selected=true] {font-weight:700;}
+.demo-review>p, .demo-review blockquote, .landing-process li>span, .school-stat strong {font-family:var(--font-ui); font-weight:600;}
+.brand {font-family:var(--font-ui); font-weight:750;}
+.brand span {font-weight:600;}
+@media screen {
+  .landing-hero h1 {font-weight:700; line-height:1.12; letter-spacing:-.045em;}
+  .landing-hero h1 em {font-weight:650; font-size:1em; line-height:inherit;}
+  .landing-section h2, .landing-paths h3 {line-height:1.2;}
+}
+@media print {body {font-weight:400;} .paper-head h2 {font-weight:650;}}

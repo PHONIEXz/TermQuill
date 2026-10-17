@@ -99,3 +99,8 @@ User feedback showed the first design pass still required zoom. Increased defaul
 - GitHub StyleKit/Auteur sources informed typography and motion decisions; implementation and artwork are original and no external runtime was installed. No measured performance score, real school adoption or live model-quality improvement is claimed.
 
 - Production browser check at a 1348 px CSS viewport: inspected the hero and builder, verified 18 px notes text, no horizontal document overflow, hidden home-only example on /create, working preview tabs, and pause/resume state. Loaded the hand-authored assessment and confirmed student-copy questions render. Visual review caught an overlapping paper backing; corrected it so the colored layer sits behind the reading surface and the header has clearance. Actual phone/device behavior and frame-rate measurements remain unverified.
+
+
+### Fuller typography across LessonPress, 17 October 2026
+
+Replaced light serif/italic display text and platform-dependent screen fonts with self-hosted Inter variable. Body/input weight 500, labels/controls 600, headings 650 and hero 700 preserve hierarchy without reducing reading sizes. Included the original SIL Open Font License, verified the downloaded WOFF2 bytes against their Git blob hash, and added a hashed long-cache font asset with preload hints. No font-service CSP exception is needed. All 80 tests, syntax checks and build pass. The HTTP test also checks font MIME and WOFF2 magic bytes. Live font loading and layout are checked after deployment.

@@ -514,3 +514,19 @@ input, textarea, select, .editor textarea, .school-form input, .school-form sele
 }
 html[data-motion=reduced] *, html[data-motion=reduced] *::before, html[data-motion=reduced] *::after {animation:none !important; transition:none !important; scroll-behavior:auto !important;}
 @media print {.studio-ribbon, .workflow-demo, .motion-toggle {display:none !important;}}
+
+/* Keep the colored backing behind the reading surface and leave the paper
+   header clear of the floating annotation. */
+@media screen {
+  .paper-stack {position:relative; isolation:isolate; width:calc(100% - 26px); max-width:425px; margin:24px auto 0;}
+  .paper-stack::before {content:''; position:absolute; inset:7px -10px -11px 8px; border:1px solid #d7bc99; border-radius:14px; background:#e7ccaa; transform:rotate(3deg); z-index:-1;}
+  .paper-stack .landing-paper {width:100%; max-width:none; margin:0;}
+  .paper-stack .landing-paper::before {display:none;}
+  .studio-chip {font-size:16px;}
+}
+@media screen and (max-width:850px) {.landing-hero h1 {max-width:none;}}
+@media screen and (max-width:540px) {
+  .paper-stack {width:calc(100% - 12px);}
+  .paper-stack::before {inset:5px -5px -8px 5px;}
+  .studio-chip {font-size:15px;}
+}

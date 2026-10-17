@@ -21,7 +21,7 @@ These are design references, not dependencies or a claim to reproduce native pla
 ## Shared rules
 
 - `public/workspace.css` is the final shared presentation layer after existing page styles. Keep its selectors scoped where behavior differs by page. Existing print protections take precedence over screen presentation.
-- Use the named color tokens and a small spacing/radius scale. Working body text and inputs must remain comfortably readable. Controls aim for at least 44 px height, with visible keyboard focus.
+- Use the named color tokens and a small spacing/radius scale. Default reading text and inputs are 18 px; working labels, navigation and help are at least 16 px. Small decorative section labels may use 14 px. Mobile breakpoints must not shrink working text. Darker secondary text supports reading at normal zoom. Controls aim for at least 44 px height, with visible keyboard focus.
 - Navigation links work without JavaScript. `public/navigation.js` progressively adds the compact menu, its expanded state, Escape dismissal and focus handling on breakpoint changes.
 - A school has grouped navigation: Your work, Your team, School settings. On large screens it is a rail; on smaller screens it becomes grouped navigation above content.
 - The builder has semantic fieldsets for paper details, lesson material and question settings. Manual format and thinking-level fields retain their existing behavior.

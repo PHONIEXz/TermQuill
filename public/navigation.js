@@ -30,7 +30,7 @@ if (navigation) {
     if (event.target.closest('a')) close();
   });
   // A breakpoint change must not leave focus inside a now-collapsed menu.
-  globalThis.matchMedia?.('(max-width: 900px)').addEventListener('change', event => {
+  globalThis.matchMedia?.('(max-width: 1100px)').addEventListener('change', event => {
     if (event.matches && navigation.contains(document.activeElement)) toggle.focus();
     close();
   });

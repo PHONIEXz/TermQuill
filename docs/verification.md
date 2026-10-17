@@ -83,3 +83,8 @@ Milestone 2 adds Home, Create, My drafts and Guide URLs with active navigation. 
 - All 77 tests pass, including existing generation/draft/review/print/security checks and new menu interaction tests. Syntax checks and build pass. Shared CSS parses, and all four page templates have unique IDs and valid label targets. Local HTTP tests confirm both new shared assets are served.
 - Browser visual verification was unavailable in this session. CSS parsing and DOM tests do not verify actual layout, motion, mobile appearance or printed pagination. No new live model or hosted-account test was performed for this presentation change.
 - The cross-project selection preference and LessonPress rules are recorded in design/DESIGN.md and referenced by project guidance. This is durable project documentation, not a claim that an account-level memory was written.
+
+
+### Reading comfort correction, 17 October 2026
+
+User feedback showed the first design pass still required zoom. Increased default reading/input text to 18 px, working labels/help/navigation to 16 px and secondary-text contrast. Removed smaller mobile text overrides, stacked long question-setting selects, and switched the compact-menu breakpoint to 1100 px to accommodate larger navigation. Print text retains its previous 14 px sizing. Visual/device verification remains unavailable; the user's normal-zoom reading experience needs checking on the deployed update.

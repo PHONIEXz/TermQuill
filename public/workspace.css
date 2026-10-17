@@ -2,109 +2,109 @@
 :root {
   --ink: #20352e;
   --green: #154f41;
-  --muted: #586a60;
+  --muted: #43594c;
   --line: #d9e1d9;
   --cream: #f6f7f2;
   --surface-soft: #eef3ec;
   --radius: 12px;
   --focus: #356e50;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-  font-size: 16px;
+  font-size: 18px;
 }
 body {line-height: 1.5;}
 button, input, select, textarea {font-family: inherit;}
 button, a { -webkit-tap-highlight-color: transparent; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
 textarea:focus-visible, summary:focus-visible {outline: 3px solid var(--focus); outline-offset: 3px;}
-input, select, textarea {font-size: 16px; padding: 11px 12px; border-color: #b5c4b7; border-radius: 8px;}
+input, select, textarea {font-size: 18px; padding: 11px 12px; border-color: #b5c4b7; border-radius: 8px;}
 input:not([type=checkbox]), select {min-height: 46px;}
 input[type=checkbox] {accent-color: var(--green);}
-label {font-size: 14px; line-height: 1.5; margin-top: 18px;}
+label {font-size: 16px; line-height: 1.5; margin-top: 18px;}
 button:disabled {opacity: .55;}
-.primary, .outline, .quiet {min-height: 44px; font-size: 14px; border-radius: 8px; line-height: 1.4;}
+.primary, .outline, .quiet {min-height: 44px; font-size: 16px; border-radius: 8px; line-height: 1.4;}
 .primary {padding: 13px 18px; text-decoration: none;}
 .outline {padding: 11px 15px; background: #fff; border-color: #bccbbb; white-space: normal;}
 .quiet {padding: 10px 12px;}
 .quiet:hover:not(:disabled) {background: var(--surface-soft);}
 .primary:hover:not(:disabled) {background: #103e32;}
-.micro, .privacy {font-size: 13px; line-height: 1.7;}
-.eyebrow {font-size: 11px; letter-spacing: 1.4px;}
+.micro, .privacy {font-size: 16px; line-height: 1.7;}
+.eyebrow {font-size: 16px; letter-spacing: 1.4px;}
 .topbar {min-height: 80px; height: auto; padding: 14px max(4%, calc((100vw - 1440px) / 2)); background: #fff; gap: 20px;}
 .brand {font-size: 25px; flex-shrink: 0;}
 .topbar nav {gap: 3px; flex-wrap: wrap;}
-.topbar nav a {font-size: 14px; min-height: 44px; display: flex; align-items: center; padding: 10px 13px; border-radius: 8px;}
+.topbar nav a {font-size: 16px; min-height: 44px; display: flex; align-items: center; padding: 10px 13px; border-radius: 8px;}
 .topbar nav a:hover {background: #f1f4ee; color: var(--ink);}
 .topbar nav a[aria-current=page] {background: #e8f0e5; color: var(--green);}
 .navigation-toggle {display: none;}
 .page-intro {padding: 32px 0 28px;}
 .page-intro h1 {font-size: clamp(32px, 3vw, 44px); letter-spacing: -1.2px; margin: 12px 0;}
-.page-intro .lede {font-size: 16px; margin: 10px 0; max-width: 65ch;}
-.workflow-steps {list-style: none; padding: 0; margin: 20px 0 0; gap: 10px; font-size: 13px;}
+.page-intro .lede {font-size: 18px; margin: 10px 0; max-width: 65ch;}
+.workflow-steps {list-style: none; padding: 0; margin: 20px 0 0; gap: 10px; font-size: 16px;}
 .workflow-steps li {display: flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 24px; background: #fff;}
-.workflow-steps b {display: grid; place-items: center; width: 23px; height: 23px; background: #e7efdf; border-radius: 50%; font-size: 12px;}
+.workflow-steps b {display: grid; place-items: center; width: 23px; height: 23px; background: #e7efdf; border-radius: 50%; font-size: 16px;}
 .workspace {grid-template-columns: minmax(360px, 420px) minmax(0, 1fr); border-radius: 16px; box-shadow: 0 6px 30px #20352e06;}
 .setup {background: #fff; padding: 28px;}
 .panel-heading {margin-bottom: 26px;}
 .panel-heading h2 {font-size: 19px; margin-top: 0;}
-.panel-heading p {font-size: 14px;}
-.step {width: 30px; height: 30px; font-size: 12px; background: #eef3e7;}
+.panel-heading p {font-size: 16px;}
+.step {width: 30px; height: 30px; font-size: 16px; background: #eef3e7;}
 .setup-section {border: 0; border-top: 1px solid var(--line); padding: 22px 0 4px; margin: 24px 0 0; min-width: 0;}
-.setup-section legend {padding: 0 9px 0 0; font-size: 14px; font-weight: 700; color: var(--green);}
+.setup-section legend {padding: 0 9px 0 0; font-size: 16px; font-weight: 700; color: var(--green);}
 .setup-section:first-child {margin-top: 0;}
 .setup-section > label:first-of-type {margin-top: 8px;}
 .setup-section .two {gap: 14px;}
-.text-button {font-size: 13px; min-height: 44px; padding: 10px 0 10px 8px; text-underline-offset: 3px;}
+.text-button {font-size: 16px; min-height: 44px; padding: 10px 0 10px 8px; text-underline-offset: 3px;}
 .label-row {align-items: center; gap: 8px;}
-.notes-footer {font-size: 12px; flex-wrap: wrap;}
-.summary-line {font-size: 14px; padding: 16px; border: 0; border-radius: 8px; background: var(--surface-soft);}
+.notes-footer {font-size: 16px; flex-wrap: wrap;}
+.summary-line {font-size: 16px; padding: 16px; border: 0; border-radius: 8px; background: var(--surface-soft);}
 .output {padding: 28px; background: #edf1ea;}
 .output-header h2 {font: 500 23px/1.3 -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; letter-spacing: -.5px;}
-.pill {font-size: 10px; letter-spacing: .7px; background: #fff; padding: 8px 10px;}
+.pill {font-size: 16px; letter-spacing: .7px; background: #fff; padding: 8px 10px;}
 .toolbar {align-items: center; flex-wrap: wrap;}
 .tabs {background: #e2e9dd; padding: 4px; border-radius: 10px; max-width: 100%; flex-wrap: wrap;}
-.tabs button {font-size: 13px; min-height: 44px; padding: 10px 12px; border-radius: 7px;}
+.tabs button {font-size: 16px; min-height: 44px; padding: 10px 12px; border-radius: 7px;}
 .tabs button[aria-selected=true] {background: #fff; color: var(--green); box-shadow: 0 1px 4px #20352e12; font-weight: 700;}
 #preview {padding: 32px; border-radius: 8px; min-height: 620px;}
 .empty {min-height: 500px;}
-.empty p {font-size: 15px; line-height: 1.75; max-width: 38ch;}
-.empty .eyebrow {font-size: 10px;}
+.empty p {font-size: 18px; line-height: 1.75; max-width: 38ch;}
+.empty .eyebrow {font-size: 16px;}
 .empty h3 {font-size: 30px;}
-.paper-head p, .name-line, .instructions, .question-title, .options, .teacher-answer {font-size: 14px;}
-.evidence {font-size: 13px;}
-.marks, .print-note {font-size: 12px;}
+.paper-head p, .name-line, .instructions, .question-title, .options, .teacher-answer {font-size: 16px;}
+.evidence {font-size: 16px;}
+.marks, .print-note {font-size: 16px;}
 .question {padding: 24px 0;}
 .draft-actions {justify-content: flex-start; gap: 8px;}
-.draft-actions button {font-size: 13px; border: 1px solid var(--line); background: #fff;}
+.draft-actions button {font-size: 16px; border: 1px solid var(--line); background: #fff;}
 .draft-actions #save {background: #e4eddf; border-color: #b7c9ac; color: var(--green); font-weight: 650;}
 #review-bar {padding: 18px; border: 1px solid #c2d1b5;}
-.check-label {font-size: 14px;}
-#audit-status {font-size: 13px;}
-#live-status:not(:empty), #error {font-size: 14px; border-radius: 8px; padding: 16px;}
+.check-label {font-size: 16px;}
+#audit-status {font-size: 16px;}
+#live-status:not(:empty), #error {font-size: 16px; border-radius: 8px; padding: 16px;}
 .output[aria-busy=true] #live-status::before {content: ''; display: inline-block; width: 14px; height: 14px; border: 2px solid #a1b894; border-top-color: var(--green); border-radius: 50%; margin-right: 10px; vertical-align: -2px; animation: assessment-progress .9s linear infinite;}
 @keyframes assessment-progress {to {transform: rotate(360deg);}}
 .editor {padding: 24px 0;}
-.editor h3 {font-size: 16px; margin-bottom: 18px;}
-.editor label {font-size: 14px;}
-.editor textarea {font-size: 15px;}
+.editor h3 {font-size: 18px; margin-bottom: 18px;}
+.editor label {font-size: 16px;}
+.editor textarea {font-size: 18px;}
 .editor-grid {display: grid; gap: 20px;}
 .editor-evidence {padding: 18px; background: #f3f6ee; border: 1px solid #dce5d4; border-radius: 8px; min-width: 0;}
 .editor-evidence > label:first-child {margin-top: 0;}
-.editor details {font-size: 14px;}
+.editor details {font-size: 16px;}
 .editor details summary {padding: 10px 0;}
 .editor details p {white-space: pre-wrap; max-height: 360px; overflow: auto;}
-.footnote p, footer {font-size: 13px;}
+.footnote p, footer {font-size: 16px;}
 .draft-library {border-radius: var(--radius); padding: 28px;}
 .draft-card {border-radius: 10px; padding: 24px; background: #fff;}
-.draft-card p, #library-status, .library-empty p {font-size: 14px;}
-.draft-card .card-actions button {font-size: 13px;}
-.draft-card .sample-label {font-size: 11px;}
+.draft-card p, #library-status, .library-empty p {font-size: 16px;}
+.draft-card .card-actions button {font-size: 16px;}
+.draft-card .sample-label {font-size: 16px;}
 .guide-grid article, .guide-school, .landing-paths article {border-radius: var(--radius);}
 .landing-hero {padding-top: 64px; padding-bottom: 64px;}
 .landing-paper {transform: none; border-radius: 14px; box-shadow: 0 14px 45px #20352e0c;}
-.paper-strip {font-size: 11px; letter-spacing: .6px;}
-.example-choices {font-size: 13px;}
-.example-evidence {font-size: 14px; border-radius: 0 8px 8px 0;}
-.example-evidence span, .paper-bottom, .landing-paths .micro {font-size: 12px;}
+.paper-strip {font-size: 16px; letter-spacing: .6px;}
+.example-choices {font-size: 16px;}
+.example-evidence {font-size: 16px; border-radius: 0 8px 8px 0;}
+.example-evidence span, .paper-bottom, .landing-paths .micro {font-size: 16px;}
 .landing-last {border-radius: 14px;}
 .landing-section h2 {font-size: clamp(30px, 3vw, 40px);}
 
@@ -114,39 +114,39 @@ button:disabled {opacity: .55;}
 .signed-in .school-hero h1 {font-size: 30px;}
 .signed-in .school-hero h1 br {display: none;}
 .signed-in .school-hero h1 em::before {content: ' ';}
-.signed-in .school-hero .lede {font-size: 15px;}
+.signed-in .school-hero .lede {font-size: 18px;}
 .school-panel {border-radius: 16px; padding: 36px; gap: 48px;}
 .school-panel h2 {font: normal 30px/1.25 Georgia, serif;}
-.school-panel p {font-size: 15px; line-height: 1.8;}
-.school-account {font-size: 14px; margin-bottom: 20px;}
+.school-panel p {font-size: 18px; line-height: 1.8;}
+.school-account {font-size: 16px; margin-bottom: 20px;}
 .school-heading h2 {font-size: 24px; letter-spacing: -.5px;}
 .school-layout {display: grid; grid-template-columns: 225px minmax(0, 1fr); gap: 32px; align-items: start; margin-top: 18px;}
 .school-nav {display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0; background: #fff; position: sticky; top: 24px;}
 .school-nav-group {display: flex; flex-direction: column; gap: 3px;}
 .school-nav-group + .school-nav-group {margin-top: 10px; border-top: 1px solid var(--line); padding-top: 12px;}
-.school-nav-label {font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 6px 12px; font-weight: 700;}
-.school-nav a {font-size: 14px; min-height: 44px; padding: 11px 12px; border-radius: 7px; line-height: 1.5;}
+.school-nav-label {font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 6px 12px; font-weight: 700;}
+.school-nav a {font-size: 16px; min-height: 44px; padding: 11px 12px; border-radius: 7px; line-height: 1.5;}
 .school-nav a:hover {background: #f0f4ed;}
 .school-nav a[aria-current=page] {background: #e7f0e2; color: var(--green); font-weight: 700; box-shadow: inset 3px 0 var(--green);}
 #school-content {min-width: 0;}
 .school-explainer {background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin-bottom: 24px;}
 .school-explainer h3 {font: 600 23px/1.3 -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; margin: 0 0 12px; letter-spacing: -.4px;}
-.school-explainer p {font-size: 15px; line-height: 1.7;}
+.school-explainer p {font-size: 18px; line-height: 1.7;}
 .school-explainer details {border-top: 1px solid var(--line); margin-top: 16px; padding-top: 10px;}
-.school-explainer summary {font-size: 14px; font-weight: 600; color: var(--green); cursor: pointer; padding: 8px 0;}
-.school-explainer details p {font-size: 14px;}
+.school-explainer summary {font-size: 16px; font-weight: 600; color: var(--green); cursor: pointer; padding: 8px 0;}
+.school-explainer details p {font-size: 16px;}
 .school-card, .school-stat, .school-form, .department-setup {border-color: var(--line); border-radius: 12px;}
 .school-card h3 {font-size: 18px;}
-.school-card p {font-size: 14px; line-height: 1.75;}
+.school-card p {font-size: 16px; line-height: 1.75;}
 .school-stat {padding: 22px;}
 .school-stat strong {font: 600 34px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; letter-spacing: -1px;}
 .school-journey ol {grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 12px;}
 .school-journey li {border-bottom: 1px solid var(--line);}
 .school-journey li:nth-child(2) {border-right: 0;}
 .school-journey li:nth-last-child(-n+2) {border-bottom: 0;}
-.school-empty {border-radius: 12px; font-size: 15px;}
-.school-table th {font-size: 12px; color: var(--muted); background: #edf2e9;}
-.school-table td {font-size: 14px; background: #fff;}
+.school-empty {border-radius: 12px; font-size: 18px;}
+.school-table th {font-size: 16px; color: var(--muted); background: #edf2e9;}
+.school-table td {font-size: 16px; background: #fff;}
 .school-table-wrap {border: 1px solid var(--line); border-radius: 10px;}
 .school-glossary {margin-left: 257px; max-width: none;}
 .school-glossary summary, .school-import > summary {border-radius: 8px; min-height: 44px;}
@@ -155,6 +155,44 @@ button:disabled {opacity: .55;}
 .school-toolbar input {min-width: min(200px, 100%);}
 .school-form fieldset {min-width: 0;}
 .school-form input[type=checkbox] {min-height: 0;}
+
+
+/* Reading comfort is the default, including older page-specific components. */
+.lede, .landing-section p, .landing-paths li, .guide-grid p,
+.guide-school p, .legal-content p, .legal-content li, .legal-intro .lede,
+.school-panel p, .school-explainer p, .school-card p, .department-setup > p,
+.school-journey p, .school-note li, .school-glossary dl, .school-audit,
+.places-empty p, .places-invite p, .school-print p {
+  font-size: 18px; line-height: 1.8;
+}
+.micro, .privacy, .field-help, .school-panel .micro, .school-explainer details p,
+.school-muted, .school-review, .school-activity-panel .school-audit p,
+.landing-paths .micro, .landing-hero .micro, .school-tag, .places-distance,
+.legal-content table, .notes-footer, .sample-notice, .pending-notice,
+.issue, #library-error, #library-status, .card-link, .print-note {
+  font-size: 16px !important; line-height: 1.7;
+}
+label, .school-form label, .school-switch label, .places-controls label,
+.editor label, .check-label, .school-account .quiet,
+.school-form button, .department-setup button, .draft-actions button,
+.draft-card .card-actions button, .school-journey a,
+.school-form input, .school-form select, .school-form textarea {
+  font-size: 16px;
+}
+input, textarea, select, .editor textarea, .school-form input, .school-form select, .school-form textarea {font-size: 18px;}
+.paper-head p, .name-line, .instructions, .question-title, .options,
+.options li, .teacher-answer, .evidence {font-size: 18px; line-height: 1.8;}
+.eyebrow, .empty .eyebrow, .school-explainer .eyebrow,
+.school-nav-label, .paper-strip, .paper-head .kicker {font-size: 14px; letter-spacing: .8px;}
+.pill {font-size: 14px; letter-spacing: .4px; white-space: normal;}
+.topbar nav a {font-size: 16px;}
+.school-table th, .school-table td {font-size: 16px;}
+.school-table th {color: var(--ink);}
+.setup-section .two:has(#format) {grid-template-columns: 1fr; gap: 0;}
+.setup-section .three {column-gap: 8px;}
+.setup-section .three label {font-size: 15px;}
+.empty p {font-size: 18px;}
+.legal-content p, .guide-grid p {max-width: 75ch;}
 
 @media (min-width: 1280px) {
   .editor-grid {grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start;}
@@ -169,7 +207,7 @@ button:disabled {opacity: .55;}
   .school-stats {gap: 10px;}
   .school-stat {padding: 16px;}
 }
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .topbar {padding: 14px 4%; flex-wrap: wrap; gap: 12px;}
   .topbar nav {order: 3; width: 100%; justify-content: flex-start;}
   .topbar.navigation-ready .navigation-toggle {display: block; margin-left: auto;}
@@ -182,18 +220,18 @@ button:disabled {opacity: .55;}
   .school-nav {position: static; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;}
   .school-nav-group + .school-nav-group {margin: 0; padding: 0; border: 0;}
   .school-nav-label {padding-left: 10px;}
-  .school-nav a {font-size: 13px; padding: 10px;}
+  .school-nav a {font-size: 16px; padding: 10px;}
   .school-glossary {margin-left: 0;}
   .school-grid {grid-template-columns: repeat(2, minmax(0, 1fr));}
 }
 @media (max-width: 540px) {
   .brand {font-size: 23px;}
   .brand img {width: 30px; height: 30px;}
-  .topbar #about-button {font-size: 12px; padding-left: 0; padding-right: 0;}
+  .topbar #about-button {font-size: 16px; padding-left: 0; padding-right: 0;}
   .topbar nav a {width: 100%;}
   .page-intro {padding-top: 24px;}
   .workflow-steps {gap: 6px;}
-  .workflow-steps li {font-size: 12px; padding: 6px 8px;}
+  .workflow-steps li {font-size: 16px; padding: 6px 8px;}
   .workspace {margin-left: 4%; margin-right: 4%;}
   .setup {padding: 22px 18px;}
   .output {padding: 22px 14px;}
@@ -201,9 +239,9 @@ button:disabled {opacity: .55;}
   .output-header {align-items: flex-start; flex-direction: column; gap: 8px;}
   .output-header h2 {font-size: 22px;}
   .tabs {width: 100%;}
-  .tabs button {flex: 1; font-size: 12px; padding: 10px 6px; white-space: normal;}
+  .tabs button {flex: 1; font-size: 16px; padding: 10px 6px; white-space: normal;}
   .empty h3 {font-size: 26px;}
-  .empty p {font-size: 14px;}
+  .empty p {font-size: 18px;}
   .school-nav {grid-template-columns: 1fr; gap: 12px;}
   .school-nav-group {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px;}
   .school-nav-label {grid-column: 1 / -1;}
@@ -224,5 +262,6 @@ button:disabled {opacity: .55;}
 @media print {
   .school-layout {display: block; margin: 0;}
   .school-nav, .setup-section, .navigation-toggle {display: none !important;}
+  .paper-head p, .name-line, .instructions, .question-title, .options, .options li, .teacher-answer, .evidence {font-size: 14px;}
   .workspace, .output, #preview {padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; background: #fff; min-height: 0;}
 }

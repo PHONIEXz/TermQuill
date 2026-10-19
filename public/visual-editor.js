@@ -2,17 +2,17 @@ import {ICONS,PRESETS,MAX_IMAGE_LENGTH,setVisualAnswer} from '/visuals.js';
 import {iconElement} from '/paper-blocks.js';
 function node(doc,tag,text,cls){const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function field(box,label,value,{type='text',max=160,min,limit,options}={},change=()=>{}){
- const d=box.ownerDocument,l=node(d,'label',label),e=d.createElement(options?'select':type==='textarea'?'textarea':'input');e.id=`visual-${crypto.randomUUID()}`;l.htmlFor=e.id;
+ const d=box.ownerDocument,wrap=node(d,'div',undefined,`visual-field${type==='checkbox'?' visual-check':''}`),l=node(d,'label',label),e=d.createElement(options?'select':type==='textarea'?'textarea':'input');e.id=`visual-${crypto.randomUUID()}`;l.htmlFor=e.id;
  if(options)for(const [v,t] of options){const o=node(d,'option',t);o.value=v;e.append(o);}
  else if(type!=='textarea')e.type=type;
  if(type==='checkbox')e.checked=Boolean(value);else e.value=value??'';
  if(!options&&['text','textarea'].includes(type))e.maxLength=max;
  if(min!==undefined)e.min=min;if(limit!==undefined)e.max=limit;
- e.addEventListener(options||type==='checkbox'||type==='file'?'change':'input',()=>change(type==='number'?Number(e.value):type==='checkbox'?e.checked:e.value,e));box.append(l,e);return e;
+ e.addEventListener(options||type==='checkbox'||type==='file'?'change':'input',()=>change(type==='number'?Number(e.value):type==='checkbox'?e.checked:e.value,e));wrap.append(l,e);box.append(wrap);return e;
 }
-function button(box,label,fn,disabled=false){const b=node(box.ownerDocument,'button',label);b.type='button';b.disabled=disabled;b.addEventListener('click',fn);box.append(b);return b;}
+function button(box,label,fn,disabled=false){const b=node(box.ownerDocument,'button',label);b.type='button';if(label.startsWith('Remove'))b.classList.add('remove-control');b.disabled=disabled;b.addEventListener('click',fn);box.append(b);return b;}
 export function layoutEditor(box,paper,onChange){
- const d=box.ownerDocument,panel=node(d,'fieldset',undefined,'layout-panel');panel.append(node(d,'legend','Paper layout & header'));const layout=paper.layout??={preset:'standard',schoolName:'',term:''};
+ const d=box.ownerDocument,panel=node(d,'fieldset',undefined,'layout-panel');panel.append(node(d,'legend','Paper layout & header'));panel.append(node(d,'p','Applies to the whole paper. Set the reading size and heading here.','visual-hint'));const layout=paper.layout??={preset:'standard',schoolName:'',term:''};
  field(panel,'Paper style',layout.preset,{options:Object.entries(PRESETS)},v=>{layout.preset=v;onChange();});
  field(panel,'School name (optional)',layout.schoolName,{max:100},v=>{layout.schoolName=v;onChange();});field(panel,'Term / exam heading (optional)',layout.term,{max:60},v=>{layout.term=v;onChange();});
  panel.append(node(d,'p','Early Years uses larger questions, line illustrations and generous answer spaces. Check the class, language and printed size before use.','visual-hint'));box.append(panel);
@@ -27,11 +27,11 @@ function freshBlock(type){
  return {type:'lines',count:3};
 }
 export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>false,onBusy=()=>{}}={}){
- const d=box.ownerDocument,section=node(d,'details',undefined,'visual-editor');section.open=Boolean(q.blocks?.length);section.append(node(d,'summary','Pictures, tables & answer spaces'));box.append(section);
+ const d=box.ownerDocument,section=node(d,'details',undefined,'visual-editor');section.open=Boolean(q.blocks?.length);const summary=node(d,'summary','Pictures, tables & answer spaces');summary.append(node(d,'span',`${q.blocks?.length||0} added`,'visual-count'));section.append(summary);box.append(section);
  const body=node(d,'div');section.append(body);
  function changed(){try{setVisualAnswer(q);}catch(e){onError(e.message);}onChange();}
  function refresh(){
-  body.replaceChildren();
+  body.replaceChildren();summary.querySelector('.visual-count').textContent=`${q.blocks?.length||0} added`;
   body.append(node(d,'p','These blocks appear on both copies. Keep answers out of captions, picture descriptions and table cells. Counting and matching tasks update their answer keys automatically.','visual-hint'));
   field(body,'Default answer space',q.answerSpace||'auto',{options:[['auto','Automatic writing lines'],['none','No extra answer space']]},v=>{q.answerSpace=v;onChange();});
   field(body,'Start this question on a new printed page',q.pageBreakBefore,{type:'checkbox'},v=>{q.pageBreakBefore=v;onChange();});
@@ -64,7 +64,7 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
     button(tools,'Add column',()=>{b.headers.push('');b.rows.forEach(r=>r.push(''));changed();refresh();},b.headers.length>=4);button(tools,'Remove last column',()=>{b.headers.pop();b.rows.forEach(r=>r.pop());changed();refresh();},b.headers.length<=1);fs.append(tools);
    }
    if(b.type==='matching'){
-    b.pairs.forEach((p,j)=>{const pair=node(d,'div',undefined,'two');field(pair,`Pair ${j+1}: left picture`,p.leftIcon||'',{options:[['','Text only'],...Object.entries(ICONS)]},v=>{if(v){p.leftIcon=v;p.left=ICONS[v];leftField.value=p.left;leftField.readOnly=true;}else{delete p.leftIcon;leftField.readOnly=false;}changed();});const leftField=field(pair,`Pair ${j+1}: left`,p.left,{max:80},v=>{p.left=v;changed();});leftField.readOnly=Boolean(p.leftIcon);field(pair,`Pair ${j+1}: correct match`,p.right,{max:80},v=>{p.right=v;changed();});fs.append(pair);});
+    b.pairs.forEach((p,j)=>{const pair=node(d,'fieldset',undefined,'matching-pair');pair.append(node(d,'legend',`Pair ${j+1}`));field(pair,`Pair ${j+1}: left picture`,p.leftIcon||'',{options:[['','Text only'],...Object.entries(ICONS)]},v=>{if(v){p.leftIcon=v;p.left=ICONS[v];leftField.value=p.left;leftField.readOnly=true;}else{delete p.leftIcon;leftField.readOnly=false;}changed();});const leftField=field(pair,`Pair ${j+1}: left`,p.left,{max:80},v=>{p.left=v;changed();});leftField.readOnly=Boolean(p.leftIcon);field(pair,`Pair ${j+1}: correct match`,p.right,{max:80},v=>{p.right=v;changed();});fs.append(pair);});
     const tools=node(d,'div',undefined,'block-controls'),reset=()=>{b.order=b.pairs.map((_,j)=>(j+1)%b.pairs.length);changed();refresh();};
     button(tools,'Add pair',()=>{b.pairs.push({left:`Item ${b.pairs.length+1}`,right:`Match ${b.pairs.length+1}`});reset();},b.pairs.length>=6);button(tools,'Remove last pair',()=>{b.pairs.pop();reset();},b.pairs.length<=2);button(tools,'Rotate right column',()=>{b.order.push(b.order.shift());changed();refresh();});fs.append(tools);
    }
@@ -73,7 +73,7 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
    if(b.type==='lines')bind('Writing lines','count',{type:'number',min:1,limit:8});
    body.append(fs);
   });
-  const add=node(d,'div',undefined,'visual-add');const type=field(add,'Add a block','picture',{options:Object.entries(blockLabels)});
+  const add=node(d,'div',undefined,'visual-add');add.append(node(d,'p','Choose what the pupil should see or use.','visual-hint'));const type=field(add,'Add a block','picture',{options:Object.entries(blockLabels)});
   button(add,'Add selected block',()=>{
    if(isBusy())return;
    if(type.value==='image'){upload.click();return;}

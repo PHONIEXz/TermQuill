@@ -11,6 +11,7 @@ const routes = new Map([
   ...['/school','/school/library','/school/reviews','/school/team','/school/paper','/school/trust','/school/location'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
   ['/find-schools','public/find-schools.html'],['/places.js','public/places.js'],['/places.css','public/places.css'],['/location.js','lib/location.js'],
   ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],['/workspace.css','public/workspace.css'],['/navigation.js','public/navigation.js'],['/experience.js','public/experience.js'],['/fonts/InterVariable-5a8d3e72.woff2','public/fonts/InterVariable-5a8d3e72.woff2'],['/fonts/Inter-OFL.txt','public/fonts/Inter-OFL.txt'],
+  ...['visuals','early-years'].map(name=>[`/${name}.js`,`lib/${name}.js`]),...['paper-blocks.js','paper-blocks.css','visual-editor.js'].map(name=>[`/${name}`,`public/${name}`]),
   ['/assessment.js','lib/assessment.js'],['/drafts.js','lib/drafts.js'],['/sample.js','lib/sample.js'],['/favicon.svg','public/favicon.svg']
 ]);
 export const server = http.createServer(async (req,res) => {

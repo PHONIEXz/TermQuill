@@ -1,3 +1,4 @@
+import {earlyYearsSample} from '../lib/early-years.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -41,6 +42,10 @@ test('real Postgres engine enforces school isolation, review roles, concurrency 
  await assert.rejects(rpc('print_request',{school_id:a.id,paper_id:paper.id,revision:3,copy:'teacher'}));await assert.rejects(rpc('verification_request',{school_id:a.id,public_reference:'https://example.com',authority_note:'A teacher cannot request verification for the school.'}));
  actor=ids[3];await rpc('accept_invite',{token:hodInvite.token});await assert.rejects(rpc('paper',{school_id:a.id,paper_id:paper.id}));
  actor=ids[4];const b=await rpc('create_school',{name:'School B'});await assert.rejects(rpc('dashboard',{school_id:a.id}));await assert.rejects(rpc('paper',{school_id:b.id,paper_id:paper.id}));await assert.rejects(rpc('audit_list',{school_id:a.id}));
+ actor=ids[1];const early=earlyYearsSample();const visual=await rpc('save_paper',{school_id:a.id,department_id:dep.id,content:{spec:early.spec,paper:early.paper}});
+ await rpc('submit',{school_id:a.id,paper_id:visual.id,expected_revision:1});actor=ids[0];await rpc('review',{school_id:a.id,paper_id:visual.id,expected_revision:1,decision:'approved',comment:'Checked the illustrated version.'});
+ actor=ids[1];const changed=structuredClone(early.paper);changed.questions[0].blocks[0].quantity=4;await rpc('save_paper',{school_id:a.id,paper_id:visual.id,expected_revision:1,content:{spec:early.spec,paper:changed}});
+ actor=ids[2];const approvedVisual=await rpc('paper',{school_id:a.id,paper_id:visual.id});assert.equal(approvedVisual.revision,1);assert.equal(approvedVisual.content.paper.questions[0].blocks[0].quantity,3);assert.deepEqual(approvedVisual.content.paper.layout,early.paper.layout);
  actor=ids[0];await rpc('remove_member',{school_id:a.id,user_id:ids[2]});actor=ids[2];await assert.rejects(rpc('dashboard',{school_id:a.id}));
  actor=ids[0];const activity=await rpc('audit_list',{school_id:a.id});assert.ok(activity.events.some(e=>e.action==='print_requested'&&e.detail.revision===2&&e.detail.copy==='student'));assert.ok(activity.events.some(e=>e.action==='save_paper'&&e.detail.revision===3));assert.ok(activity.events.some(e=>e.action==='verification_decided'&&e.actor_id===null&&e.actor_label==='Test operator'));
  const onlyPrint=await rpc('audit_list',{school_id:a.id,event:'print_requested'});assert.equal(onlyPrint.events.length,1);assert.ok(onlyPrint.events.every(e=>e.action==='print_requested'));const older=await rpc('audit_list',{school_id:a.id,before_id:activity.events.at(-1).id});assert.equal(older.events.length,0);

@@ -125,7 +125,7 @@ Before broad institutional adoption, publish a dedicated private support/privacy
 
 ## Manual assessment preferences
 
-In Question format or Thinking level, choose **Describe my own** to enter 3–600 characters of instructions. The request is validated server-side, included in the model prompt, and kept with saved/imported/shared drafts. Inactive fields are excluded. Preset choices retain deterministic type ordering; a custom format allows the model to choose the ordering of supported four-option MCQ and written-response questions. Counts, marks, evidence and answer checks still apply. Exact compliance with custom wording, proportions or cognitive demand remains a teacher review task. Image, audio, upload and interactive questions are not supported.
+In Question format or Thinking level, choose **Describe my own** to enter 3–600 characters of instructions. The request is validated server-side, included in the model prompt, and kept with saved/imported/shared drafts. Inactive fields are excluded. Preset choices retain deterministic type ordering; a custom format allows the model to choose the ordering of supported four-option MCQ and written-response questions. Counts, marks, evidence and answer checks still apply. Exact compliance with custom wording, proportions or cognitive demand remains a teacher review task. Visual questions are supported through the structured blocks below. Picture uploads are teacher-supplied PNG/JPEG files; audio and online interactive tests are not supported.
 
 See `docs/ai-roadmap.md` for proposed AI workflows beyond assessment generation. These are plans, not deployed features.
 
@@ -148,3 +148,17 @@ Migration 002 adds a guarded wrapper around the original workspace implementatio
 Maps use user-opened HTTPS OpenStreetMap links, not automatically loaded map tiles. The link shares the selected school/preview point with OpenStreetMap and never includes a nearby visitor's origin. Principals can move a marker in OpenStreetMap's Share panel and import its full marker link locally. The app does not fetch imported URLs.
 
 Permissions-Policy permits same-origin geolocation while retaining camera/microphone restrictions. HTTPS and browser permission are still required. `scripts/verify-location-db.js` generates a rollback-only hosted smoke test. Tests use synthetic locations; an actual device GPS fix must be checked by a user on their own device. See `/privacy#location` and `docs/location-design.md`.
+
+
+## Visual papers and Early Years (October 19)
+
+Choose **Open Early Years example** in Create assessment for a hand-authored, editable six-question paper. The example is explicitly labelled; it is not live AI output or a claim of curriculum suitability. Standard, Primary and Early Years presentation presets control reading size; the teacher still chooses the class and checks suitability.
+
+- Each question can contain up to six structured blocks: original line illustrations (12 objects/shapes), exact counts (1–20 objects), embedded pictures, tables (1–4 columns / 1–8 rows), matching columns (2–6 pairs), tracing outlines, drawing boxes and writing lines.
+- Add, duplicate, reorder or remove questions within the existing 3–20-question limit. Reordering enables teacher-arranged format validation. Duplicate questions must be changed before approval.
+- School name, term/exam heading and per-question print page breaks are editable. Student papers omit answer keys and lesson quotes. Matching uses a saved right-column permutation, so displayed letters and answer keys agree. Counting/matching keys and their marking points are derived from the blocks; edits invalidate approval.
+- PNG/JPEG files under 4 MB and 16 megapixels are decoded and compressed on the teacher's device. A stored picture is at most 24,000 data-URL characters (about 18 KB). The teacher can choose size and whole-picture or square centre crop. No remote image URLs, uploaded SVG or executable content is allowed. Uploaded pictures are not sent to the AI for image recognition.
+- Pictures are embedded in the saved paper, not external links. Personal drafts/JSON keep them locally; sending a paper to school stores them in its existing versioned JSON record. A conservative encoded-byte check protects the existing 90 KB school record limit; large illustrated papers must be simplified before sharing. Device storage and JSON import limits still apply. A dedicated asset bucket is a future scaling step, not a prerequisite or a provisioned service.
+- Generated Early Years/Primary/custom-format requests can use the supported visual schema. Notes remain the factual source, structural validation still runs, and unsupported blocks are rejected. Teacher uploads happen after generation. The model does not produce arbitrary SVG/HTML or generated raster artwork.
+
+Tracing uses simple outline practice text, not a handwriting curriculum. Tables/captions/image descriptions are teacher-visible content on the student copy: do not put answers in them. Preview every paper, check black-and-white legibility and browser print pagination, and adapt tasks for your learners. Cloud school roles and immutable approved versions keep their existing rules.

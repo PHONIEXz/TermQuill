@@ -1,3 +1,5 @@
+import {earlyYearsSample} from '../lib/early-years.js';
+import {installVisuals} from './visual-helpers.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -8,7 +10,7 @@ import {sampleSpec,samplePaper} from '../lib/sample.js';
 const html=await readFile(new URL('../public/school.html',import.meta.url),'utf8');
 const script=(await readFile(new URL('../public/school.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
 const school={id:'s1',name:'School <script>unsafe()</script>',role:'principal'};
-async function setup(path,handler){const dom=new JSDOM(html,{url:`https://lessonpress.test${path}`,runScripts:'outside-only'});const w=dom.window;Object.assign(w,{structuredClone,validateDraft,...locationHelpers});w.confirm=()=>true;w.fetch=async(url,opts)=>{const out=await handler(url,opts?.body?JSON.parse(opts.body):null);return {ok:out.status!==403,json:async()=>out.body||out};};w.eval(script);await new Promise(r=>setTimeout(r,25));return {dom,w,$:id=>w.document.getElementById(id)};}
+async function setup(path,handler){const dom=new JSDOM(html,{url:`https://lessonpress.test${path}`,runScripts:'outside-only'});const w=dom.window;Object.assign(w,{structuredClone,validateDraft,...locationHelpers});installVisuals(w);w.confirm=()=>true;w.fetch=async(url,opts)=>{const out=await handler(url,opts?.body?JSON.parse(opts.body):null);return {ok:out.status!==403,json:async()=>out.body||out};};w.eval(script);await new Promise(r=>setTimeout(r,25));return {dom,w,$:id=>w.document.getElementById(id)};}
 const dashboard={verification:{status:'verified'},departments:[{id:'d1',name:'Science'}],members:[],invitations:[],audit:[],papers:[]};
 function signedHandler(extra){return (url,body)=>url==='/api/account'?{user:{id:'u1',email:'teacher@example.com'}}:body.action==='bootstrap'?{schools:[school]}:body.action==='dashboard'?dashboard:extra?.(body)||{};}
 test('school sign in is shown without exposing workspace content',async()=>{const {dom,$}=await setup('/school',()=>({user:null}));try{assert.equal($('account-panel').hidden,false);assert.equal($('signed-panel').hidden,true);assert.match($('school-status').textContent,/Sign in/);}finally{dom.window.close();}});
@@ -81,4 +83,21 @@ test('school location stays private by default, requires confirmation and saves 
  const calls=[];let saved=null;const state={...dashboard,verification:{status:'unverified'}};
  const {dom,w,$}=await setup('/school/location',(url,body)=>{if(url==='/api/account')return {user:{id:'u1',email:'principal@example.com'}};if(body.action==='bootstrap')return {schools:[school]};if(body.action==='dashboard')return state;if(body.action==='place_get')return {location:saved};if(body.action==='place_save'){calls.push(body.payload);saved={...body.payload,version:1,updated_at:new Date().toISOString()};return {location:saved};}return {};});
  try{let f=[...w.document.querySelectorAll('form')].find(f=>f.querySelector('h3')?.textContent==='Choose your school point');assert.ok(f);const checks=f.querySelectorAll('input[type=checkbox]');assert.equal(checks[1].checked,false);assert.equal(checks[1].disabled,true);const labels=[...f.querySelectorAll('label')];const input=label=>w.document.getElementById(labels.find(l=>l.textContent===label).htmlFor);input('Town or area').value='Test town';input('School latitude').value='6.543219';input('School longitude').value='3.332211';f.dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(calls.length,0);assert.match($('school-error').textContent,/Confirm/);checks[0].checked=true;f.dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,25));assert.equal(calls.length,1);assert.equal(calls[0].public_listing,false);assert.equal(calls[0].source,'manual');assert.equal(calls[0].confirmed_school,true);assert.equal(calls[0].expected_version,0);assert.match($('school-status').textContent,/saved privately/);assert.equal(w.localStorage.getItem('latitude'),null);}finally{dom.window.close();}
+});
+
+
+test('school illustrated copies and editing preserve blocks and separate answer keys',async()=>{
+ const early=earlyYearsSample();const content={spec:early.spec,paper:early.paper,sample:true};let saved;
+ const {dom,w,$}=await setup('/school/paper?school=s1&paper=p1',signedHandler(body=>{
+  if(body.action==='save_paper'){saved=body.payload.content;return {id:'p1',revision:2};}
+  return {id:'p1',author_id:'u1',department_id:'d1',status:'draft',revision:1,current_revision:1,approved_revision:null,content,versions:[{revision:1,created_at:new Date().toISOString()}],reviews:[]};
+ }));
+ try{
+  const paper=w.document.querySelector('.school-print');assert.equal(paper.querySelectorAll('.count-objects')[0].querySelectorAll('svg').length,3);assert.ok(!paper.textContent.includes('1–B: Circle'));
+  const find=t=>[...w.document.querySelectorAll('button')].find(b=>b.textContent===t);find('Marking guide').click();await new Promise(r=>setTimeout(r,10));assert.match(paper.textContent,/1–B: Circle/);
+  find('Edit a new version').click();await new Promise(r=>setTimeout(r,10));
+  const label=[...w.document.querySelectorAll('label')].find(l=>l.textContent==='Number of objects'),input=w.document.getElementById(label.htmlFor);input.value='4';input.dispatchEvent(new w.Event('input'));
+  const form=[...w.document.querySelectorAll('form')].find(f=>f.textContent.includes('Edit a new paper version'));form.dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,15));
+  assert.equal(saved.paper.questions[0].answer,'4');assert.equal(saved.paper.questions[0].blocks[0].quantity,4);assert.equal(saved.paper.questions[1].blocks[0].type,'matching');assert.equal(saved.paper.layout.preset,'early');
+ }finally{dom.window.close();}
 });

@@ -77,3 +77,11 @@ Original assets, generated through the built-in image tool:
 - `public/images/learning-garden.webp`: isolated transparent open book carrying a miniature school, pencil, ruler, counting cubes and tree, realistic paper and green fabric materials, no text or logo.
 
 Full generation prompts are preserved in `design/landing-art-prompts.md`. WebP assets are local and together under 400 KB. Non-home route templates remove their image sources to avoid downloading decorative home artwork while preparing papers.
+
+## Class Panel application shell and dashboard (2026-10-19)
+
+The user selected UIX Alii’s Class Panel Dashboard SaaS UI Design Concept (Dribbble shot 26840183) as the primary internal-page reference. Adapt the compact permanent navigation rail, breadcrumb header, modular status cards, tables and clear task hierarchy to LessonPress. Sage/cream surfaces, deep-green selection and original line icons connect the application to its Verdant-inspired landing page. This is an assessment preparation tool, not a school ERP: do not add student, payment or attendance widgets just because the reference has them.
+
+The progressive application shell covers the assessment studio, personal drafts, question library, school routes, guide and school directory. The homepage keeps its marketing navigation. Existing school navigation nodes move into the shared rail, retaining permission-scoped school URLs and active states. On narrow screens, a labelled button opens the drawer; closed navigation is inert, Escape restores button focus, and breakpoint changes close it safely. Links remain available through the original header without shell JavaScript. Print removes both shell elements and restores full paper width.
+
+The school overview is a command centre using only the existing access-scoped dashboard response: visible papers, drafts/changes, submitted versions, papers with an approved copy, recent work, current-status distribution, review queue, tools, setup checklist and activity. Earlier approved copies and later drafts are explicitly distinguished; no fabricated history, comparison percentages, metrics or charts. Dedicated lesson-note/document and examination-studio interaction redesigns follow this foundation rather than presenting unimplemented tools as navigation items.

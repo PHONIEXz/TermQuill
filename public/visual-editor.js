@@ -11,10 +11,11 @@ function field(box,label,value,{type='text',max=160,min,limit,options}={},change
  e.addEventListener(options||type==='checkbox'||type==='file'?'change':'input',()=>change(type==='number'?Number(e.value):type==='checkbox'?e.checked:e.value,e));wrap.append(l,e);box.append(wrap);return e;
 }
 function button(box,label,fn,disabled=false){const b=node(box.ownerDocument,'button',label);b.type='button';if(label.startsWith('Remove'))b.classList.add('remove-control');b.disabled=disabled;b.addEventListener('click',fn);box.append(b);return b;}
-export function layoutEditor(box,paper,onChange){
+export function layoutEditor(box,paper,onChange,{onError=()=>{},onBusy=()=>{},isBusy=()=>false}={}){
  const d=box.ownerDocument,panel=node(d,'fieldset',undefined,'layout-panel');panel.append(node(d,'legend','Paper layout & header'));panel.append(node(d,'p','Applies to the whole paper. Set the reading size and heading here.','visual-hint'));const layout=paper.layout??={preset:'standard',schoolName:'',term:''};
  field(panel,'Paper style',layout.preset,{options:Object.entries(PRESETS)},v=>{layout.preset=v;onChange();});
  field(panel,'School name (optional)',layout.schoolName,{max:100},v=>{layout.schoolName=v;onChange();});field(panel,'Term / exam heading (optional)',layout.term,{max:60},v=>{layout.term=v;onChange();});
+ const logo=node(d,'div',undefined,'logo-editor');logo.append(node(d,'strong','School logo (optional)'),node(d,'p','PNG or JPEG, up to 4 MB. A compressed copy stays with this paper.','visual-hint'));if(layout.logo){const img=node(d,'img',undefined,'block-thumb');img.src=layout.logo;img.alt='Current school logo';logo.append(img);}const upload=node(d,'input');upload.type='file';upload.accept='image/png,image/jpeg';upload.setAttribute('aria-label','Upload school logo');upload.addEventListener('change',async()=>{const f=upload.files?.[0];if(!f||isBusy())return;onBusy(true);try{layout.logo=await compressPicture(f);onChange();logo.querySelector('img')?.remove();const img=node(d,'img',undefined,'block-thumb');img.src=layout.logo;img.alt='Current school logo';logo.append(img);onError('');}catch(e){onError(e.message);}finally{onBusy(false);upload.value='';}});logo.append(upload);button(logo,'Remove logo',()=>{if(isBusy())return;delete layout.logo;logo.querySelector('img')?.remove();onChange();});panel.append(logo);
  panel.append(node(d,'p','Early Years uses larger questions, line illustrations and generous answer spaces. Check the class, language and printed size before use.','visual-hint'));box.append(panel);
 }
 const blockLabels={picture:'Illustrations / counting',image:'Uploaded picture',table:'Table',matching:'Matching columns',tracing:'Tracing outlines',drawing:'Drawing / colouring space',lines:'Writing lines'};
@@ -108,4 +109,11 @@ export async function compressPicture(file){
   }
   throw new Error('This picture is too detailed. Crop or simplify it, then upload again.');
  }finally{bitmap.close();}
+}
+
+export function questionDocumentEditor(box,q,paper,onChange){
+ const d=box.ownerDocument,panel=node(d,'fieldset',undefined,'question-document');panel.append(node(d,'legend','Marks & section'));
+ field(panel,'Total marks for this question',q.marks,{type:'number',min:1,limit:100},v=>{q.marks=v;paper.markingMode='individual';if(q.marking?.length===1)q.marking[0].marks=v;setVisualAnswer(q);onChange();});
+ const toggle=field(panel,'Start a new exam section here',Boolean(q.section),{type:'checkbox'},on=>{if(on)q.section={title:'Section A',instructions:''};else delete q.section;onChange();refresh();});
+ const section=node(d,'div',undefined,'section-fields');panel.append(section);function refresh(){section.replaceChildren();if(q.section){field(section,'Section heading',q.section.title,{max:80},v=>{q.section.title=v;onChange();});field(section,'Section instructions',q.section.instructions,{type:'textarea',max:400},v=>{q.section.instructions=v;onChange();});}}refresh();box.append(panel);
 }

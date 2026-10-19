@@ -59,3 +59,6 @@ export async function assertPicturesReady(target){
  try{await Promise.all(images.map(img=>typeof img.decode==='function'?img.decode():Promise.resolve()));}catch{throw new Error('A picture could not be loaded. Replace it before printing.');}
  if(images.some(img=>!img.complete||!img.naturalWidth))throw new Error('A picture is not ready. Wait for it to load or replace it before printing.');
 }
+
+export function renderSection(target,q){if(!q.section)return;const d=target.ownerDocument,head=el(d,'header',undefined,'exam-section');head.append(el(d,'h3',q.section.title));if(q.section.instructions)head.append(el(d,'p',q.section.instructions));target.append(head);}
+export function renderLogo(target,layout){if(layout?.logo){const img=target.ownerDocument.createElement('img');img.src=layout.logo;img.alt='School logo';img.className='paper-image school-logo';target.append(img);}}

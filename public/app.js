@@ -81,7 +81,7 @@ function editable(container,label,value,onInput,{multiline=true,max=1200}={}) {
   input.addEventListener('input',()=>{onInput(input.value);resetApproval();});container.append(l,input);return input;
 }
 function actionButton(parent,text,action,disabled=false){const b=el('button',text);b.type='button';b.disabled=disabled;b.addEventListener('click',()=>{if(!active&&!pendingImages)action();});parent.append(b);return b;}
-function changedQuestions(focusIndex){state.spec.count=state.paper.questions.length;state.spec.format='custom';state.spec.formatInstructions='Teacher-arranged written and multiple-choice questions.';fillForm(state.spec);resetApproval();preview();if(Number.isInteger(focusIndex)){const question=$('preview').querySelectorAll('.editor')[focusIndex];if(question){question.tabIndex=-1;question.focus();}}message('Paper updated. Review the question wording, answers and marks.');}
+function changedQuestions(focusIndex){state.spec.count=state.paper.questions.length;state.spec.format='custom';state.spec.formatInstructions='Teacher-arranged written and multiple-choice questions.';fillForm(state.spec);resetApproval();preview();if(Number.isInteger(focusIndex)){const question=$('preview').querySelectorAll('.editor')[focusIndex];if(question){question.open=true;question.tabIndex=-1;question.focus();}}message('Paper updated. Review the question wording, answers and marks.');}
 function syncDerivedAnswer(box,q){
  const answer=box.querySelector('[data-visual-answer]');if(answer){answer.value=q.answer;try{answer.readOnly=visualAnswer(q.blocks)!==null;}catch{answer.readOnly=false;}}
  const fields=box.querySelector('.editor-fields');if(fields){fields.querySelector('.marking-fields')?.remove();renderMarkingFields(fields,q);}
@@ -104,15 +104,15 @@ function questionControls(box,q,i){
  actionButton(tools,`Remove question ${i+1}`,()=>{if(confirm(`Remove question ${i+1} from this open paper? The saved copy stays unchanged until you save.`)){state.paper.questions.splice(i,1);changedQuestions(Math.min(i,count-2));}},count<=3);box.append(tools);
 }
 function renderEditor(target) {
-  target.append(el('p','Edit freely. Every change resets approval. Check the answers and supporting quotes before printing.','instructions'));
+  const intro=el('div',undefined,'editor-intro');intro.append(el('strong','Make it yours, one question at a time.'),el('p','Set your paper heading, open a question to edit, then use Student paper to check the result. Every edit resets your review.'));target.append(intro);
   layoutEditor(target,state.paper,()=>{resetApproval();});
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{
-    const box=el('section',undefined,'editor');box.dataset.questionIndex=i;box.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`));
+    const box=el('details',undefined,'editor question-editor');box.name='assessment-question';box.open=i===0;box.dataset.questionIndex=i;const heading=el('summary',undefined,'question-summary');heading.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`),el('span',q.prompt,'question-peek'));box.append(heading);heading.addEventListener('click',()=>requestAnimationFrame(()=>{if(box.open)box.scrollIntoView({block:'start'});}));
     questionControls(box,q,i);
     const grid=el('div',undefined,'editor-grid'),fields=el('div',undefined,'editor-fields'),evidence=el('aside',undefined,'editor-evidence');
-    evidence.setAttribute('aria-label',`Supporting evidence for question ${i+1}`);
-    editable(fields,'Question',q.prompt,v=>q.prompt=v);
+    evidence.setAttribute('aria-label',`Supporting evidence for question ${i+1}`);evidence.append(el('strong','Teacher check'),el('p','This source evidence stays off the student copy.','visual-hint'));
+    editable(fields,'Question',q.prompt,v=>{q.prompt=v;heading.querySelector('.question-peek').textContent=v;});
     if(q.kind==='mcq'){
       q.options.forEach((option,j)=>editable(fields,`Option ${'ABCD'[j]}`,option,v=>{q.options[j]=v;if(q.correctIndex===j){q.answer=v;q.marking=[{point:`Select ${'ABCD'[j]}: ${v}`,marks:q.marks}];}},{multiline:false,max:400}));
       const label=el('label','Correct option'),select=el('select');select.id=`correct-${i}`;label.htmlFor=select.id;
@@ -129,7 +129,7 @@ function renderEditor(target) {
 function setMode(next) {
   mode=next;
   for(const name of ['student','teacher','edit']){const tab=$(`tab-${name}`);tab.setAttribute('aria-selected',String(name===mode));tab.tabIndex=name===mode?0:-1;}
-  $('preview').setAttribute('aria-labelledby',`tab-${mode}`);
+  $('preview').setAttribute('aria-labelledby',`tab-${mode}`);$('workspace')?.classList.toggle('editing-paper',mode==='edit');if($('setup-drawer'))$('setup-drawer').open=mode!=='edit';
   if(state)preview();updateReview();
 }
 function loadSample() {

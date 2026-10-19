@@ -47,3 +47,7 @@ Motion is limited to hero entry, two gently drifting annotations, one-time secti
 ## Typography correction
 
 User feedback: type across the website felt too slim. Use self-hosted Inter for all screen text, including display headings and preview papers. Body/input weight is 500, controls/labels 600, headings 650, hero 700, with 700 for strong emphasis. Preserve 18 px reading sizes and avoid light serif/italic display styles. The original font is sourced from rsms/inter, blob 5a8d3e72ad7ffb62af3b146e1b1f54ab5813a212; the license is public/fonts/Inter-OFL.txt. The hashed font URL can be cached long term. Print body weight stays 400 for clean paper output.
+
+## Visual editor clarity
+
+Edit mode gives the paper the full workspace width and collapses the generation settings into a labelled disclosure. Questions are native disclosures with a prompt summary; the first opens initially and modern browsers keep one open per group. Blue identifies paper-wide settings, lavender identifies visual tools, and mint identifies teacher evidence. Headings and labels carry the same distinctions without relying on colour. Shared visual fields keep each label and control together, including matching pairs and table cells. White student/teacher papers and print styles stay separate from screen-only editor colour.

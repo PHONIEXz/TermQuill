@@ -170,3 +170,11 @@ Edit & review supports school logo uploads, per-question marks (1–100), and se
 Save question to bank stores a checked question, exact source notes, visual blocks and answer on this browser. `/question-bank` supports subject/class/topic/term search, up to 50 entries, private JSON backup import/export and assembly of 3–20 questions from one subject/class. Assembly creates an unreviewed device draft. Browser storage is not cloud sync or school approval. Existing school copies and approvals remain separate.
 
 Remaining institutional work and verification limits are tracked in `docs/ROADMAP.md`.
+
+### Exam/Test and reference generation
+
+Exam and Test are editable paper purposes with fresh-generation count/duration presets. They persist through device drafts, bank assembly and school versions. They are not online proctored or timed student sessions.
+
+The builder separates purpose from source. Past questions loads structurally validated saved papers and question-bank entries from this browser, deduplicates matching wording and lets the teacher choose 1–10 references for one subject/class. The original retained lesson notes are used as bounded source material (18,000 characters); teachers need not paste notes again. Selected wording is untrusted prompt data, and newly generated questions must still cite exact source passages. Exact copies of selected reference wording are rejected during generation.
+
+No cross-account history or automatic school-paper retrieval is added. No history means this option requires a saved/imported paper or bank entry. Existing direct-note and legacy paper flows remain valid. Online generation/provider quota still applies; exact-question bank assembly remains the non-generating reuse option.

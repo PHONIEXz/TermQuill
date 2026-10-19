@@ -1,3 +1,4 @@
+import {initReferencePicker} from '/reference-picker.js';
 import {saveBankQuestion} from '/bank.js';
 import {assertSchoolSize,visualAnswer,hasAnswerSpace,paperTotal} from '/visuals.js';
 import {earlyYearsSample} from '/early-years.js';
@@ -16,7 +17,7 @@ document.title=({home:'LessonPress | From lesson to assessment',create:'Create a
 for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===page)link.setAttribute('aria-current','page');
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
-let dirty=false,pendingImages=0;
+let dirty=false,pendingImages=0;const referencePicker=initReferencePicker(form);
 function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function message(text) {$('live-status').textContent=text;}
 function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
@@ -25,7 +26,7 @@ function fieldValues() {
   for(const key of ['count','marksEach','minutes'])values[key]=Number(values[key]);
   return values;
 }
-function fillForm(spec) {$('presentation').value=spec.presentation||'standard';for(const name of ['formatInstructions','difficultyInstructions'])form.elements[name].value=spec[name]||'';for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;syncCustomSettings();updateCount();}
+function fillForm(spec) {referencePicker.reset();$('assessmentMode').value=spec.assessmentMode||'test';$('presentation').value=spec.presentation||'standard';for(const name of ['formatInstructions','difficultyInstructions'])form.elements[name].value=spec[name]||'';for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;syncCustomSettings();updateCount();}
 function syncCustomSettings(){for(const [select,name,wrap] of [['format','formatInstructions','custom-format-wrap'],['difficulty','difficultyInstructions','custom-difficulty-wrap']]){const custom=$(select).value==='custom';$(wrap).hidden=!custom;$(name).disabled=!custom||Boolean(active)||pendingImages>0;$(name).required=custom;}}
 for(const id of ['format','difficulty'])$(id).addEventListener('change',syncCustomSettings);
 function updateCount() {$('notes-count').textContent=`${$('notes').value.length.toLocaleString()} / 18,000`;$('total-marks').textContent=`${Number($('count').value)*Number($('marksEach').value)} marks`;}
@@ -36,7 +37,7 @@ function busy(on) {on=on||pendingImages>0;
 for(const id of ['early-sample','try-sample','sample-notes','empty-sample','restore'])if($(id))$(id).disabled=on||(id==='restore'&&!hasSaved());
   $('cancel').disabled=false;$('cancel').hidden=!active;
   document.querySelector('.output').setAttribute('aria-busy',String(on));
-  syncCustomSettings();updateReview();
+  syncCustomSettings();referencePicker.sync(on);updateReview();
 }
 function hasSaved(){try{return readDrafts(localStorage).length>0;}catch{return false;}}
 function updateReview() {
@@ -56,7 +57,7 @@ function head(container) {
   if(state.sample)container.append(el('div','SAMPLE ASSESSMENT · Hand-authored example. Not generated from your current form.','sample-notice'));
   const header=el('div',undefined,'paper-head');renderLogo(header,state.paper.layout);
   for(const value of [state.paper.layout?.schoolName,state.paper.layout?.term])if(value)header.append(el('p',value));
-  header.append(el('div',mode==='teacher'?'TEACHER COPY / MARKING GUIDE':'STUDENT COPY / ASSESSMENT','kicker'),el('h2',state.spec.title),el('p',`${state.spec.subject} · ${state.spec.level} · ${state.spec.minutes} minutes · ${paperTotal(state.paper)} marks`));
+  header.append(el('div',mode==='teacher'?'TEACHER COPY / MARKING GUIDE':`STUDENT COPY / ${state.spec.assessmentMode==='exam'?'EXAMINATION':state.spec.assessmentMode==='test'?'CLASS TEST':'ASSESSMENT'}`,'kicker'),el('h2',state.spec.title),el('p',`${state.spec.subject} · ${state.spec.level} · ${state.spec.minutes} minutes · ${paperTotal(state.paper)} marks`));
   if(mode==='student'){const names=el('div',undefined,'name-line');names.append(el('span','Name: __________________________'),el('span','Date: ______________'));header.append(names);}
   container.append(header,el('p',state.paper.instructions,'instructions'));
 }
@@ -107,6 +108,7 @@ function questionControls(box,q,i){
 function renderEditor(target) {
   const intro=el('div',undefined,'editor-intro');intro.append(el('strong','Make it yours, one question at a time.'),el('p','Set your paper heading, open a question to edit, then use Student paper to check the result. Every edit resets your review.'));target.append(intro);
   layoutEditor(target,state.paper,()=>{resetApproval();},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on)resetApproval();busy(Boolean(active));}});
+  const modeLabel=el('label','Paper assessment mode'),modeSelect=el('select');modeSelect.id='paper-assessment-mode';modeLabel.htmlFor=modeSelect.id;for(const [value,text] of [['test','Test'],['exam','Exam']]){const option=el('option',text);option.value=value;modeSelect.append(option);}modeSelect.value=state.spec.assessmentMode||'test';modeSelect.addEventListener('change',()=>{state.spec.assessmentMode=modeSelect.value;resetApproval();});target.append(modeLabel,modeSelect);
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{
     const box=el('details',undefined,'editor question-editor');box.name='assessment-question';box.open=i===0;box.dataset.questionIndex=i;const heading=el('summary',undefined,'question-summary');heading.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`),el('span',q.prompt,'question-peek'));box.append(heading);heading.addEventListener('click',()=>requestAnimationFrame(()=>{if(box.open)box.scrollIntoView({block:'start'});}));
@@ -153,7 +155,7 @@ document.querySelector('.tabs').addEventListener('keydown',event=>{
 form.addEventListener('input',updateCount);
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(active||pendingImages)return;error();let spec;
-  try{spec=validateRequest(fieldValues());}catch(e){error(e.message);return;}
+  try{spec=validateRequest(referencePicker.request(fieldValues()));}catch(e){error(e.message);return;}
   if(state&&!confirm('Generate a new paper? This replaces the current paper only if generation succeeds.'))return;
   const controller=new AbortController();active=controller;busy(true);message('Drafting your assessment, then checking questions, quotes and marks…');
   const timer=setTimeout(()=>controller.abort('timeout'),115000);

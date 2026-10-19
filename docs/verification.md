@@ -142,3 +142,9 @@ Question bank is browser-local (50 entries / 2 MB), not cloud sync or school app
 ## Exam/Test and reference sources (2026-10-19)
 
 109 checks passed, including legacy compatibility, Exam/Test defaults, reference selection without pasted notes, retrieval from saved papers, bank/history deduplication, source preservation, mismatched-class and size rejection, explicit corruption warnings, and rejection of generated exact copies. Syntax/build and live preview checks accompany the release. This mode generates fresh questions using original notes retained with the selected history, rather than treating earlier AI answers as factual evidence. Native timed student testing is outside this increment.
+
+## School review and approved-source bank (2026-10-19)
+
+115 checks passed, including UI approval gating by per-question review progress, inline feedback, read-only comparison, approved-copy links/stamps, and school-bank identifier-only requests. Real PGlite/Postgres checks reused only the approved revision while a later private draft existed, retained source/author credit, created a new unapproved draft, rejected unapproved source revisions and disallowed target departments, and confirmed failed reuse created no paper. Existing isolation, self-approval, revision concurrency and immutable-copy checks remain.
+
+Review progress is tab-local, not cloud-synced or a server-recorded review attestation. Comparing rewritten/reordered questions uses an explicitly labelled positional fallback. Real independent teacher review, real-phone and physical-printer trials remain required; synthetic checks do not establish classroom acceptance. Live authenticated verification is reported separately after release.

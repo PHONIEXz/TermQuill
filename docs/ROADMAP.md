@@ -10,11 +10,11 @@ Print margin boxes require browser support (Chrome 131+); inspect print preview 
 
 Delivered: personal browser bank, up to 50 source-linked questions, subject/class/topic/term search, exact visuals and marking keys, bounded JSON backup import/export, and assembly of 3–20 questions from the same subject/class into a fresh unreviewed device paper. Sections and page breaks are deliberately arranged anew.
 
-This is not cloud sync or a shared school question bank. Browser storage can be cleared; export backups. Sharing across teachers requires school access rules, version provenance and explicit review state.
+This is not cloud sync or a shared school question bank. Browser storage can be cleared; export backups. Shared reuse is now available separately in School question bank, derived from approved versions under existing school/department access. It retains source attribution and creates a fresh unapproved draft.
 
 ## 3. School review
 
-Existing: question-number feedback, independent approval, immutable revisions and approved-copy preservation. Next: accessible side-by-side revision comparison and feedback anchored directly to a question. Do not loosen existing school access or self-approval checks.
+Existing: question-number feedback, independent approval, immutable revisions and approved-copy preservation. Delivered: accessible side-by-side revision comparison, feedback beside each question, tab-local version-specific reviewer progress, approved-copy links/print stamps and approved-source school question reuse. Next: a second teacher completing the full workflow independently, and deciding whether reviewers need progress synced across devices. Do not loosen existing school access or self-approval checks.
 
 ## 4. Classroom trials
 

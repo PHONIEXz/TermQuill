@@ -59,3 +59,9 @@ Marks and section starts are labelled blue document controls inside each questio
 ## Assessment purpose and source
 
 Keep Exam/Test separate from Lesson notes/Past questions. Presets apply only to new generation; the paper editor can change the saved purpose without replacing custom instructions. Past-question selection is a blue source panel with a saved course chooser, searchable labelled references, selection count and explicit data/provider guidance. The original notes field is disabled only while this source is selected. No fake or inaccessible history is displayed.
+
+## School review and shared reuse
+
+School review uses a blue comparison disclosure, mint per-question feedback/check areas and an explicit approved-copy banner/link. Progress is scoped to the reviewer and exact revision in tab storage; it is not an approval record. Comparison pairs exact wording first and otherwise uses position, with this limitation stated. Feedback and comparison are screen-only; print headers distinguish approved and draft copies.
+
+The school bank derives its catalogue from approved versions already accessible to that staff member. Source questions load only on request. A selection-order panel shows the proposed new paper. The server reads the approved source itself and creates an unapproved new draft through existing school RPC permissions. Author/source credit is attribution, not a transferred approval. No fake school content is used to populate the page.

@@ -22,7 +22,7 @@ export function renderBlocks(target,q,{teacher=false}={}){
  for(const b of q.blocks||[]){
   const block=el(doc,'div',undefined,`paper-block block-${b.type}`);
   if(b.type==='picture'){
-   const objects=el(doc,'div',undefined,`count-objects size-${b.size}`);objects.setAttribute('role','group');objects.setAttribute('aria-label',b.task==='count'?'Count these objects':'Illustrations');
+   const objects=el(doc,'div',undefined,`count-objects size-${b.size}${b.quantity===1?' single-object':''}`);objects.setAttribute('role','group');objects.setAttribute('aria-label',b.task==='count'?'Count these objects':'Illustrations');
    for(let i=0;i<b.quantity;i++)objects.append(iconElement(doc,b.icon));block.append(objects);
    if(b.caption)block.append(el(doc,'p',b.caption,'block-caption'));
   }

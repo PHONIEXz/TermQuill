@@ -44,3 +44,10 @@ test('student visuals contain exact objects and shuffled matching columns withou
 test('school size checks use encoded bytes and preserve the existing storage boundary',()=>{
  assert.doesNotThrow(()=>assertSchoolSize(earlyYearsSample()));assert.throws(()=>assertSchoolSize({notes:'中'.repeat(30000)}),e=>e.status===413);assert.throws(()=>assertSchoolSize({notes:'x'.repeat(86000)}),/too large/);
 });
+
+
+test('generated matching tasks shuffle aligned rows while teacher-saved order stays intact',()=>{
+ const early=earlyYearsSample(),q=early.paper.questions[1];q.blocks[0].order=[0,1,2];setVisualAnswer(q);
+ const saved=parseModelOutput(JSON.stringify(early.paper),early.spec);assert.deepEqual(saved.questions[1].blocks[0].order,[0,1,2]);
+ const generated=parseModelOutput(JSON.stringify(early.paper),early.spec,{generated:true});assert.deepEqual(generated.questions[1].blocks[0].order,[1,2,0]);assert.match(generated.questions[1].answer,/1–C: Circle = Round/);assert.deepEqual(auditAssessment(generated,early.spec),[]);
+});

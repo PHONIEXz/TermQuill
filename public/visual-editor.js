@@ -64,7 +64,7 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
     button(tools,'Add column',()=>{b.headers.push('');b.rows.forEach(r=>r.push(''));changed();refresh();},b.headers.length>=4);button(tools,'Remove last column',()=>{b.headers.pop();b.rows.forEach(r=>r.pop());changed();refresh();},b.headers.length<=1);fs.append(tools);
    }
    if(b.type==='matching'){
-    b.pairs.forEach((p,j)=>{const pair=node(d,'div',undefined,'two');field(pair,`Pair ${j+1}: left`,p.left,{max:80},v=>{p.left=v;changed();});field(pair,`Pair ${j+1}: correct match`,p.right,{max:80},v=>{p.right=v;changed();});fs.append(pair);});
+    b.pairs.forEach((p,j)=>{const pair=node(d,'div',undefined,'two');field(pair,`Pair ${j+1}: left picture`,p.leftIcon||'',{options:[['','Text only'],...Object.entries(ICONS)]},v=>{if(v){p.leftIcon=v;p.left=ICONS[v];leftField.value=p.left;leftField.readOnly=true;}else{delete p.leftIcon;leftField.readOnly=false;}changed();});const leftField=field(pair,`Pair ${j+1}: left`,p.left,{max:80},v=>{p.left=v;changed();});leftField.readOnly=Boolean(p.leftIcon);field(pair,`Pair ${j+1}: correct match`,p.right,{max:80},v=>{p.right=v;changed();});fs.append(pair);});
     const tools=node(d,'div',undefined,'block-controls'),reset=()=>{b.order=b.pairs.map((_,j)=>(j+1)%b.pairs.length);changed();refresh();};
     button(tools,'Add pair',()=>{b.pairs.push({left:`Item ${b.pairs.length+1}`,right:`Match ${b.pairs.length+1}`});reset();},b.pairs.length>=6);button(tools,'Remove last pair',()=>{b.pairs.pop();reset();},b.pairs.length<=2);button(tools,'Rotate right column',()=>{b.order.push(b.order.shift());changed();refresh();});fs.append(tools);
    }

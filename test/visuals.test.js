@@ -36,7 +36,7 @@ test('student visuals contain exact objects and shuffled matching columns withou
  const dom=new JSDOM('<article></article>',{runScripts:'outside-only'}),w=dom.window;installVisuals(w);
  try{const paper=w.document.querySelector('article'),sample=earlyYearsSample();sample.paper.questions.forEach(q=>w.renderBlocks(paper,q));
  assert.equal(paper.querySelectorAll('.count-objects')[0].querySelectorAll('svg').length,3);
- const rows=paper.querySelectorAll('.matching-table tbody tr');assert.equal(rows[0].textContent,'1. CircleA. Three sides');assert.ok(!paper.textContent.includes(visualAnswer(sample.paper.questions[1].blocks)));
+ const rows=paper.querySelectorAll('.matching-table tbody tr');assert.equal(rows[0].querySelector('svg').getAttribute('aria-label'),'Circle');assert.equal(rows[0].querySelectorAll('td')[1].textContent,'A. Three sides');assert.ok(!paper.textContent.includes(visualAnswer(sample.paper.questions[1].blocks)));
  assert.equal(paper.querySelectorAll('.block-tracing svg').length,2);assert.equal(paper.querySelectorAll('.writing-rule').length,1);assert.equal(paper.querySelectorAll('.question-table').length,2);
  const q={blocks:[{type:'table',caption:'<img onerror=bad()>',headers:['<script>bad()</script>'],rows:[['<b>literal</b>']]}]};w.renderBlocks(paper,q);assert.equal(paper.querySelectorAll('script,img').length,0);assert.match(paper.textContent,/<b>literal/);
  }finally{dom.window.close();}

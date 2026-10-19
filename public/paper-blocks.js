@@ -38,7 +38,7 @@ export function renderBlocks(target,q,{teacher=false}={}){
   if(b.type==='matching'){
    const table=doc.createElement('table');table.className='question-table matching-table';const caption=el(doc,'caption',teacher?'Matching task (answer key follows)':'Match each number to a letter.');table.append(caption);
    const head=doc.createElement('thead'),tr=doc.createElement('tr');for(const t of ['Column A','Column B']){const h=el(doc,'th',t);h.scope='col';tr.append(h);}head.append(tr);table.append(head);
-   const body=doc.createElement('tbody');b.pairs.forEach((p,i)=>{const tr=doc.createElement('tr');tr.append(el(doc,'td',`${i+1}. ${p.left}`),el(doc,'td',`${String.fromCharCode(65+i)}. ${b.pairs[b.order[i]].right}`));body.append(tr);});table.append(body);block.append(table);
+   const body=doc.createElement('tbody');b.pairs.forEach((p,i)=>{const tr=doc.createElement('tr'),left=el(doc,'td',p.leftIcon?`${i+1}. `:`${i+1}. ${p.left}`);if(p.leftIcon)left.append(iconElement(doc,p.leftIcon));tr.append(left,el(doc,'td',`${String.fromCharCode(65+i)}. ${b.pairs[b.order[i]].right}`));body.append(tr);});table.append(body);block.append(table);
   }
   if(b.type==='tracing'){
    block.append(el(doc,'span','Trace the outlines.','trace-instruction'));

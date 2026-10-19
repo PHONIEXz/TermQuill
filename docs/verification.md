@@ -128,3 +128,5 @@ Replaced light serif/italic display text and platform-dependent screen fonts wit
 - Production AI verification succeeded for a three-task custom Early Years request: count apples, match shapes and trace A B C, with correct derived keys. The model initially aligned the matching column with its answers; generated matching blocks now receive a deterministic rotation if any correct pair is already aligned. Teacher-saved permutations remain unchanged.
 
 - Signed-in production school save succeeded for a clearly labelled visual verification draft containing all sample blocks plus an embedded PNG. The school student copy loaded the picture and eight blocks with no evidence/answer sections; the marking guide displayed all six evidence sections and the matching key. The verification draft remains a draft; it was not submitted or self-approved.
+
+- Matching pairs can use a validated built-in left-hand picture instead of text. The Early Years example uses circle, square and triangle pictures, with a separate right-column description and a derived teacher key.

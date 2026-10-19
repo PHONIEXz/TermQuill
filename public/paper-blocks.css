@@ -84,3 +84,5 @@
 }
 
 .count-objects.size-large.single-object svg{width:140px;height:140px}
+
+.matching-table td svg{width:48px;height:48px;vertical-align:middle;margin-left:10px}

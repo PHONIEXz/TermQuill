@@ -149,3 +149,18 @@ test('question reordering changes the actual paper order and updates count witho
   [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Remove question 2').click();$('save').click();saved=readDrafts(w.localStorage)[0];assert.equal(saved.spec.count,6);assert.equal(saved.paper.questions[0].blocks[0].type,'matching');
  }finally{dom.window.close();}
 });
+
+test('explicit answer-space choice removes extra lines without hiding supplied blocks',async()=>{
+ const {dom,w,$}=await setup();try{
+  $('early-sample').click();$('tab-student').click();assert.equal($('preview').querySelectorAll('.answer-lines').length,0);
+  $('tab-edit').click();const choices=[...w.document.querySelectorAll('.visual-editor select')].filter(s=>s.previousElementSibling?.textContent==='Default answer space');choices[5].value='auto';choices[5].dispatchEvent(new w.Event('change'));$('tab-student').click();assert.equal($('preview').querySelectorAll('.answer-lines').length,1);assert.equal($('preview').querySelectorAll('.count-objects').length,2);
+ }finally{dom.window.close();}
+});
+
+test('printing refuses an embedded picture that failed to decode',async()=>{
+ const draft=validateDraft({spec:sampleSpec,paper:structuredClone(samplePaper)});draft.paper.questions[0].blocks=[{type:'image',src:'data:image/png;base64,iVBORw0KGgo=',alt:'Broken imported picture',size:'small',crop:'fit',caption:''}];
+ const {dom,w,$}=await setup(null,`/create?draft=${draft.id}`,[draft]);try{
+  let prints=0;w.print=()=>prints++;$('tab-student').click();$('approved').checked=true;$('approved').dispatchEvent(new w.Event('change'));$('print').click();await new Promise(r=>setTimeout(r,10));
+  assert.equal(prints,0);assert.match($('error').textContent,/picture.*not ready/i);
+ }finally{dom.window.close();}
+});

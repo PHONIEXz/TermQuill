@@ -75,3 +75,10 @@
 .drawing-height-88{height:88mm}
 .drawing-height-89{height:89mm}
 .drawing-height-90{height:90mm}
+/* Later screen styles must not add coloured shells or blank trailing space. */
+@media print{
+ html,body{background:#fff!important}
+ body[data-page=create] main,body[data-page=create] #workspace,body[data-page=create] .output,body[data-page=create] #preview{display:block!important;background:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important;padding:0!important;min-height:0!important;max-width:none!important;overflow:visible!important}
+ .question .marks{font-size:10pt!important}
+ .print-note{font-size:9pt!important;break-before:avoid}
+}

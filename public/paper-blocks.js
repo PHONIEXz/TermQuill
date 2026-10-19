@@ -54,3 +54,8 @@ export function renderBlocks(target,q,{teacher=false}={}){
  }
 }
 export function applyPaperLayout(target,layout={}){target.classList.remove('paper-standard','paper-primary','paper-early');target.classList.add(`paper-${layout.preset||'standard'}`);}
+export async function assertPicturesReady(target){
+ const images=[...target.querySelectorAll('img.paper-image')];
+ try{await Promise.all(images.map(img=>typeof img.decode==='function'?img.decode():Promise.resolve()));}catch{throw new Error('A picture could not be loaded. Replace it before printing.');}
+ if(images.some(img=>!img.complete||!img.naturalWidth))throw new Error('A picture is not ready. Wait for it to load or replace it before printing.');
+}

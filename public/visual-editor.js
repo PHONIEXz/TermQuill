@@ -33,6 +33,7 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
  function refresh(){
   body.replaceChildren();
   body.append(node(d,'p','These blocks appear on both copies. Keep answers out of captions, picture descriptions and table cells. Counting and matching tasks update their answer keys automatically.','visual-hint'));
+  field(body,'Default answer space',q.answerSpace||'auto',{options:[['auto','Automatic writing lines'],['none','No extra answer space']]},v=>{q.answerSpace=v;onChange();});
   field(body,'Start this question on a new printed page',q.pageBreakBefore,{type:'checkbox'},v=>{q.pageBreakBefore=v;onChange();});
   (q.blocks||[]).forEach((b,i)=>{
    const fs=node(d,'fieldset',undefined,'block-editor');fs.append(node(d,'legend',`${i+1}. ${blockLabels[b.type]}`));const controls=node(d,'div',undefined,'block-controls');

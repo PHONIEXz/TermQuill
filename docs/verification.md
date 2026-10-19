@@ -117,10 +117,16 @@ Replaced light serif/italic display text and platform-dependent screen fonts wit
 ## October 19: visual exam editor
 
 - Added versioned visual blocks, one shared renderer and editor for personal and school papers, and a hand-authored Early Years example. Existing text papers remain valid.
-- 96 Node test runner checks pass (including the helper module load); syntax/build/diff checks pass. Regressions cover exact object counts, derived matching permutations/keys, safe text rendering, raster-only embedded images, bounded table/block schemas, save/reopen, review invalidation, question reordering and byte-based school size limits.
+- 97 Node test runner checks pass (including the helper module load); syntax/build/diff checks pass. Regressions cover exact object counts, derived matching permutations/keys, safe text rendering, raster-only embedded images, bounded table/block schemas, save/reopen, review invalidation, question reordering and byte-based school size limits.
 - School UI simulation preserves visual blocks through editing and separates the teacher key from the student copy. The real PGlite Postgres test preserves an approved illustrated version while its author saves a new draft. This does not prove live independent reviewer accounts or email delivery.
 - Uploads remain compressed embedded raster images, bounded by existing paper/import/device/school limits. No new paid service, external image tracker, image-generation service or storage bucket is provisioned.
 - Browser and print rendering verification recorded after staging; native printer output and real-phone use remain separate checks.
 
 - Preview browser check: the Early Years sample showed exactly three apple SVG objects, two tables, two tracing rows and no teacher answer blocks in the student copy. A real 480×320 PNG fixture compressed to 8,314 data-URL characters, loaded in the preview and survived save/library/reopen with review reset. The preview has no AI credentials, so live generation is checked only on production.
 - A4 print CSS was rendered with WeasyPrint and inspected through Poppler images: three student pages and four teacher pages, with legible tables, line drawings, tracing and drawing space. Corrected screen backgrounds/min-height leaking into print. This is a paged-renderer check, not a claim that a physical printer or Chrome native PDF dialog was tested.
+
+- Production AI verification succeeded for a three-task custom Early Years request: count apples, match shapes and trace A B C, with correct derived keys. The model initially aligned the matching column with its answers; generated matching blocks now receive a deterministic rotation if any correct pair is already aligned. Teacher-saved permutations remain unchanged.
+
+- Signed-in production school save succeeded for a clearly labelled visual verification draft containing all sample blocks plus an embedded PNG. The school student copy loaded the picture and eight blocks with no evidence/answer sections; the marking guide displayed all six evidence sections and the matching key. The verification draft remains a draft; it was not submitted or self-approved.
+
+- Matching pairs can use a validated built-in left-hand picture instead of text. The Early Years example uses circle, square and triangle pictures, with a separate right-column description and a derived teacher key.

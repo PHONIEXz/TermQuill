@@ -22,7 +22,7 @@ export function renderBlocks(target,q,{teacher=false}={}){
  for(const b of q.blocks||[]){
   const block=el(doc,'div',undefined,`paper-block block-${b.type}`);
   if(b.type==='picture'){
-   const objects=el(doc,'div',undefined,`count-objects size-${b.size}`);objects.setAttribute('role','group');objects.setAttribute('aria-label',b.task==='count'?'Count these objects':'Illustrations');
+   const objects=el(doc,'div',undefined,`count-objects size-${b.size}${b.quantity===1?' single-object':''}`);objects.setAttribute('role','group');objects.setAttribute('aria-label',b.task==='count'?'Count these objects':'Illustrations');
    for(let i=0;i<b.quantity;i++)objects.append(iconElement(doc,b.icon));block.append(objects);
    if(b.caption)block.append(el(doc,'p',b.caption,'block-caption'));
   }
@@ -38,7 +38,7 @@ export function renderBlocks(target,q,{teacher=false}={}){
   if(b.type==='matching'){
    const table=doc.createElement('table');table.className='question-table matching-table';const caption=el(doc,'caption',teacher?'Matching task (answer key follows)':'Match each number to a letter.');table.append(caption);
    const head=doc.createElement('thead'),tr=doc.createElement('tr');for(const t of ['Column A','Column B']){const h=el(doc,'th',t);h.scope='col';tr.append(h);}head.append(tr);table.append(head);
-   const body=doc.createElement('tbody');b.pairs.forEach((p,i)=>{const tr=doc.createElement('tr');tr.append(el(doc,'td',`${i+1}. ${p.left}`),el(doc,'td',`${String.fromCharCode(65+i)}. ${b.pairs[b.order[i]].right}`));body.append(tr);});table.append(body);block.append(table);
+   const body=doc.createElement('tbody');b.pairs.forEach((p,i)=>{const tr=doc.createElement('tr'),left=el(doc,'td',p.leftIcon?`${i+1}. `:`${i+1}. ${p.left}`);if(p.leftIcon)left.append(iconElement(doc,p.leftIcon));tr.append(left,el(doc,'td',`${String.fromCharCode(65+i)}. ${b.pairs[b.order[i]].right}`));body.append(tr);});table.append(body);block.append(table);
   }
   if(b.type==='tracing'){
    block.append(el(doc,'span','Trace the outlines.','trace-instruction'));

@@ -36,11 +36,18 @@ test('student visuals contain exact objects and shuffled matching columns withou
  const dom=new JSDOM('<article></article>',{runScripts:'outside-only'}),w=dom.window;installVisuals(w);
  try{const paper=w.document.querySelector('article'),sample=earlyYearsSample();sample.paper.questions.forEach(q=>w.renderBlocks(paper,q));
  assert.equal(paper.querySelectorAll('.count-objects')[0].querySelectorAll('svg').length,3);
- const rows=paper.querySelectorAll('.matching-table tbody tr');assert.equal(rows[0].textContent,'1. CircleA. Three sides');assert.ok(!paper.textContent.includes(visualAnswer(sample.paper.questions[1].blocks)));
+ const rows=paper.querySelectorAll('.matching-table tbody tr');assert.equal(rows[0].querySelector('svg').getAttribute('aria-label'),'Circle');assert.equal(rows[0].querySelectorAll('td')[1].textContent,'A. Three sides');assert.ok(!paper.textContent.includes(visualAnswer(sample.paper.questions[1].blocks)));
  assert.equal(paper.querySelectorAll('.block-tracing svg').length,2);assert.equal(paper.querySelectorAll('.writing-rule').length,1);assert.equal(paper.querySelectorAll('.question-table').length,2);
  const q={blocks:[{type:'table',caption:'<img onerror=bad()>',headers:['<script>bad()</script>'],rows:[['<b>literal</b>']]}]};w.renderBlocks(paper,q);assert.equal(paper.querySelectorAll('script,img').length,0);assert.match(paper.textContent,/<b>literal/);
  }finally{dom.window.close();}
 });
 test('school size checks use encoded bytes and preserve the existing storage boundary',()=>{
  assert.doesNotThrow(()=>assertSchoolSize(earlyYearsSample()));assert.throws(()=>assertSchoolSize({notes:'中'.repeat(30000)}),e=>e.status===413);assert.throws(()=>assertSchoolSize({notes:'x'.repeat(86000)}),/too large/);
+});
+
+
+test('generated matching tasks shuffle aligned rows while teacher-saved order stays intact',()=>{
+ const early=earlyYearsSample(),q=early.paper.questions[1];q.blocks[0].order=[0,1,2];setVisualAnswer(q);
+ const saved=parseModelOutput(JSON.stringify(early.paper),early.spec);assert.deepEqual(saved.questions[1].blocks[0].order,[0,1,2]);
+ const generated=parseModelOutput(JSON.stringify(early.paper),early.spec,{generated:true});assert.deepEqual(generated.questions[1].blocks[0].order,[1,2,0]);assert.match(generated.questions[1].answer,/1–C: Circle = Round/);assert.deepEqual(auditAssessment(generated,early.spec),[]);
 });

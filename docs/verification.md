@@ -130,3 +130,11 @@ Replaced light serif/italic display text and platform-dependent screen fonts wit
 - Signed-in production school save succeeded for a clearly labelled visual verification draft containing all sample blocks plus an embedded PNG. The school student copy loaded the picture and eight blocks with no evidence/answer sections; the marking guide displayed all six evidence sections and the matching key. The verification draft remains a draft; it was not submitted or self-approved.
 
 - Matching pairs can use a validated built-in left-hand picture instead of text. The Early Years example uses circle, square and triangle pictures, with a separate right-column description and a derived teacher key.
+
+## Exam documents and question bank (2026-10-19)
+
+104 checks, syntax checks and build passed. Live preview verified a question changed from 1 to 5 marks, paper total recalculated from 6 to 10, a named section with instructions, three checked questions saved through the dialog, selection and assembly in chosen order, and a reopened unreviewed 3-question / 7-mark paper with exact counting/matching/tracing content. All content was synthetic, clearly labelled verification material in the preview browser.
+
+Actual rendered application DOM was checked with WeasyPrint and Poppler: a 3-page student copy and 4-page teacher copy had consecutive Page X of Y footers, section headings and correct totals; all seven pages were visually inspected. This establishes the paged layout in that renderer, not Chrome's native print dialog or a physical printer. Browser page-margin implementation is based on Chrome's official print-margins documentation (Chrome 131+). Real-phone and physical-printer trials remain outstanding.
+
+Question bank is browser-local (50 entries / 2 MB), not cloud sync or school approval. Import validation and failed-write preservation are tested. Logo validation/recovery is covered by shared raster image checks; real school logo and institutional acceptance still need classroom trial. Remaining milestones are in ROADMAP.md.

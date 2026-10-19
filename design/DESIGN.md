@@ -65,3 +65,15 @@ Keep Exam/Test separate from Lesson notes/Past questions. Presets apply only to 
 School review uses a blue comparison disclosure, mint per-question feedback/check areas and an explicit approved-copy banner/link. Progress is scoped to the reviewer and exact revision in tab storage; it is not an approval record. Comparison pairs exact wording first and otherwise uses position, with this limitation stated. Feedback and comparison are screen-only; print headers distinguish approved and draft copies.
 
 The school bank derives its catalogue from approved versions already accessible to that staff member. Source questions load only on request. A selection-order panel shows the proposed new paper. The server reads the approved source itself and creates an unapproved new draft through existing school RPC permissions. Author/source credit is attribution, not a transferred approval. No fake school content is used to populate the page.
+
+## Verdant-inspired educational landing page (2026-10-19)
+
+The latest user direction supersedes the earlier orbit/studio home hero: closely adapt the layout and choreography of Plainthing Studio’s Verdant Website Animation (Dribbble shot 27820662). The 28.01-second clip was inspected as a motion reference: full-width cinematic hero, oversized lower wordmark, pale sage background, floating central object with glass callouts, staggered feature blocks, a dark green walkthrough, version/workspace rows, translucent values cards, restrained FAQ and oversized footer lettering.
+
+LessonPress uses original generated educational artwork, school-specific content and native DOM/CSS/WAAPI animation. Hero imagery drifts and zooms, the learning garden floats, headlines reveal through line masks, words enter in sequence, and cards stagger on intersection. A passive scroll listener moves only the hero artwork with a bounded transform. There is no scroll hijacking, 3D runtime, external animation dependency, fake usage metric or promise of exact reproduction of pre-rendered 3D footage. Pause motion and device reduced-motion settings disable decorative movement. Content and links stay readable without animation. Working editors, role checks, assessment generation and print styles retain their existing workflow.
+
+Original assets, generated through the built-in image tool:
+- `public/images/learning-landscape.webp`: cinematic open ivory book with curved paper terraces, fine green moss, miniature schoolhouse, forest-green pencil, sage ruler and counting blocks; soft studio daylight, quiet upper-left text area, no embedded text or branding.
+- `public/images/learning-garden.webp`: isolated transparent open book carrying a miniature school, pencil, ruler, counting cubes and tree, realistic paper and green fabric materials, no text or logo.
+
+Full generation prompts are preserved in `design/landing-art-prompts.md`. WebP assets are local and together under 400 KB. Non-home route templates remove their image sources to avoid downloading decorative home artwork while preparing papers.

@@ -154,3 +154,11 @@ Review progress is tab-local, not cloud-synced or a server-recorded review attes
 A visible School logo panel is available before generation and in every builder view, with Upload / Change / Remove actions and a thumbnail. Logo data is attached locally after AI generation and retained by draft validation, device saving and school versions. School paper authors have a direct logo shortcut to the new-version editor. Both school copies place the logo before the paper heading. No school-wide logo default is implied.
 
 116 automated checks pass, including real upload-control binding with isolated bitmap/canvas fixtures, no image in provider requests, student/teacher rendering, save/restore, removal invalidating review, school shortcut focus and school-version retention. Syntax, build and whitespace checks pass. Live browser upload/layout results are recorded in the release response. Physical printing remains unverified.
+
+## Educational cinematic landing (2026-10-19)
+
+118 checks pass, including accessible line/word choreography, reduced-motion behaviour, keyboard operation of the illustrative workflow and all existing assessment/school checks. Syntax, build and whitespace checks pass. The home page uses two original local WebP assets (153,468 and 217,036 bytes). Non-home route builds replace their image sources to avoid fetching decorative artwork in the editor.
+
+The Verdant reference clip was inspected; its original footage/assets are not distributed. Native CSS/WAAPI recreates reveal, stagger, floating and bounded scroll choreography; the artwork is not a frame-for-frame 3D video recreation. No scrolling is intercepted. Content remains visible when JavaScript, IntersectionObserver or animation APIs are absent. Pause and OS reduced-motion controls disable decorative effects.
+
+The protected preview redirected to Vercel sign-in and automatic approval review blocked observation of that private origin. No private Vercel browser account was opened. Public production visual verification follows release; it will be recorded in the pull request and release response. Physical-device usability remains a separate validation boundary.

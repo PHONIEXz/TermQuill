@@ -53,3 +53,25 @@ test('system reduced motion takes precedence and preview content exists without 
   const plain=new JSDOM(html);
   try {assert.equal(plain.window.document.querySelectorAll('[data-demo-panel][hidden]').length,0);assert.match(plain.window.document.querySelector('.workflow-demo').textContent,/hand-authored/);} finally {plain.window.close();}
 });
+
+test('landing reveal choreography preserves accessible text and observes only once',()=>{
+ const dom=new JSDOM(html,{runScripts:'outside-only'}),w=dom.window,calls=[],observers=[];
+ try{
+  w.matchMedia=()=>({matches:false,addEventListener(){}});
+  w.Element.prototype.animate=function(frames,options){calls.push({element:this,frames,options});};
+  w.IntersectionObserver=class{constructor(fn){this.fn=fn;this.targets=[];this.removed=[];observers.push(this);}observe(el){this.targets.push(el);}unobserve(el){this.removed.push(el);}};
+  w.eval(script);
+  const title=w.document.querySelector('.vl-hero h1');assert.ok(calls.some(c=>title.contains(c.element)&&c.frames[0].transform==='translateY(115%)'));
+  const statement=w.document.querySelector('[data-word-reveal]');assert.match(statement.getAttribute('aria-label'),/Great teaching/);assert.ok([...statement.querySelectorAll('span')].every(s=>s.getAttribute('aria-hidden')==='true'));
+  const observer=observers.find(o=>o.targets.includes(statement)),heading=w.document.getElementById('vl-solutions-heading');observer.fn([{target:heading,isIntersecting:true},{target:statement,isIntersecting:true}]);
+  assert.ok(observer.removed.includes(heading));assert.ok(observer.removed.includes(statement));assert.equal(heading.dataset.entered,'true');assert.ok(calls.some(c=>statement.contains(c.element)&&c.options.delay>0));
+ }finally{dom.window.close();}
+});
+test('reduced motion avoids entrance animations while home links and examples remain usable',()=>{
+ const dom=new JSDOM(html,{runScripts:'outside-only'}),w=dom.window;
+ try{
+  w.matchMedia=()=>({matches:true,addEventListener(){}});w.Element.prototype.animate=()=>assert.fail('Reduced motion must not run entrance animation');w.eval(script);
+  assert.equal(w.document.querySelector('.vl-hero a[href="/create"]').textContent.includes('Create'),true);assert.match(w.document.querySelector('.vl-faq').textContent,/Nursery/);
+  w.document.querySelector('[data-demo-step="2"]').click();assert.equal(w.document.querySelector('[data-demo-panel="2"]').hidden,false);
+ }finally{dom.window.close();}
+});

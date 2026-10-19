@@ -138,3 +138,7 @@ Replaced light serif/italic display text and platform-dependent screen fonts wit
 Actual rendered application DOM was checked with WeasyPrint and Poppler: a 3-page student copy and 4-page teacher copy had consecutive Page X of Y footers, section headings and correct totals; all seven pages were visually inspected. This establishes the paged layout in that renderer, not Chrome's native print dialog or a physical printer. Browser page-margin implementation is based on Chrome's official print-margins documentation (Chrome 131+). Real-phone and physical-printer trials remain outstanding.
 
 Question bank is browser-local (50 entries / 2 MB), not cloud sync or school approval. Import validation and failed-write preservation are tested. Logo validation/recovery is covered by shared raster image checks; real school logo and institutional acceptance still need classroom trial. Remaining milestones are in ROADMAP.md.
+
+## Exam/Test and reference sources (2026-10-19)
+
+109 checks passed, including legacy compatibility, Exam/Test defaults, reference selection without pasted notes, retrieval from saved papers, bank/history deduplication, source preservation, mismatched-class and size rejection, explicit corruption warnings, and rejection of generated exact copies. Syntax/build and live preview checks accompany the release. This mode generates fresh questions using original notes retained with the selected history, rather than treating earlier AI answers as factual evidence. Native timed student testing is outside this increment.

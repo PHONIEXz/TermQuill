@@ -55,3 +55,7 @@ Edit mode gives the paper the full workspace width and collapses the generation 
 ## Exam documents and reuse
 
 Marks and section starts are labelled blue document controls inside each question. Section headings print on both copies; evidence stays teacher-only. The personal Question bank is a separate task page with a search area and a paper-assembly panel. Browser-only storage, backup content and fresh review requirements are explicit. School approval is never implied by a personal-bank entry.
+
+## Assessment purpose and source
+
+Keep Exam/Test separate from Lesson notes/Past questions. Presets apply only to new generation; the paper editor can change the saved purpose without replacing custom instructions. Past-question selection is a blue source panel with a saved course chooser, searchable labelled references, selection count and explicit data/provider guidance. The original notes field is disabled only while this source is selected. No fake or inaccessible history is displayed.

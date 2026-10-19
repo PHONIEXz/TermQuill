@@ -172,3 +172,5 @@ body[data-page=question-bank] [data-for=question-bank]{display:block}.question-b
 @media print{.question-bank-page,.bank-dialog,.question-bank-actions{display:none!important}}
 
 #bank-selection{font-size:16px;max-height:280px;overflow:auto;padding-left:24px}#bank-selection li{padding:6px 0;overflow-wrap:anywhere}
+
+#past-entry{margin-top:18px;padding:18px;background:#eff3fb;border:1px solid #bdcfe0;border-radius:10px}#reference-list{max-height:380px;overflow:auto;margin-top:16px}.reference-choice{display:flex;align-items:start;gap:12px;padding:14px;background:#fff;border:1px solid #d5dfeb;border-radius:8px;margin:10px 0;font-size:16px}.reference-choice input{flex:0 0 20px;width:20px;height:20px;margin-top:4px}.reference-choice>span{min-width:0;overflow-wrap:anywhere}.reference-choice strong{font-size:16px}.reference-meta{display:block;font-size:16px;color:#43594c;margin-top:6px}#reference-status,#reference-warning{font-size:16px}#reference-warning:not(:empty){color:#8b362b}#paper-assessment-mode{margin-bottom:18px}

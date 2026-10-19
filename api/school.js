@@ -1,9 +1,10 @@
+import {assembleSchoolPaper,listSchoolBank} from '../lib/school-bank.js';
 import {assertSchoolSize} from '../lib/visuals.js';
 import {json,readBody} from '../lib/http.js';
 import {signedIn,sameOrigin} from '../lib/school-auth.js';
 import {validateSchoolLocation} from '../lib/location.js';
 import {validateDraft} from '../lib/drafts.js';
-const actions=new Set(['bootstrap','dashboard','create_school','create_department','invite','revoke_invite','accept_invite','remove_member','save_paper','paper','submit','review','audit_list','verification_request','print_request','place_get','place_save','place_remove']);
+const actions=new Set(['bootstrap','dashboard','create_school','create_department','invite','revoke_invite','accept_invite','remove_member','save_paper','paper','submit','review','audit_list','verification_request','print_request','place_get','place_save','place_remove','assemble_school_paper','school_bank_catalogue']);
 export default async function school(req,res){
  try{
   if(req.method!=='POST')return json(res,405,{error:'Use POST.'});
@@ -11,6 +12,7 @@ export default async function school(req,res){
   const {client}=await signedIn(req,res);
   const {action,payload={}}=await readBody(req);
   if(!actions.has(action)||!payload||Array.isArray(payload)||typeof payload!=='object')return json(res,400,{error:'Invalid workspace request.'});
+  if(['assemble_school_paper','school_bank_catalogue'].includes(action)){const out=await (action==='assemble_school_paper'?assembleSchoolPaper:listSchoolBank)(payload,async(action,payload)=>{const {data,error}=await client.rpc('lp_workspace',{p_action:action,p_payload:payload});if(error)throw Object.assign(new Error(['42501','28000'].includes(error.code)?'You do not have permission to reuse this school source.':error.code==='40001'?'A newer version exists. Reload the bank.':'Could not access or save this school paper.'),{status:['42501','28000'].includes(error.code)?403:400});return data;});return json(res,200,out);}
   if(action==='place_save'){try{Object.assign(payload,validateSchoolLocation(payload));}catch(e){return json(res,400,{error:e.message});}}
   if(action==='save_paper'){
    const draft=validateDraft({...payload.content,id:'00000000-0000-4000-8000-000000000001',savedAt:new Date().toISOString()});

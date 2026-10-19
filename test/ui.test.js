@@ -1,3 +1,4 @@
+import {installVisuals} from './visual-helpers.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -10,6 +11,7 @@ const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')
 async function setup(generate,route="/create",seed) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
   Object.assign(w,{structuredClone,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
+  installVisuals(w);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
   if(seed)w.localStorage.setItem(DRAFTS_KEY,JSON.stringify(seed));
@@ -125,5 +127,25 @@ test('failed storage save preserves the reviewed paper and reports failure',asyn
   w.Storage.prototype.setItem=()=>{throw new Error('Storage full');};$('save').click();
   assert.equal($('approved').checked,true);assert.equal($('print').disabled,false);assert.match($('error').textContent,/Could not save/);
   assert.match($('preview').querySelector('.print-note').textContent,/Teacher review confirmed/);
+ }finally{dom.window.close();}
+});
+
+test('Early Years editor updates visual keys, invalidates review and saves every block',async()=>{
+ const {dom,w,$}=await setup();try{
+  $('early-sample').click();assert.equal(w.document.querySelectorAll('.editor').length,6);assert.match($('live-status').textContent,/Hand-authored/);assert.equal($('approved').disabled,false);
+  $('approved').checked=true;$('approved').dispatchEvent(new w.Event('change'));
+  const first=w.document.querySelector('.editor'),quantity=[...first.querySelectorAll('label')].find(l=>l.textContent==='Number of objects');const input=w.document.getElementById(quantity.htmlFor);input.value='5';input.dispatchEvent(new w.Event('input'));
+  assert.equal($('approved').checked,false);assert.equal(first.querySelector('[data-visual-answer]').value,'5');assert.equal(first.querySelector('[data-visual-answer]').readOnly,true);
+  $('save').click();const saved=readDrafts(w.localStorage)[0];assert.equal(saved.paper.questions[0].blocks[0].quantity,5);assert.equal(saved.paper.questions[0].answer,'5');assert.equal(saved.paper.questions[1].blocks[0].type,'matching');
+  $('tab-student').click();assert.equal($('preview').querySelectorAll('.count-objects')[0].querySelectorAll('svg').length,5);assert.equal($('preview').querySelectorAll('.teacher-answer').length,0);assert.ok($('preview').classList.contains('paper-early'));
+  $('restore').click();assert.equal(w.document.querySelectorAll('.block-editor').length,7);assert.equal($('approved').checked,false);
+ }finally{dom.window.close();}
+});
+test('question reordering changes the actual paper order and updates count without losing visuals',async()=>{
+ const {dom,w,$}=await setup();try{
+  $('early-sample').click();const original=readDrafts(w.localStorage);assert.equal(original.length,0);
+  [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Move question 2 up').click();$('save').click();let saved=readDrafts(w.localStorage)[0];assert.equal(saved.paper.questions[0].blocks[0].type,'matching');assert.equal(saved.spec.format,'custom');
+  [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Duplicate question 1').click();assert.equal($('count').value,'7');assert.equal($('approved').disabled,true);assert.match($('audit-status').textContent,/Duplicate/);
+  [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Remove question 2').click();$('save').click();saved=readDrafts(w.localStorage)[0];assert.equal(saved.spec.count,6);assert.equal(saved.paper.questions[0].blocks[0].type,'matching');
  }finally{dom.window.close();}
 });

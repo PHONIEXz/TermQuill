@@ -112,3 +112,12 @@ Replaced light serif/italic display text and platform-dependent screen fonts wit
 - Saving a paper now preserves the current tab's teacher approval and refreshes the preview consistently. Persisted/imported/reopened copies still require fresh review. Failed storage writes preserve the current paper.
 - `npm test`: 84 passing tests, including focused sentence selection, exact multi-sentence whitespace, long/line-based notes, save-after-approval in both print views, reopened review reset, edits and failed storage writes. `npm run check`, `npm run build` and `git diff --check` pass.
 - School sign-in was already valid. The school is not verified, so new invitations remain restricted; no verification request, staff invitation or approval was fabricated. Native print/PDF pagination remains unverified.
+
+
+## October 19: visual exam editor
+
+- Added versioned visual blocks, one shared renderer and editor for personal and school papers, and a hand-authored Early Years example. Existing text papers remain valid.
+- 94 Node test runner checks pass (including the helper module load); syntax/build/diff checks pass. Regressions cover exact object counts, derived matching permutations/keys, safe text rendering, raster-only embedded images, bounded table/block schemas, save/reopen, review invalidation, question reordering and byte-based school size limits.
+- School UI simulation preserves visual blocks through editing and separates the teacher key from the student copy. The real PGlite Postgres test preserves an approved illustrated version while its author saves a new draft. This does not prove live independent reviewer accounts or email delivery.
+- Uploads remain compressed embedded raster images, bounded by existing paper/import/device/school limits. No new paid service, external image tracker, image-generation service or storage bucket is provisioned.
+- Browser and print rendering verification recorded after staging; native printer output and real-phone use remain separate checks.

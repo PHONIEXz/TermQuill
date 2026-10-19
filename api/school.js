@@ -1,3 +1,4 @@
+import {assertSchoolSize} from '../lib/visuals.js';
 import {json,readBody} from '../lib/http.js';
 import {signedIn,sameOrigin} from '../lib/school-auth.js';
 import {validateSchoolLocation} from '../lib/location.js';
@@ -13,7 +14,7 @@ export default async function school(req,res){
   if(action==='place_save'){try{Object.assign(payload,validateSchoolLocation(payload));}catch(e){return json(res,400,{error:e.message});}}
   if(action==='save_paper'){
    const draft=validateDraft({...payload.content,id:'00000000-0000-4000-8000-000000000001',savedAt:new Date().toISOString()});
-   payload.content={spec:draft.spec,paper:draft.paper,sample:draft.sample,model:draft.model};
+   payload.content={spec:draft.spec,paper:draft.paper,sample:draft.sample,model:draft.model};assertSchoolSize(payload.content);
   }
   const {data,error}=await client.rpc('lp_workspace',{p_action:action,p_payload:payload});
   if(error){console.warn(JSON.stringify({event:'school_request_failed',action,code:error.code||'unknown'}));if(error.code==='P0429'){res.setHeader('Retry-After','3600');return json(res,429,{error:'School invitation limit reached. Try again after the hourly window resets.'});}if(error.message?.startsWith('School verification is required'))return json(res,403,{error:'School verification is required before creating new invitations. Request a check from School trust & activity.'});if(error.message?.startsWith('Verify the school before publishing'))return json(res,403,{error:'Verify this school before listing its location publicly. You can save a private location now.'});const forbidden=['42501','28000'].includes(error.code);const conflict=error.code==='40001';return json(res,forbidden?403:conflict?409:400,{error:forbidden?'You do not have permission for this action, or the invitation is invalid.':conflict?'A newer version exists. Reload before continuing.':safeMessage(error.message)});}

@@ -1,0 +1,77 @@
+/* Screen and print share the same semantic question blocks. */
+.paper-block{margin:16px 0;max-width:100%;break-inside:avoid;overflow-wrap:anywhere;color:#172f2b}
+.count-objects{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.count-objects svg{flex:0 0 auto;width:48px;height:48px}.count-objects.size-small svg{width:32px;height:32px}.count-objects.size-large svg{width:64px;height:64px}
+.block-caption,.trace-instruction{font-size:16px;line-height:1.5}.question-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:18px;color:inherit}.question-table th,.question-table td{border:1px solid #6a716e;padding:12px;vertical-align:top;overflow-wrap:anywhere;white-space:pre-wrap}.question-table caption{text-align:left;padding:8px 0;font-weight:600}.matching-table td{height:52px}
+.paper-image{display:block;max-width:100%;height:auto;object-fit:contain}.paper-image.size-small{width:100px}.paper-image.size-medium{width:200px}.paper-image.size-large{width:360px}.paper-image.crop-square{aspect-ratio:1;object-fit:cover}
+.block-drawing{border:1px solid #555;position:relative;padding:8px}.drawing-label{font-size:15px;color:#444}.writing-rule{height:11mm;border-bottom:1px solid #777}.block-tracing svg{display:block;width:100%;max-height:110px;min-height:60px;margin:12px 0}.trace-instruction{display:block}
+.paper-early .question-title,.paper-early .school-question>h3,.paper-early .options,.paper-early .instructions{font-size:22px!important;line-height:1.8!important}.paper-primary .question-title,.paper-primary .options,.paper-primary .instructions{font-size:20px!important;line-height:1.7!important}.paper-early .question,.paper-early .school-question{padding-top:24px;padding-bottom:24px}.question-page-break{border-top:3px dashed #a3b3a7;margin-top:25px}
+.visual-editor{margin:20px 0;padding:16px;border:1px solid #cbd6cd;border-radius:10px;background:#f4f7f1}.visual-editor>summary{font-size:18px;font-weight:650;cursor:pointer}.block-editor{margin:16px 0;border:1px solid #cbd6cd;border-radius:8px;padding:16px;background:white;min-width:0}.block-editor legend{font-weight:600;font-size:16px}.block-editor .two{gap:12px}.block-controls,.question-controls,.visual-add,.layout-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}.block-controls button,.question-controls button,.visual-add button{min-height:44px;padding:8px 12px;border:1px solid #b9cbbc;border-radius:6px;background:#fff;font-size:16px}.visual-add select{flex:1;min-width:160px}.visual-hint{font-size:16px;line-height:1.6;color:#445c50}.block-thumb{max-width:160px;max-height:160px;object-fit:contain}.layout-panel{padding:18px;background:#f1f4ef;border:1px solid #ccd7cc;border-radius:8px;margin-bottom:20px}.table-edit-row{display:grid;gap:6px;margin:8px 0}.table-edit-cols-1{grid-template-columns:1fr}.table-edit-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.table-edit-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.table-edit-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.table-edit-row input{padding:8px!important;font-size:16px!important}.early-start{padding:16px;border:1px solid #c6b8e5;background:#f1edf8;border-radius:8px;margin-bottom:18px}.early-start p{font-size:16px;line-height:1.6}
+@media(max-width:600px){.question-table th,.question-table td{padding:7px;font-size:16px}.visual-editor,.block-editor{padding:10px}.paper-early .question-title{font-size:20px!important}.block-tracing svg{min-height:45px}.count-objects{gap:8px}.table-edit-cols-4 input{font-size:14px!important}}
+@page{size:A4;margin:16mm}
+@media print{.paper-block{color:#000}.question-table{font-size:12pt}.question-table th,.question-table td{padding:3mm;border-color:#333}.paper-early .question-title,.paper-early .options,.paper-early .instructions,.paper-early .school-question>h3{font-size:16pt!important}.paper-primary .question-title,.paper-primary .options,.paper-primary .instructions{font-size:14pt!important}.question-page-break{break-before:page;border:0;margin-top:0}.layout-panel,.early-start,.visual-editor,.question-controls{display:none!important}.block-caption,.trace-instruction{font-size:11pt}.block-drawing{border-color:#333}.paper-block{break-inside:avoid}.question,.school-question{break-inside:avoid-page}.writing-rule{border-color:#777}.count-objects svg{color:black}.paper-early .question,.paper-early .school-question{padding:5mm 0}.paper-image{max-height:90mm}.block-tracing svg{max-height:25mm}}
+.drawing-height-25{height:25mm}
+.drawing-height-26{height:26mm}
+.drawing-height-27{height:27mm}
+.drawing-height-28{height:28mm}
+.drawing-height-29{height:29mm}
+.drawing-height-30{height:30mm}
+.drawing-height-31{height:31mm}
+.drawing-height-32{height:32mm}
+.drawing-height-33{height:33mm}
+.drawing-height-34{height:34mm}
+.drawing-height-35{height:35mm}
+.drawing-height-36{height:36mm}
+.drawing-height-37{height:37mm}
+.drawing-height-38{height:38mm}
+.drawing-height-39{height:39mm}
+.drawing-height-40{height:40mm}
+.drawing-height-41{height:41mm}
+.drawing-height-42{height:42mm}
+.drawing-height-43{height:43mm}
+.drawing-height-44{height:44mm}
+.drawing-height-45{height:45mm}
+.drawing-height-46{height:46mm}
+.drawing-height-47{height:47mm}
+.drawing-height-48{height:48mm}
+.drawing-height-49{height:49mm}
+.drawing-height-50{height:50mm}
+.drawing-height-51{height:51mm}
+.drawing-height-52{height:52mm}
+.drawing-height-53{height:53mm}
+.drawing-height-54{height:54mm}
+.drawing-height-55{height:55mm}
+.drawing-height-56{height:56mm}
+.drawing-height-57{height:57mm}
+.drawing-height-58{height:58mm}
+.drawing-height-59{height:59mm}
+.drawing-height-60{height:60mm}
+.drawing-height-61{height:61mm}
+.drawing-height-62{height:62mm}
+.drawing-height-63{height:63mm}
+.drawing-height-64{height:64mm}
+.drawing-height-65{height:65mm}
+.drawing-height-66{height:66mm}
+.drawing-height-67{height:67mm}
+.drawing-height-68{height:68mm}
+.drawing-height-69{height:69mm}
+.drawing-height-70{height:70mm}
+.drawing-height-71{height:71mm}
+.drawing-height-72{height:72mm}
+.drawing-height-73{height:73mm}
+.drawing-height-74{height:74mm}
+.drawing-height-75{height:75mm}
+.drawing-height-76{height:76mm}
+.drawing-height-77{height:77mm}
+.drawing-height-78{height:78mm}
+.drawing-height-79{height:79mm}
+.drawing-height-80{height:80mm}
+.drawing-height-81{height:81mm}
+.drawing-height-82{height:82mm}
+.drawing-height-83{height:83mm}
+.drawing-height-84{height:84mm}
+.drawing-height-85{height:85mm}
+.drawing-height-86{height:86mm}
+.drawing-height-87{height:87mm}
+.drawing-height-88{height:88mm}
+.drawing-height-89{height:89mm}
+.drawing-height-90{height:90mm}

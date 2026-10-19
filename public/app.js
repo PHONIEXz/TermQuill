@@ -1,3 +1,7 @@
+import {PRESETS,assertSchoolSize,visualAnswer,setVisualAnswer,hasAnswerSpace} from '/visuals.js';
+import {earlyYearsSample} from '/early-years.js';
+import {renderBlocks,applyPaperLayout} from '/paper-blocks.js';
+import {blockEditor,layoutEditor} from '/visual-editor.js';
 import {validateRequest,auditAssessment,parseModelOutput} from '/assessment.js';
 import {sampleSpec,samplePaper} from '/sample.js';
 import {readDrafts,saveDraft,deleteDraft,validateDraft} from '/drafts.js';
@@ -11,7 +15,7 @@ document.title=({home:'LessonPress | From lesson to assessment',create:'Create a
 for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===page)link.setAttribute('aria-current','page');
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
-let dirty=false;
+let dirty=false,pendingImages=0;
 function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function message(text) {$('live-status').textContent=text;}
 function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
@@ -20,28 +24,29 @@ function fieldValues() {
   for(const key of ['count','marksEach','minutes'])values[key]=Number(values[key]);
   return values;
 }
-function fillForm(spec) {for(const name of ['formatInstructions','difficultyInstructions'])form.elements[name].value=spec[name]||'';for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;syncCustomSettings();updateCount();}
-function syncCustomSettings(){for(const [select,name,wrap] of [['format','formatInstructions','custom-format-wrap'],['difficulty','difficultyInstructions','custom-difficulty-wrap']]){const custom=$(select).value==='custom';$(wrap).hidden=!custom;$(name).disabled=!custom||Boolean(active);$(name).required=custom;}}
+function fillForm(spec) {$('presentation').value=spec.presentation||'standard';for(const name of ['formatInstructions','difficultyInstructions'])form.elements[name].value=spec[name]||'';for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;syncCustomSettings();updateCount();}
+function syncCustomSettings(){for(const [select,name,wrap] of [['format','formatInstructions','custom-format-wrap'],['difficulty','difficultyInstructions','custom-difficulty-wrap']]){const custom=$(select).value==='custom';$(wrap).hidden=!custom;$(name).disabled=!custom||Boolean(active)||pendingImages>0;$(name).required=custom;}}
 for(const id of ['format','difficulty'])$(id).addEventListener('change',syncCustomSettings);
 function updateCount() {$('notes-count').textContent=`${$('notes').value.length.toLocaleString()} / 18,000`;$('total-marks').textContent=`${Number($('count').value)*Number($('marksEach').value)} marks`;}
-function busy(on) {
+function busy(on) {on=on||pendingImages>0;
   for(const item of form.elements)item.disabled=on;
   $('generate').disabled=on||!config.configured;
-  $('generate').textContent=on?'Preparing assessment…':'Create my assessment →';
-  for(const id of ['try-sample','sample-notes','empty-sample','restore'])if($(id))$(id).disabled=on||(id==='restore'&&!hasSaved());
-  $('cancel').disabled=false;$('cancel').hidden=!on;
+  $('generate').textContent=active?'Preparing assessment…':pendingImages?'Preparing picture…':'Create my assessment →';
+for(const id of ['early-sample','try-sample','sample-notes','empty-sample','restore'])if($(id))$(id).disabled=on||(id==='restore'&&!hasSaved());
+  $('cancel').disabled=false;$('cancel').hidden=!active;
   document.querySelector('.output').setAttribute('aria-busy',String(on));
   syncCustomSettings();updateReview();
 }
 function hasSaved(){try{return readDrafts(localStorage).length>0;}catch{return false;}}
 function updateReview() {
+  const working=Boolean(active)||pendingImages>0;
   const issues=state?auditAssessment(state.paper,state.spec):[];
   $('review-bar').hidden=!state;
   $('approved').checked=Boolean(state?.approved);
-  $('approved').disabled=Boolean(active)||issues.length>0;
-  $('print').disabled=!state||!state.approved||issues.length>0||mode==='edit'||Boolean(active);
-  for(const id of ['save','download','send-school'])$(id).disabled=!state||Boolean(active);
-  $('restore').disabled=!hasSaved()||Boolean(active);
+  $('approved').disabled=working||issues.length>0;
+  $('print').disabled=!state||!state.approved||issues.length>0||mode==='edit'||working;
+  for(const id of ['save','download','send-school'])$(id).disabled=!state||working;
+  $('restore').disabled=!hasSaved()||working;
   $('draft-badge').textContent=state?(state.approved?'REVIEWED':state.sample?'SAMPLE DRAFT':'REVIEW NEEDED'):'NOT STARTED';
   $('audit-status').textContent=state?(issues.length?`${issues.length} checks need attention. ${issues.slice(0,3).map(x=>`${x.index===null?'':`Q${x.index+1}: `}${x.message}`).join(' ')}`:`${state.paper.questions.length} questions · ${state.paper.questions.reduce((s,q)=>s+q.marks,0)} marks · Structural checks passed. Review accuracy and suitability before printing.`):'';
 }
@@ -49,22 +54,23 @@ function resetApproval(){if(state){state.approved=false;dirty=true;}updateReview
 function head(container) {
   if(state.sample)container.append(el('div','SAMPLE ASSESSMENT · Hand-authored example. Not generated from your current form.','sample-notice'));
   const header=el('div',undefined,'paper-head');
+  for(const value of [state.paper.layout?.schoolName,state.paper.layout?.term])if(value)header.append(el('p',value));
   header.append(el('div',mode==='teacher'?'TEACHER COPY / MARKING GUIDE':'STUDENT COPY / ASSESSMENT','kicker'),el('h2',state.spec.title),el('p',`${state.spec.subject} · ${state.spec.level} · ${state.spec.minutes} minutes · ${state.spec.count*state.spec.marksEach} marks`));
   if(mode==='student'){const names=el('div',undefined,'name-line');names.append(el('span','Name: __________________________'),el('span','Date: ______________'));header.append(names);}
   container.append(header,el('p',state.paper.instructions,'instructions'));
 }
 function preview() {
-  const target=$('preview');target.replaceChildren();if(!state)return;
+  const target=$('preview');target.replaceChildren();if(!state)return;applyPaperLayout(target,state.paper.layout||{preset:state.spec.presentation});
   if(mode==='edit'){renderEditor(target);return;}
   head(target);
   state.paper.questions.forEach((q,i)=>{
-    const section=el('section',undefined,'question'),title=el('div',undefined,'question-title');
-    title.append(el('span',String(i+1).padStart(2,'0'),'number'),el('p',q.prompt),el('span',`[${q.marks} marks]`,'marks'));section.append(title);
+    const section=el('section',undefined,`question${q.pageBreakBefore?' question-page-break':''}`),title=el('div',undefined,'question-title');
+    title.append(el('span',String(i+1).padStart(2,'0'),'number'),el('p',q.prompt),el('span',`[${q.marks} marks]`,'marks'));section.append(title);renderBlocks(section,q,{teacher:mode==='teacher'});
     if(q.kind==='mcq'){const options=el('ul',undefined,'options');q.options.forEach((o,j)=>options.append(el('li',`${'ABCD'[j]}. ${o}`)));section.append(options);}
     if(mode==='teacher'){
       const answer=el('div',undefined,'teacher-answer');answer.append(el('strong',q.kind==='mcq'?`${'ABCD'[q.correctIndex]}. ${q.answer}`:q.answer));
       const points=el('ul');q.marking.forEach(p=>points.append(el('li',`${p.point} (${p.marks} ${p.marks===1?'mark':'marks'})`)));answer.append(points,el('div',`From the lesson notes: “${q.evidence}”`,'evidence'));section.append(answer);
-    }else if(q.kind==='short')section.append(el('div',undefined,'answer-lines'));
+    }else if(q.kind==='short'&&!hasAnswerSpace(q))section.append(el('div',undefined,'answer-lines'));
     target.append(section);
   });
   target.append(el('p',`${state.approved?'Teacher review confirmed':'DRAFT · Awaiting teacher review'} · Prepared with LessonPress`,'print-note'));
@@ -74,11 +80,36 @@ function editable(container,label,value,onInput,{multiline=true,max=1200}={}) {
   const input=el(multiline?'textarea':'input');input.id=id;input.value=value;input.maxLength=max;if(multiline)input.rows=2;
   input.addEventListener('input',()=>{onInput(input.value);resetApproval();});container.append(l,input);return input;
 }
+function actionButton(parent,text,action,disabled=false){const b=el('button',text);b.type='button';b.disabled=disabled;b.addEventListener('click',()=>{if(!active&&!pendingImages)action();});parent.append(b);return b;}
+function changedQuestions(focusIndex){state.spec.count=state.paper.questions.length;state.spec.format='custom';state.spec.formatInstructions='Teacher-arranged written and multiple-choice questions.';fillForm(state.spec);resetApproval();preview();if(Number.isInteger(focusIndex)){const question=$('preview').querySelectorAll('.editor')[focusIndex];if(question){question.tabIndex=-1;question.focus();}}message('Paper updated. Review the question wording, answers and marks.');}
+function syncDerivedAnswer(box,q){
+ const answer=box.querySelector('[data-visual-answer]');if(answer){answer.value=q.answer;try{answer.readOnly=visualAnswer(q.blocks)!==null;}catch{answer.readOnly=false;}}
+ const fields=box.querySelector('.editor-fields');if(fields){fields.querySelector('.marking-fields')?.remove();renderMarkingFields(fields,q);}
+}
+function renderMarkingFields(fields,q){const group=el('div',undefined,'marking-fields'),automatic=visualAnswer(q.blocks)!==null;
+  q.marking.forEach((p,j)=>{
+      const point=editable(group,`Marking point ${j+1}`,p.point,v=>p.point=v,{max:600});point.readOnly=automatic;
+      const l=el('label',`Marks for point ${j+1}`),n=el('input');n.type='number';n.readOnly=automatic;n.min=1;n.max=10;n.value=p.marks;n.id=`marks-${crypto.randomUUID()}`;l.htmlFor=n.id;
+      n.addEventListener('input',()=>{p.marks=Number(n.value);resetApproval();});group.append(l,n);
+    });
+  fields.append(group);
+}
+function questionControls(box,q,i){
+ const tools=el('div',undefined,'question-controls'),count=state.paper.questions.length;
+ const kind=el('select');kind.setAttribute('aria-label',`Question ${i+1} type`);for(const [v,t] of [['short','Written / visual response'],['mcq','Multiple choice']]){const o=el('option',t);o.value=v;kind.append(o);}kind.value=q.kind;
+ kind.addEventListener('change',()=>{if(active||pendingImages){kind.value=q.kind;return;}if(kind.value==='mcq'&&visualAnswer(q.blocks)!==null){error('Remove the counting or matching task before choosing multiple choice.');kind.value=q.kind;return;}q.kind=kind.value;q.options=q.kind==='mcq'?['Option A','Option B','Option C','Option D']:[];q.correctIndex=q.kind==='mcq'?0:null;if(q.kind==='mcq'){q.answer=q.options[0];q.marking=[{point:'Select A: Option A',marks:q.marks}];}changedQuestions();});tools.append(kind);
+ actionButton(tools,`Move question ${i+1} up`,()=>{[state.paper.questions[i-1],state.paper.questions[i]]=[q,state.paper.questions[i-1]];changedQuestions(i-1);},i===0);
+ actionButton(tools,`Move question ${i+1} down`,()=>{[state.paper.questions[i+1],state.paper.questions[i]]=[q,state.paper.questions[i+1]];changedQuestions(i+1);},i===count-1);
+ actionButton(tools,`Duplicate question ${i+1}`,()=>{state.paper.questions.splice(i+1,0,structuredClone(q));changedQuestions(i+1);message('Question duplicated. Change its wording and content before approving.');},count>=20);
+ actionButton(tools,`Remove question ${i+1}`,()=>{if(confirm(`Remove question ${i+1} from this open paper? The saved copy stays unchanged until you save.`)){state.paper.questions.splice(i,1);changedQuestions(Math.min(i,count-2));}},count<=3);box.append(tools);
+}
 function renderEditor(target) {
   target.append(el('p','Edit freely. Every change resets approval. Check the answers and supporting quotes before printing.','instructions'));
+  layoutEditor(target,state.paper,()=>{resetApproval();});
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{
-    const box=el('section',undefined,'editor');box.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} marks`));
+    const box=el('section',undefined,'editor');box.dataset.questionIndex=i;box.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} marks`));
+    questionControls(box,q,i);
     const grid=el('div',undefined,'editor-grid'),fields=el('div',undefined,'editor-fields'),evidence=el('aside',undefined,'editor-evidence');
     evidence.setAttribute('aria-label',`Supporting evidence for question ${i+1}`);
     editable(fields,'Question',q.prompt,v=>q.prompt=v);
@@ -87,15 +118,13 @@ function renderEditor(target) {
       const label=el('label','Correct option'),select=el('select');select.id=`correct-${i}`;label.htmlFor=select.id;
       q.options.forEach((_,j)=>{const o=el('option',`Option ${'ABCD'[j]}`);o.value=j;select.append(o);});select.value=q.correctIndex;
       select.addEventListener('change',()=>{q.correctIndex=Number(select.value);q.answer=q.options[q.correctIndex];q.marking=[{point:`Select ${'ABCD'[q.correctIndex]}: ${q.answer}`,marks:q.marks}];resetApproval();preview();});fields.append(label,select);
-    }else editable(fields,'Expected answer',q.answer,v=>q.answer=v);
-    q.marking.forEach((p,j)=>{
-      editable(fields,`Marking point ${j+1}`,p.point,v=>p.point=v,{max:600});
-      const l=el('label',`Marks for point ${j+1}`),n=el('input');n.type='number';n.min=1;n.max=10;n.value=p.marks;n.id=`marks-${i}-${j}`;l.htmlFor=n.id;
-      n.addEventListener('input',()=>{p.marks=Number(n.value);resetApproval();});fields.append(l,n);
-    });
+    }else {const answer=editable(fields,'Expected answer',q.answer,v=>q.answer=v);answer.dataset.visualAnswer='true';answer.readOnly=visualAnswer(q.blocks)!==null;}
+    renderMarkingFields(fields,q);
     editable(evidence,'Supporting quote (copy exactly from your lesson notes)',q.evidence,v=>q.evidence=v);
-    const details=el('details'),summary=el('summary','Read original lesson notes');details.append(summary,el('p',state.spec.notes));evidence.append(details);grid.append(fields,evidence);box.append(grid);target.append(box);
+    const details=el('details'),summary=el('summary','Read original lesson notes');details.append(summary,el('p',state.spec.notes));evidence.append(details);grid.append(fields,evidence);box.append(grid);
+    blockEditor(box,q,{onChange:()=>{state.paper.version=2;resetApproval();syncDerivedAnswer(box,q);},onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on)resetApproval();busy(Boolean(active));}});target.append(box);
   });
+  const tools=el('div',undefined,'question-controls');actionButton(tools,'Add a question',()=>{state.paper.questions.push({kind:'short',prompt:'Write your question here.',marks:state.spec.marksEach,options:[],correctIndex:null,answer:'',marking:[{point:'',marks:state.spec.marksEach}],evidence:'',blocks:[]});changedQuestions(state.paper.questions.length-1);},state.paper.questions.length>=20);target.append(tools);
 }
 function setMode(next) {
   mode=next;
@@ -110,6 +139,7 @@ function loadSample() {
   fillForm(sampleSpec);state={spec:structuredClone(sampleSpec),paper:structuredClone(samplePaper),sample:true,approved:false,model:'Hand-authored sample'};
   dirty=true;setMode('student');error();message('Sample loaded. This is a hand-authored example, not a live model response.');$('workspace').scrollIntoView({behavior:'smooth',block:'start'});
 }
+  $('early-sample').addEventListener('click',()=>{if(active||pendingImages)return;if(state&&!confirm('Replace this open paper with the Early Years example? Save first to keep it.'))return;state=earlyYearsSample();fillForm(state.spec);dirty=true;setMode('edit');error();message('Hand-authored Early Years example loaded. Adapt the tasks and review them for your class.');});
 for(const id of ['try-sample','empty-sample'])$(id).addEventListener('click',loadSample);
 $('sample-notes').addEventListener('click',()=>{if($('notes').value&&!confirm('Replace the notes and settings with the sample? Your current paper will remain unchanged.'))return;fillForm(sampleSpec);message('Sample notes added. Generate a fresh assessment or explore the prepared sample.');});
 for(const name of ['student','teacher','edit'])$(`tab-${name}`).addEventListener('click',()=>setMode(name));
@@ -121,7 +151,7 @@ document.querySelector('.tabs').addEventListener('keydown',event=>{
 });
 form.addEventListener('input',updateCount);
 form.addEventListener('submit',async event=>{
-  event.preventDefault();if(active)return;error();let spec;
+  event.preventDefault();if(active||pendingImages)return;error();let spec;
   try{spec=validateRequest(fieldValues());}catch(e){error(e.message);return;}
   if(state&&!confirm('Generate a new paper? This replaces the current paper only if generation succeeds.'))return;
   const controller=new AbortController();active=controller;busy(true);message('Drafting your assessment, then checking questions, quotes and marks…');
@@ -129,7 +159,7 @@ form.addEventListener('submit',async event=>{
   try{
     const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Access-Code':$('access-code').value},body:JSON.stringify(spec),signal:controller.signal});
     const data=await response.json();if(!response.ok)throw new Error(`${data.error||'Generation failed.'}${data.code?` (${data.code})`:''}${data.requestId?` Reference: ${data.requestId}`:''}`);
-    const paper=parseModelOutput(JSON.stringify(data.paper),spec);
+    const paper=parseModelOutput(JSON.stringify(data.paper),spec);paper.layout??={preset:spec.presentation||'standard',schoolName:'',term:''};
     state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('edit');message('Your draft is ready. Review each question, expected answer and source quote.');
   }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation timed out. Try fewer questions. Your previous paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}
   finally{clearTimeout(timer);active=null;busy(false);}
@@ -184,4 +214,4 @@ if(page==='create'){
 document.addEventListener('click',event=>{const a=event.target.closest?.('a[href]');if(!a||!dirty||page!=='create')return;const target=new URL(a.href,location.href);if(target.pathname!==location.pathname&&!confirm('Leave without saving this paper? Choose Cancel, then Save on this device to keep it.'))event.preventDefault();});
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 
-$('send-school').addEventListener('click',()=>{try{if(!state||active)return;const draft=validateDraft({...state,savedAt:new Date().toISOString()});if(JSON.stringify(draft).length>90000)throw new Error('This paper is too large for school sharing.');sessionStorage.setItem('lessonpress.school-transfer',JSON.stringify(draft));dirty=false;location.href='/school/library';}catch(e){error(e.message);}});
+$('send-school').addEventListener('click',()=>{try{if(!state||active||pendingImages)return;const draft=validateDraft({...state,savedAt:new Date().toISOString()});assertSchoolSize({spec:draft.spec,paper:draft.paper,sample:draft.sample,model:draft.model});sessionStorage.setItem('lessonpress.school-transfer',JSON.stringify(draft));dirty=false;location.href='/school/library';}catch(e){error(e.message);}});

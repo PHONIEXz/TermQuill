@@ -148,3 +148,9 @@ Question bank is browser-local (50 entries / 2 MB), not cloud sync or school app
 115 checks passed, including UI approval gating by per-question review progress, inline feedback, read-only comparison, approved-copy links/stamps, and school-bank identifier-only requests. Real PGlite/Postgres checks reused only the approved revision while a later private draft existed, retained source/author credit, created a new unapproved draft, rejected unapproved source revisions and disallowed target departments, and confirmed failed reuse created no paper. Existing isolation, self-approval, revision concurrency and immutable-copy checks remain.
 
 Review progress is tab-local, not cloud-synced or a server-recorded review attestation. Comparing rewritten/reordered questions uses an explicitly labelled positional fallback. Real independent teacher review, real-phone and physical-printer trials remain required; synthetic checks do not establish classroom acceptance. Live authenticated verification is reported separately after release.
+
+## Discoverable school-logo upload (2026-10-19)
+
+A visible School logo panel is available before generation and in every builder view, with Upload / Change / Remove actions and a thumbnail. Logo data is attached locally after AI generation and retained by draft validation, device saving and school versions. School paper authors have a direct logo shortcut to the new-version editor. Both school copies place the logo before the paper heading. No school-wide logo default is implied.
+
+116 automated checks pass, including real upload-control binding with isolated bitmap/canvas fixtures, no image in provider requests, student/teacher rendering, save/restore, removal invalidating review, school shortcut focus and school-version retention. Syntax, build and whitespace checks pass. Live browser upload/layout results are recorded in the release response. Physical printing remains unverified.

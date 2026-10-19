@@ -5,6 +5,6 @@ import {readBank} from '../lib/bank.js';
 import {readDrafts} from '../lib/drafts.js';
 import * as visuals from '../lib/visuals.js';
 import {earlyYearsSample} from '../lib/early-years.js';
-const modules=[['school-review',['mountSchoolReview']],['school-bank-view',['mountSchoolBank']],['reference-picker',['initReferencePicker']],['paper-blocks',['renderBlocks','applyPaperLayout','iconElement','assertPicturesReady','renderSection','renderLogo']],['visual-editor',['blockEditor','layoutEditor','compressPicture','questionDocumentEditor']]];
+const modules=[['school-review',['mountSchoolReview']],['school-bank-view',['mountSchoolBank']],['reference-picker',['initReferencePicker']],['paper-blocks',['renderBlocks','applyPaperLayout','iconElement','assertPicturesReady','renderSection','renderLogo']],['visual-editor',['blockEditor','layoutEditor','logoEditor','compressPicture','questionDocumentEditor']]];
 const sources=await Promise.all(modules.map(async([name,exports])=>[(await readFile(new URL(`../public/${name}.js`,import.meta.url),'utf8')).replace(/^import .*;\n/gm,'').replace(/export (function|async function) /g,'$1 '),exports]));
 export function installVisuals(w){Object.assign(w,visuals,referenceHelpers,reviewHelpers,{earlyYearsSample,readBank,readDrafts});for(const [source,exports] of sources)w.eval(`(()=>{${source}\nObject.assign(window,{${exports.join(',')}});})()`);}

@@ -3,7 +3,7 @@ import {saveBankQuestion} from '/bank.js';
 import {assertSchoolSize,visualAnswer,hasAnswerSpace,paperTotal} from '/visuals.js';
 import {earlyYearsSample} from '/early-years.js';
 import {renderBlocks,applyPaperLayout,assertPicturesReady,renderSection,renderLogo} from '/paper-blocks.js';
-import {blockEditor,layoutEditor,questionDocumentEditor} from '/visual-editor.js';
+import {blockEditor,layoutEditor,logoEditor,questionDocumentEditor} from '/visual-editor.js';
 import {validateRequest,auditAssessment,parseModelOutput} from '/assessment.js';
 import {sampleSpec,samplePaper} from '/sample.js';
 import {readDrafts,saveDraft,deleteDraft,validateDraft} from '/drafts.js';
@@ -17,10 +17,18 @@ document.title=({home:'LessonPress | From lesson to assessment',create:'Create a
 for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===page)link.setAttribute('aria-current','page');
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
+const pendingLayout={};
 let dirty=false,pendingImages=0;const referencePicker=initReferencePicker(form);
 function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function message(text) {$('live-status').textContent=text;}
 function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
+function mountLogo(){
+ const box=$('paper-logo');if(!box)return;box.replaceChildren();
+ const layout=state?(state.paper.layout??={preset:state.spec.presentation||'standard',schoolName:'',term:''}):pendingLayout;
+ logoEditor(box,layout,()=>{if(state){resetApproval();preview();}else dirty=true;},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on&&state)resetApproval();busy(Boolean(active));}});
+}
+function carrySetupLogo(paper){if(!state&&pendingLayout.logo){paper.layout??={preset:'standard',schoolName:'',term:''};paper.layout.logo=pendingLayout.logo;}}
+mountLogo();
 function fieldValues() {
   const values=Object.fromEntries(new FormData(form));
   for(const key of ['count','marksEach','minutes'])values[key]=Number(values[key]);
@@ -107,7 +115,7 @@ function questionControls(box,q,i){
 }
 function renderEditor(target) {
   const intro=el('div',undefined,'editor-intro');intro.append(el('strong','Make it yours, one question at a time.'),el('p','Set your paper heading, open a question to edit, then use Student paper to check the result. Every edit resets your review.'));target.append(intro);
-  layoutEditor(target,state.paper,()=>{resetApproval();},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on)resetApproval();busy(Boolean(active));}});
+  layoutEditor(target,state.paper,()=>{resetApproval();},{includeLogo:false,onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on)resetApproval();busy(Boolean(active));}});
   const modeLabel=el('label','Paper assessment mode'),modeSelect=el('select');modeSelect.id='paper-assessment-mode';modeLabel.htmlFor=modeSelect.id;for(const [value,text] of [['test','Test'],['exam','Exam']]){const option=el('option',text);option.value=value;modeSelect.append(option);}modeSelect.value=state.spec.assessmentMode||'test';modeSelect.addEventListener('change',()=>{state.spec.assessmentMode=modeSelect.value;resetApproval();});target.append(modeLabel,modeSelect);
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{
@@ -133,16 +141,16 @@ function setMode(next) {
   mode=next;
   for(const name of ['student','teacher','edit']){const tab=$(`tab-${name}`);tab.setAttribute('aria-selected',String(name===mode));tab.tabIndex=name===mode?0:-1;}
   $('preview').setAttribute('aria-labelledby',`tab-${mode}`);$('workspace')?.classList.toggle('editing-paper',mode==='edit');if($('setup-drawer'))$('setup-drawer').open=mode!=='edit';
-  if(state)preview();updateReview();
+  mountLogo();if(state)preview();updateReview();
 }
 function loadSample() {
   if(active)return;
   if(page!=='create'){location.assign('/create?sample=1');return;}
   if(state&&!confirm('Replace the current paper with the sample? Save your draft first if you want to keep it.'))return;
-  fillForm(sampleSpec);state={spec:structuredClone(sampleSpec),paper:structuredClone(samplePaper),sample:true,approved:false,model:'Hand-authored sample'};
+  const paper=structuredClone(samplePaper);carrySetupLogo(paper);fillForm(sampleSpec);state={spec:structuredClone(sampleSpec),paper,sample:true,approved:false,model:'Hand-authored sample'};
   dirty=true;setMode('student');error();message('Sample loaded. This is a hand-authored example, not a live model response.');$('workspace').scrollIntoView({behavior:'smooth',block:'start'});
 }
-  $('early-sample').addEventListener('click',()=>{if(active||pendingImages)return;if(state&&!confirm('Replace this open paper with the Early Years example? Save first to keep it.'))return;state=earlyYearsSample();fillForm(state.spec);dirty=true;setMode('edit');error();message('Hand-authored Early Years example loaded. Adapt the tasks and review them for your class.');});
+  $('early-sample').addEventListener('click',()=>{if(active||pendingImages)return;if(state&&!confirm('Replace this open paper with the Early Years example? Save first to keep it.'))return;const example=earlyYearsSample();carrySetupLogo(example.paper);state=example;fillForm(state.spec);dirty=true;setMode('edit');error();message('Hand-authored Early Years example loaded. Adapt the tasks and review them for your class.');});
 for(const id of ['try-sample','empty-sample'])$(id).addEventListener('click',loadSample);
 $('sample-notes').addEventListener('click',()=>{if($('notes').value&&!confirm('Replace the notes and settings with the sample? Your current paper will remain unchanged.'))return;fillForm(sampleSpec);message('Sample notes added. Generate a fresh assessment or explore the prepared sample.');});
 for(const name of ['student','teacher','edit'])$(`tab-${name}`).addEventListener('click',()=>setMode(name));
@@ -163,7 +171,7 @@ form.addEventListener('submit',async event=>{
     const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Access-Code':$('access-code').value},body:JSON.stringify(spec),signal:controller.signal});
     const data=await response.json();if(!response.ok)throw new Error(`${data.error||'Generation failed.'}${data.code?` (${data.code})`:''}${data.requestId?` Reference: ${data.requestId}`:''}`);
     const paper=parseModelOutput(JSON.stringify(data.paper),spec);paper.layout??={preset:spec.presentation||'standard',schoolName:'',term:''};
-    state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('edit');message('Your draft is ready. Review each question, expected answer and source quote.');
+    carrySetupLogo(paper);state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('edit');message('Your draft is ready. Review each question, expected answer and source quote.');
   }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation timed out. Try fewer questions. Your previous paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}
   finally{clearTimeout(timer);active=null;busy(false);}
 });

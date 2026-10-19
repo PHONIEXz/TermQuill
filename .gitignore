@@ -17,3 +17,6 @@ school-verification.sql
 public/visuals.js
 public/early-years.js
 public/location.js
+
+public/bank.js
+public/question-bank.html

@@ -1,3 +1,4 @@
+import {saveBankQuestion,readBank} from '../lib/bank.js';
 import {installVisuals} from './visual-helpers.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +11,7 @@ const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8'
 const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
 async function setup(generate,route="/create",seed) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
-  Object.assign(w,{structuredClone,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
+  Object.assign(w,{structuredClone,saveBankQuestion,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
   installVisuals(w);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
@@ -162,5 +163,18 @@ test('printing refuses an embedded picture that failed to decode',async()=>{
  const {dom,w,$}=await setup(null,`/create?draft=${draft.id}`,[draft]);try{
   let prints=0;w.print=()=>prints++;$('tab-student').click();$('approved').checked=true;$('approved').dispatchEvent(new w.Event('change'));$('print').click();await new Promise(r=>setTimeout(r,10));
   assert.equal(prints,0);assert.match($('error').textContent,/picture.*not ready/i);
+ }finally{dom.window.close();}
+});
+
+test('document editing updates section, individual marks, totals and preserves them in device drafts',async()=>{
+ const {dom,w,$}=await setup();try{
+ $('early-sample').click();const first=$('preview').querySelector('.editor'),marks=[...first.querySelectorAll('label')].find(l=>l.textContent==='Total marks for this question'),input=w.document.getElementById(marks.htmlFor);input.value='5';input.dispatchEvent(new w.Event('input',{bubbles:true}));
+ const section=[...first.querySelectorAll('label')].find(l=>l.textContent==='Start a new exam section here'),check=w.document.getElementById(section.htmlFor);check.checked=true;check.dispatchEvent(new w.Event('change',{bubbles:true}));
+ $('tab-student').click();assert.match($('preview').textContent,/10 marks/);assert.match($('preview').querySelector('.exam-section').textContent,/Section A/);$('save').click();const saved=readDrafts(w.localStorage)[0];assert.equal(saved.paper.markingMode,'individual');assert.equal(saved.paper.questions[0].marks,5);assert.equal(saved.paper.questions[0].section.title,'Section A');
+ }finally{dom.window.close();}
+});
+
+test('question bank dialog saves reviewed content without changing paper review status',async()=>{
+ const {dom,w,$}=await setup();try{w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'));};$('early-sample').click();const button=[...w.document.querySelectorAll('.question-bank-actions button')][0];button.click();const dialog=w.document.querySelector('.bank-dialog'),topic=[...dialog.querySelectorAll('label')].find(l=>l.textContent==='Topic');w.document.getElementById(topic.htmlFor).value='Counting';dialog.querySelector('input[type=checkbox]').checked=true;dialog.querySelector('form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(readBank(w.localStorage).length,1);assert.equal(readBank(w.localStorage)[0].topic,'Counting');assert.equal(w.document.querySelector('.bank-dialog'),null);assert.match($('live-status').textContent,/saved to your device bank/);
  }finally{dom.window.close();}
 });

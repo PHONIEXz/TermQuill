@@ -51,3 +51,7 @@ User feedback: type across the website felt too slim. Use self-hosted Inter for 
 ## Visual editor clarity
 
 Edit mode gives the paper the full workspace width and collapses the generation settings into a labelled disclosure. Questions are native disclosures with a prompt summary; the first opens initially and modern browsers keep one open per group. Blue identifies paper-wide settings, lavender identifies visual tools, and mint identifies teacher evidence. Headings and labels carry the same distinctions without relying on colour. Shared visual fields keep each label and control together, including matching pairs and table cells. White student/teacher papers and print styles stay separate from screen-only editor colour.
+
+## Exam documents and reuse
+
+Marks and section starts are labelled blue document controls inside each question. Section headings print on both copies; evidence stays teacher-only. The personal Question bank is a separate task page with a search area and a paper-assembly panel. Browser-only storage, backup content and fresh review requirements are explicit. School approval is never implied by a personal-bank entry.

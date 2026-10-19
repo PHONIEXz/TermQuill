@@ -11,7 +11,7 @@
     "start": "node --env-file-if-exists=.env server.js",
     "dev": "node --env-file-if-exists=.env --watch server.js",
     "test": "node --test",
-    "check": "node --check server.js && node --check api/generate.js && node --check public/app.js && node --check public/navigation.js && node --check public/experience.js && node --check public/school.js && node --check api/account.js && node --check api/school.js && node --check lib/school-auth.js && node --check api/places.js && node --check lib/location.js && node --check public/places.js && node --check lib/visuals.js && node --check lib/early-years.js && node --check public/paper-blocks.js && node --check public/visual-editor.js",
+    "check": "node --check server.js && node --check api/generate.js && node --check public/app.js && node --check public/navigation.js && node --check public/experience.js && node --check public/school.js && node --check api/account.js && node --check api/school.js && node --check lib/school-auth.js && node --check api/places.js && node --check lib/location.js && node --check public/places.js && node --check lib/visuals.js && node --check lib/early-years.js && node --check public/paper-blocks.js && node --check public/visual-editor.js && node --check lib/bank.js && node --check public/bank-page.js",
     "models": "node --env-file-if-exists=.env scripts/models.js",
     "build": "node scripts/build.js"
   },

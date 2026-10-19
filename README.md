@@ -162,3 +162,11 @@ Choose **Open Early Years example** in Create assessment for a hand-authored, ed
 - Generated Early Years/Primary/custom-format requests can use the supported visual schema. Notes remain the factual source, structural validation still runs, and unsupported blocks are rejected. Teacher uploads happen after generation. The model does not produce arbitrary SVG/HTML or generated raster artwork.
 
 Tracing uses simple outline practice text, not a handwriting curriculum. Tables/captions/image descriptions are teacher-visible content on the student copy: do not put answers in them. Preview every paper, check black-and-white legibility and browser print pagination, and adapt tasks for your learners. Cloud school roles and immutable approved versions keep their existing rules.
+
+### Exam documents and personal question bank
+
+Edit & review supports school logo uploads, per-question marks (1–100), and section headings/instructions. Marking points must still add up to the question marks. Generation stays uniform according to its Marks each setting; edited papers can explicitly use individual marks. Printed page totals come from actual question marks. Numbered print margins require a supporting browser (Chrome 131+); inspect preview and turn off the browser's own headers/footers if duplicated.
+
+Save question to bank stores a checked question, exact source notes, visual blocks and answer on this browser. `/question-bank` supports subject/class/topic/term search, up to 50 entries, private JSON backup import/export and assembly of 3–20 questions from one subject/class. Assembly creates an unreviewed device draft. Browser storage is not cloud sync or school approval. Existing school copies and approvals remain separate.
+
+Remaining institutional work and verification limits are tracked in `docs/ROADMAP.md`.

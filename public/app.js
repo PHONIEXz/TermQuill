@@ -1,7 +1,8 @@
-import {assertSchoolSize,visualAnswer,hasAnswerSpace} from '/visuals.js';
+import {saveBankQuestion} from '/bank.js';
+import {assertSchoolSize,visualAnswer,hasAnswerSpace,paperTotal} from '/visuals.js';
 import {earlyYearsSample} from '/early-years.js';
-import {renderBlocks,applyPaperLayout,assertPicturesReady} from '/paper-blocks.js';
-import {blockEditor,layoutEditor} from '/visual-editor.js';
+import {renderBlocks,applyPaperLayout,assertPicturesReady,renderSection,renderLogo} from '/paper-blocks.js';
+import {blockEditor,layoutEditor,questionDocumentEditor} from '/visual-editor.js';
 import {validateRequest,auditAssessment,parseModelOutput} from '/assessment.js';
 import {sampleSpec,samplePaper} from '/sample.js';
 import {readDrafts,saveDraft,deleteDraft,validateDraft} from '/drafts.js';
@@ -9,9 +10,9 @@ const $ = id => document.getElementById(id);
 const form = $('assessment-form');
 let state = null, mode = 'student', active = null, config = {configured:false,accessRequired:false};
 const route=location.pathname.replace(/\/$/,'')||'/';
-const page=['/create','/drafts','/guide'].includes(route)?route.slice(1):'home';
+const page=['/create','/drafts','/guide','/question-bank'].includes(route)?route.slice(1):'home';
 document.body.dataset.page=page;
-document.title=({home:'LessonPress | From lesson to assessment',create:'Create assessment | LessonPress',drafts:'My drafts | LessonPress',guide:'How it works | LessonPress'})[page];
+document.title=({home:'LessonPress | From lesson to assessment',create:'Create assessment | LessonPress',drafts:'My drafts | LessonPress',guide:'How it works | LessonPress','question-bank':'Question bank | LessonPress'})[page];
 for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===page)link.setAttribute('aria-current','page');
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
@@ -53,9 +54,9 @@ function updateReview() {
 function resetApproval(){if(state){state.approved=false;dirty=true;}updateReview();}
 function head(container) {
   if(state.sample)container.append(el('div','SAMPLE ASSESSMENT · Hand-authored example. Not generated from your current form.','sample-notice'));
-  const header=el('div',undefined,'paper-head');
+  const header=el('div',undefined,'paper-head');renderLogo(header,state.paper.layout);
   for(const value of [state.paper.layout?.schoolName,state.paper.layout?.term])if(value)header.append(el('p',value));
-  header.append(el('div',mode==='teacher'?'TEACHER COPY / MARKING GUIDE':'STUDENT COPY / ASSESSMENT','kicker'),el('h2',state.spec.title),el('p',`${state.spec.subject} · ${state.spec.level} · ${state.spec.minutes} minutes · ${state.spec.count*state.spec.marksEach} marks`));
+  header.append(el('div',mode==='teacher'?'TEACHER COPY / MARKING GUIDE':'STUDENT COPY / ASSESSMENT','kicker'),el('h2',state.spec.title),el('p',`${state.spec.subject} · ${state.spec.level} · ${state.spec.minutes} minutes · ${paperTotal(state.paper)} marks`));
   if(mode==='student'){const names=el('div',undefined,'name-line');names.append(el('span','Name: __________________________'),el('span','Date: ______________'));header.append(names);}
   container.append(header,el('p',state.paper.instructions,'instructions'));
 }
@@ -65,7 +66,7 @@ function preview() {
   head(target);
   state.paper.questions.forEach((q,i)=>{
     const section=el('section',undefined,`question${q.pageBreakBefore?' question-page-break':''}`),title=el('div',undefined,'question-title');
-    title.append(el('span',String(i+1).padStart(2,'0'),'number'),el('p',q.prompt),el('span',`[${q.marks} ${q.marks===1?'mark':'marks'}]`,'marks'));section.append(title);renderBlocks(section,q,{teacher:mode==='teacher'});
+    title.append(el('span',String(i+1).padStart(2,'0'),'number'),el('p',q.prompt),el('span',`[${q.marks} ${q.marks===1?'mark':'marks'}]`,'marks'));renderSection(section,q);section.append(title);renderBlocks(section,q,{teacher:mode==='teacher'});
     if(q.kind==='mcq'){const options=el('ul',undefined,'options');q.options.forEach((o,j)=>options.append(el('li',`${'ABCD'[j]}. ${o}`)));section.append(options);}
     if(mode==='teacher'){
       const answer=el('div',undefined,'teacher-answer');answer.append(el('strong',q.kind==='mcq'?`${'ABCD'[q.correctIndex]}. ${q.answer}`:q.answer));
@@ -89,7 +90,7 @@ function syncDerivedAnswer(box,q){
 function renderMarkingFields(fields,q){const group=el('div',undefined,'marking-fields'),automatic=visualAnswer(q.blocks)!==null;
   q.marking.forEach((p,j)=>{
       const point=editable(group,`Marking point ${j+1}`,p.point,v=>p.point=v,{max:600});point.readOnly=automatic;
-      const l=el('label',`Marks for point ${j+1}`),n=el('input');n.type='number';n.readOnly=automatic;n.min=1;n.max=10;n.value=p.marks;n.id=`marks-${crypto.randomUUID()}`;l.htmlFor=n.id;
+      const l=el('label',`Marks for point ${j+1}`),n=el('input');n.type='number';n.readOnly=automatic;n.min=1;n.max=100;n.value=p.marks;n.id=`marks-${crypto.randomUUID()}`;l.htmlFor=n.id;
       n.addEventListener('input',()=>{p.marks=Number(n.value);resetApproval();});group.append(l,n);
     });
   fields.append(group);
@@ -101,15 +102,15 @@ function questionControls(box,q,i){
  actionButton(tools,`Move question ${i+1} up`,()=>{[state.paper.questions[i-1],state.paper.questions[i]]=[q,state.paper.questions[i-1]];changedQuestions(i-1);},i===0);
  actionButton(tools,`Move question ${i+1} down`,()=>{[state.paper.questions[i+1],state.paper.questions[i]]=[q,state.paper.questions[i+1]];changedQuestions(i+1);},i===count-1);
  actionButton(tools,`Duplicate question ${i+1}`,()=>{state.paper.questions.splice(i+1,0,structuredClone(q));changedQuestions(i+1);message('Question duplicated. Change its wording and content before approving.');},count>=20);
- actionButton(tools,`Remove question ${i+1}`,()=>{if(confirm(`Remove question ${i+1} from this open paper? The saved copy stays unchanged until you save.`)){state.paper.questions.splice(i,1);changedQuestions(Math.min(i,count-2));}},count<=3);box.append(tools);
+ actionButton(tools,`Remove question ${i+1}`,()=>{if(confirm(`Remove question ${i+1} from this open paper? The saved copy stays unchanged until you save.`)){state.paper.questions.splice(i,1);changedQuestions(Math.min(i,count-2));}},count<=3);box.append(tools);const bankTools=el('div',undefined,'question-bank-actions');actionButton(bankTools,'Save question to bank',()=>openBankDialog(i));box.append(bankTools);
 }
 function renderEditor(target) {
   const intro=el('div',undefined,'editor-intro');intro.append(el('strong','Make it yours, one question at a time.'),el('p','Set your paper heading, open a question to edit, then use Student paper to check the result. Every edit resets your review.'));target.append(intro);
-  layoutEditor(target,state.paper,()=>{resetApproval();});
+  layoutEditor(target,state.paper,()=>{resetApproval();},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on)resetApproval();busy(Boolean(active));}});
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{
     const box=el('details',undefined,'editor question-editor');box.name='assessment-question';box.open=i===0;box.dataset.questionIndex=i;const heading=el('summary',undefined,'question-summary');heading.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`),el('span',q.prompt,'question-peek'));box.append(heading);heading.addEventListener('click',()=>requestAnimationFrame(()=>{if(box.open)box.scrollIntoView({block:'start'});}));
-    questionControls(box,q,i);
+    questionControls(box,q,i);questionDocumentEditor(box,q,state.paper,()=>{resetApproval();syncDerivedAnswer(box,q);heading.querySelector('h3').textContent=`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`;});
     const grid=el('div',undefined,'editor-grid'),fields=el('div',undefined,'editor-fields'),evidence=el('aside',undefined,'editor-evidence');
     evidence.setAttribute('aria-label',`Supporting evidence for question ${i+1}`);evidence.append(el('strong','Teacher check'),el('p','This source evidence stays off the student copy.','visual-hint'));
     editable(fields,'Question',q.prompt,v=>{q.prompt=v;heading.querySelector('.question-peek').textContent=v;});
@@ -192,7 +193,7 @@ function renderLibrary(){
   const matching=drafts.filter(d=>`${d.spec.title} ${d.spec.subject} ${d.spec.level}`.toLowerCase().includes(query));
   if(!matching.length){const empty=el('div',undefined,'library-empty');empty.append(el('h3',query?'No matching papers.':'Your next paper belongs here.'),el('p',query?'Try another title, subject or class.':'Create an assessment and choose Save on this device. You can also import an exported JSON draft.'));if(!query){const link=el('a','Create an assessment →');link.href='/create';empty.append(link);}container.append(empty);return;}
   for(const draft of matching){
-    const card=el('article',undefined,'draft-card');card.append(el('span',draft.sample?'SAMPLE / EDITABLE DRAFT':'SAVED ASSESSMENT','sample-label'),el('h3',draft.spec.title),el('p',`${draft.spec.subject} · ${draft.spec.level}`),el('p',`${draft.spec.count} questions · ${draft.spec.count*draft.spec.marksEach} marks · ${draft.spec.minutes} minutes`),el('p',`Saved ${new Date(draft.savedAt).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}`));
+    const card=el('article',undefined,'draft-card');card.append(el('span',draft.sample?'SAMPLE / EDITABLE DRAFT':'SAVED ASSESSMENT','sample-label'),el('h3',draft.spec.title),el('p',`${draft.spec.subject} · ${draft.spec.level}`),el('p',`${draft.spec.count} questions · ${paperTotal(draft.paper)} marks · ${draft.spec.minutes} minutes`),el('p',`Saved ${new Date(draft.savedAt).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}`));
     const actions=el('div',undefined,'card-actions'),open=el('a','Open paper →','outline');open.href=`/create?draft=${encodeURIComponent(draft.id)}`;
     const download=el('button','Export JSON','quiet');download.addEventListener('click',()=>downloadDraft(draft));
     const remove=el('button','Remove','quiet');remove.addEventListener('click',()=>{if(!confirm(`Remove “${draft.spec.title}” from this device? Export a backup first if you want to keep it.`))return;try{deleteDraft(localStorage,draft.id);libraryMessage('Draft removed from this device.');renderLibrary();}catch{libraryMessage('Could not remove this draft.',true);}});
@@ -215,3 +216,10 @@ document.addEventListener('click',event=>{const a=event.target.closest?.('a[href
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 
 $('send-school').addEventListener('click',()=>{try{if(!state||active||pendingImages)return;const draft=validateDraft({...state,savedAt:new Date().toISOString()});assertSchoolSize({spec:draft.spec,paper:draft.paper,sample:draft.sample,model:draft.model});sessionStorage.setItem('lessonpress.school-transfer',JSON.stringify(draft));dirty=false;location.href='/school/library';}catch(e){error(e.message);}});
+
+function openBankDialog(index){
+ const dialog=el('dialog',undefined,'bank-dialog'),f=el('form');f.method='dialog';f.append(el('h2','Save a reusable question'),el('p','Stored on this browser with its answer, visuals and source notes. This is your personal bank, separate from school approval.'));
+ function bankField(label,value,max){const l=el('label',label),input=el('input');input.id=`bank-${crypto.randomUUID()}`;l.htmlFor=input.id;input.value=value;input.maxLength=max;f.append(l,input);return input;}const topic=bankField('Topic','',80),term=bankField('Term (optional)',state.paper.layout?.term||'',60);topic.required=true;
+ const label=el('label',undefined,'check-label'),check=el('input');check.type='checkbox';check.required=true;label.append(check,document.createTextNode(' I checked the question, answer and source evidence.'));f.append(label);
+ const note=el('p');note.setAttribute('role','status');const actions=el('div',undefined,'block-controls'),save=el('button','Save to question bank','primary');save.type='submit';actions.append(save);actionButton(actions,'Cancel',()=>dialog.close());f.append(note,actions);dialog.append(f);document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove());f.addEventListener('submit',event=>{event.preventDefault();try{saveBankQuestion(localStorage,state,index,{topic:topic.value,term:term.value});dialog.close();message('Question saved to your device bank. Open Question bank to assemble another paper.');}catch(e){note.textContent=e.message;}});dialog.showModal();topic.focus();
+}

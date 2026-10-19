@@ -181,3 +181,19 @@ test('question bank dialog saves reviewed content without changing paper review 
 
 test('Exam and Test presets change fresh generation settings without imposing a live-test flow',async()=>{const {dom,w,$}=await setup();try{$('assessmentMode').value='exam';$('assessmentMode').dispatchEvent(new w.Event('change'));assert.equal($('minutes').value,'60');assert.equal($('count').value,'12');$('assessmentMode').value='test';$('assessmentMode').dispatchEvent(new w.Event('change'));assert.equal($('minutes').value,'20');assert.equal($('count').value,'6');}finally{dom.window.close();}});
 test('reference generation submits saved source evidence without requiring pasted notes',async()=>{let request;const {dom,w,$}=await setup(async(url,options)=>{request=JSON.parse(options.body);return {ok:true,json:async()=>({paper:samplePaper,model:'test'})};},'/create',[{id:'reference-fixture',spec:sampleSpec,paper:samplePaper}]);try{$('source-mode').value='references';$('source-mode').dispatchEvent(new w.Event('change'));assert.equal($('notes').required,false);assert.equal($('notes').disabled,true);assert.equal($('notes').value,'');const reference=$('reference-list').querySelector('input');assert.ok(reference);reference.checked=true;reference.dispatchEvent(new w.Event('change'));$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(request.sourceMode,'references');assert.equal(request.notes,sampleSpec.notes);assert.equal(request.referenceQuestions.length,1);assert.match($('live-status').textContent,/draft is ready/);assert.equal($('approved').checked,false);$('source-mode').value='notes';$('source-mode').dispatchEvent(new w.Event('change'));assert.equal($('notes').required,true);assert.equal($('notes').disabled,false);}finally{dom.window.close();}});
+
+test('visible logo upload before generation stays local and survives both copies, saving, restore and removal',async()=>{
+ let sent;const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({paper:samplePaper,model:'mock'})};});
+ const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=';
+ try{
+  const button=[...$('paper-logo').querySelectorAll('button')].find(b=>b.textContent==='Upload school logo');assert.ok(button);assert.equal(button.type,'button');
+  const upload=$('paper-logo').querySelector('input[type=file]');let opened=false;upload.click=()=>{opened=true;};button.click();assert.ok(opened);
+  w.createImageBitmap=async()=>({width:1,height:1,close(){}});w.HTMLCanvasElement.prototype.getContext=()=>({fillRect(){},drawImage(){}});w.HTMLCanvasElement.prototype.toDataURL=()=>png;
+  const data=Buffer.from(png.split(',')[1],'base64');Object.defineProperty(upload,'files',{value:[{type:'image/png',size:data.length,arrayBuffer:async()=>data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength)}],configurable:true});
+  upload.dispatchEvent(new w.Event('change'));await new Promise(r=>setTimeout(r,10));assert.match($('paper-logo').textContent,/Logo added/);
+  $('sample-notes').click();$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(JSON.stringify(sent).includes('data:image'),false);
+  for(const copy of ['student','teacher']){$(`tab-${copy}`).click();assert.equal($('preview').querySelector('.school-logo')?.src,png);}
+  $('save').click();$('restore').click();$('tab-student').click();assert.equal($('preview').querySelector('.school-logo')?.src,png);
+  $('approved').checked=true;$('approved').dispatchEvent(new w.Event('change'));[...$('paper-logo').querySelectorAll('button')].find(b=>b.textContent==='Remove logo').click();assert.equal($('approved').checked,false);assert.equal($('preview').querySelector('.school-logo'),null);
+ }finally{dom.window.close();}
+});

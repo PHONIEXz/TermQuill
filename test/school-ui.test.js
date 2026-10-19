@@ -87,18 +87,18 @@ test('school location stays private by default, requires confirmation and saves 
 
 
 test('school illustrated copies and editing preserve blocks and separate answer keys',async()=>{
- const early=earlyYearsSample();const content={spec:early.spec,paper:early.paper,sample:true};let saved;
+ const early=earlyYearsSample();early.paper.layout.logo='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=';const content={spec:early.spec,paper:early.paper,sample:true};let saved;
  const {dom,w,$}=await setup('/school/paper?school=s1&paper=p1',signedHandler(body=>{
   if(body.action==='save_paper'){saved=body.payload.content;return {id:'p1',revision:2};}
   return {id:'p1',author_id:'u1',department_id:'d1',status:'draft',revision:1,current_revision:1,approved_revision:null,content,versions:[{revision:1,created_at:new Date().toISOString()}],reviews:[]};
  }));
  try{
-  const paper=w.document.querySelector('.school-print');assert.equal(paper.querySelectorAll('.count-objects')[0].querySelectorAll('svg').length,3);assert.ok(!paper.textContent.includes('1–B: Circle'));
-  const find=t=>[...w.document.querySelectorAll('button')].find(b=>b.textContent===t);find('Marking guide').click();await new Promise(r=>setTimeout(r,10));assert.match(paper.textContent,/1–B: Circle/);
-  find('Edit a new version').click();await new Promise(r=>setTimeout(r,10));
-  const label=[...w.document.querySelectorAll('label')].find(l=>l.textContent==='Number of objects'),input=w.document.getElementById(label.htmlFor);input.value='4';input.dispatchEvent(new w.Event('input'));
+  w.HTMLElement.prototype.scrollIntoView=()=>{};const paper=w.document.querySelector('.school-print');assert.equal(paper.firstElementChild.className,'paper-image school-logo');assert.equal(paper.querySelectorAll('.count-objects')[0].querySelectorAll('svg').length,3);assert.ok(!paper.textContent.includes('1–B: Circle'));
+  const find=t=>[...w.document.querySelectorAll('button')].find(b=>b.textContent===t);find('Marking guide').click();await new Promise(r=>setTimeout(r,10));assert.match(paper.textContent,/1–B: Circle/);assert.equal(paper.querySelector('.school-logo').src,early.paper.layout.logo);
+  find('Change school logo').click();await new Promise(r=>setTimeout(r,10));
+  assert.equal(w.document.activeElement.className,'outline logo-upload');const label=[...w.document.querySelectorAll('label')].find(l=>l.textContent==='Number of objects'),input=w.document.getElementById(label.htmlFor);input.value='4';input.dispatchEvent(new w.Event('input'));
   const form=[...w.document.querySelectorAll('form')].find(f=>f.textContent.includes('Edit a new paper version'));form.dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,15));
-  assert.equal(saved.paper.questions[0].answer,'4');assert.equal(saved.paper.questions[0].blocks[0].quantity,4);assert.equal(saved.paper.questions[1].blocks[0].type,'matching');assert.equal(saved.paper.layout.preset,'early');
+  assert.equal(saved.paper.questions[0].answer,'4');assert.equal(saved.paper.questions[0].blocks[0].quantity,4);assert.equal(saved.paper.questions[1].blocks[0].type,'matching');assert.equal(saved.paper.layout.preset,'early');assert.equal(saved.paper.layout.logo,early.paper.layout.logo);
  }finally{dom.window.close();}
 });
 

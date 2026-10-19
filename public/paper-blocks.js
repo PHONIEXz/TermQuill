@@ -61,4 +61,4 @@ export async function assertPicturesReady(target){
 }
 
 export function renderSection(target,q){if(!q.section)return;const d=target.ownerDocument,head=el(d,'header',undefined,'exam-section');head.append(el(d,'h3',q.section.title));if(q.section.instructions)head.append(el(d,'p',q.section.instructions));target.append(head);}
-export function renderLogo(target,layout){if(layout?.logo){const img=target.ownerDocument.createElement('img');img.src=layout.logo;img.alt='School logo';img.className='paper-image school-logo';target.append(img);}}
+export function renderLogo(target,layout){if(layout?.logo){const img=target.ownerDocument.createElement('img');img.src=layout.logo;img.alt='School logo';img.className='paper-image school-logo';target.prepend(img);}}

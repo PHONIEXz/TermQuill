@@ -1,0 +1,11 @@
+# Original LessonPress landing artwork
+
+Generated using the built-in image-generation tool on 2026-10-19. The Dribbble animation was inspected only as a visual/motion reference; its frames and assets are not distributed in LessonPress. Original PNGs were converted to WebP with alpha preserved for the floating garden.
+
+## learning-landscape.webp — generation prompt
+
+Use case: stylized-concept. Asset type: original cinematic website hero artwork for LessonPress, an educational assessment preparation app. Create a premium photorealistic 3D still, landscape 16:9. A vast sculptural open ivory book fills the foreground and sweeps upward on the right as elegant curved paper terraces. Vivid fine green moss and tiny meadow plants grow along the page edges, interspersed with a few refined miniature school objects: a forest-green pencil, a muted sage ruler, geometric counting blocks, a small cream schoolhouse in the mid-right distance. Beautiful tactile paper grain, natural botanical detail, soft overcast studio daylight, atmospheric grey-sage background. Camera close, low three-quarter view, flowing diagonal composition. Leave darker relatively quiet areas upper left and along bottom for white website text. Sophisticated, airy editorial art direction, no cartoon faces, no people, no typography, no logos, no watermarks. This is artwork only, not a website screenshot. Original composition, do not reproduce any existing brand artwork.
+
+## learning-garden.webp — generation prompt
+
+Use case: stylized-concept. Asset type: isolated transparent-background 3D illustration for an educational website. A floating open cream paper book seen from a three-quarter elevated angle, pages gently curling. Across the pages a miniature learning garden: lush fine green moss, one small cream schoolhouse with green roof, a forest-green pencil laid diagonally, a sage ruler, three small counting cubes, one delicate young tree. Green fabric hardcover, detailed layered ivory paper edges, elegant realistic materials, soft daylight from upper left, subtle contact shadows on the book itself. Center the whole object with generous clear margins, fully visible, no background, genuine alpha transparency. Premium editorial 3D product render. No text, no logos, no watermark, no people, no cartoon faces. Original educational sculpture.

@@ -103,3 +103,27 @@ test('custom assessment inputs toggle, reach generation and survive save/reopen'
   $('format').value='mcq';$('format').dispatchEvent(new w.Event('change'));assert.equal($('custom-format-wrap').hidden,true);assert.equal($('formatInstructions').disabled,true);assert.equal($('formatInstructions').required,false);
  }finally{dom.window.close();}
 });
+
+test('saving preserves current review and print state; reopening and edits require fresh review',async()=>{
+ const {dom,w,$}=await setup();try{
+  $('try-sample').click();$('approved').checked=true;$('approved').dispatchEvent(new w.Event('change'));
+  for(const view of ['student','teacher']){
+   $(`tab-${view}`).click();$('save').click();
+   assert.equal($('approved').checked,true);assert.equal($('print').disabled,false);
+   assert.equal($('draft-badge').textContent,'REVIEWED');assert.match($('preview').querySelector('.print-note').textContent,/Teacher review confirmed/);
+   assert.equal(readDrafts(w.localStorage)[0].approved,false);
+  }
+  const saved=readDrafts(w.localStorage);const reopened=await setup(null,`/create?draft=${saved[0].id}`,saved);
+  try{reopened.$('tab-student').click();assert.equal(reopened.$('approved').checked,false);assert.equal(reopened.$('print').disabled,true);assert.match(reopened.$('preview').textContent,/Awaiting teacher review/);}finally{reopened.dom.window.close();}
+  $('tab-edit').click();const input=w.document.querySelector('.editor textarea');input.value='What is an element?';input.dispatchEvent(new w.Event('input'));$('save').click();$('tab-student').click();
+  assert.equal($('approved').checked,false);assert.equal($('print').disabled,true);assert.match($('preview').querySelector('.print-note').textContent,/Awaiting teacher review/);
+ }finally{dom.window.close();}
+});
+test('failed storage save preserves the reviewed paper and reports failure',async()=>{
+ const {dom,w,$}=await setup();try{
+  $('try-sample').click();$('approved').checked=true;$('approved').dispatchEvent(new w.Event('change'));
+  w.Storage.prototype.setItem=()=>{throw new Error('Storage full');};$('save').click();
+  assert.equal($('approved').checked,true);assert.equal($('print').disabled,false);assert.match($('error').textContent,/Could not save/);
+  assert.match($('preview').querySelector('.print-note').textContent,/Teacher review confirmed/);
+ }finally{dom.window.close();}
+});

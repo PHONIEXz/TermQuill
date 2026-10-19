@@ -110,7 +110,7 @@
  .visual-field>input,.visual-field>select,.visual-field>textarea{width:100%;min-width:0;margin:0}
  .visual-check{flex-direction:row;align-items:center;gap:12px;padding:12px 0}
  .visual-check>input{width:20px;min-height:20px;flex:0 0 20px;order:-1}
- .question-editor{border:1px solid #cbd5d1;border-radius:12px;background:#fff;padding:0;margin:16px 0;overflow:clip}
+ .question-editor{scroll-margin-top:20px;border:1px solid #cbd5d1;border-radius:12px;background:#fff;padding:0;margin:16px 0;overflow:clip}
  .question-editor[open]{border-color:#517c6a;box-shadow:0 4px 18px #20352e0a}
  .question-editor>.question-summary{padding:20px 24px;cursor:pointer;list-style:none;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) 28px;gap:6px 16px;min-height:80px}
  .question-editor>.question-summary::-webkit-details-marker{display:none}

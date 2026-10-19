@@ -108,7 +108,7 @@ function renderEditor(target) {
   layoutEditor(target,state.paper,()=>{resetApproval();});
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{
-    const box=el('details',undefined,'editor question-editor');box.name='assessment-question';box.open=i===0;box.dataset.questionIndex=i;const heading=el('summary',undefined,'question-summary');heading.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`),el('span',q.prompt,'question-peek'));box.append(heading);
+    const box=el('details',undefined,'editor question-editor');box.name='assessment-question';box.open=i===0;box.dataset.questionIndex=i;const heading=el('summary',undefined,'question-summary');heading.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`),el('span',q.prompt,'question-peek'));box.append(heading);heading.addEventListener('click',()=>requestAnimationFrame(()=>{if(box.open)box.scrollIntoView({block:'start'});}));
     questionControls(box,q,i);
     const grid=el('div',undefined,'editor-grid'),fields=el('div',undefined,'editor-fields'),evidence=el('aside',undefined,'editor-evidence');
     evidence.setAttribute('aria-label',`Supporting evidence for question ${i+1}`);evidence.append(el('strong','Teacher check'),el('p','This source evidence stays off the student copy.','visual-hint'));

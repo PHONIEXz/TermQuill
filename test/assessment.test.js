@@ -53,3 +53,30 @@ test('manual format permits different supported ordering but still rejects inval
 test('custom prompts give valid JSON examples with exact supported kind strings',()=>{
  const prompt=buildPrompt({...sampleSpec,format:'custom',formatInstructions:'Three written comparisons.'});assert.match(prompt,/ONLY valid kind strings/);assert.ok(prompt.includes('"kind":"short"'));assert.ok(prompt.includes('"kind":"mcq"'));assert.ok(!prompt.includes('"kind":"mcq or short"'));
 });
+
+test('source selection gives focused complete sentences and preserves continuous ranges',()=>{
+ const passages=sourcePassages(sampleSpec.notes);
+ assert.equal(passages[0].text,'An element is a pure substance made of only one type of atom.');
+ assert.equal(passages[1].text,'Iron and oxygen are examples of elements.');
+ const mixture=passages.find(p=>p.text==='The substances in a mixture retain their individual properties.');
+ assert.ok(mixture);
+ const raw=copy();raw.questions[0].sourceStart=mixture.id;raw.questions[0].sourceEnd=mixture.id;
+ assert.equal(parseModelOutput(JSON.stringify(raw),sampleSpec).questions[0].evidence,mixture.text);
+ const notes='  Iron is an element.\n\n  Water is a compound.\tSalt is a compound.  ',spec={...sampleSpec,notes:notes+sampleSpec.notes};
+ const parts=sourcePassages(spec.notes);raw.questions[0].sourceStart=1;raw.questions[0].sourceEnd=2;
+ assert.equal(parseModelOutput(JSON.stringify(raw),spec).questions[0].evidence,'Iron is an element.\n\n  Water is a compound.');
+ assert.equal(parts[2].text,'Salt is a compound.');
+});
+test('source passage fallback covers long sentences, line notes and decimals without changing text',()=>{
+ const notes='Mass is 2.55 grams.\nElement: iron\nCompound: water\n'+('unpunctuated words\t'.repeat(80))+'x'.repeat(700);
+ const passages=sourcePassages(notes);
+ assert.equal(passages[0].text,'Mass is 2.55 grams.');
+ assert.ok(passages.some(p=>p.text==='Element: iron'));
+ assert.ok(passages.some(p=>p.text==='Compound: water'));
+ let previous=0;
+ for(const p of passages){
+  assert.equal(p.text,notes.slice(p.start,p.end));assert.ok(p.text.length>0 && p.text.length<=500);
+  assert.equal(notes.slice(previous,p.start).trim(),'');previous=p.end;
+ }
+ assert.equal(notes.slice(previous).trim(),'');
+});

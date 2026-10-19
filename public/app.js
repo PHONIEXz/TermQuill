@@ -137,7 +137,7 @@ form.addEventListener('submit',async event=>{
 $('cancel').addEventListener('click',()=>active?.abort());
 $('approved').addEventListener('change',()=>{if(!state)return;state.approved=$('approved').checked;updateReview();if(mode!=='edit')preview();});
 $('print').addEventListener('click',()=>{if(!state?.approved||auditAssessment(state.paper,state.spec).length||mode==='edit')return;preview();window.print();});
-$('save').addEventListener('click',()=>{if(!state)return;try{state=saveDraft(localStorage,state);dirty=false;updateReview();message('Draft saved to My drafts on this device. You can reopen it from the navigation above.');}catch(e){error(`Could not save: ${e.message} Export a JSON backup if device storage is unavailable.`);}});
+$('save').addEventListener('click',()=>{if(!state)return;try{state={...saveDraft(localStorage,state),approved:state.approved};dirty=false;updateReview();if(mode!=='edit')preview();message('Draft saved to My drafts on this device. You can reopen it from the navigation above.');}catch(e){error(`Could not save: ${e.message} Export a JSON backup if device storage is unavailable.`);}});
 $('restore').addEventListener('click',()=>{
   if(state&&!confirm('Replace this paper with the most recently saved draft?'))return;
   try{const drafts=readDrafts(localStorage);if(!drafts.length)throw new Error();state=validateDraft(drafts[0]);dirty=false;fillForm(state.spec);setMode('edit');error();message('Draft restored. Review it again before printing.');}catch{error('The saved draft is unavailable or failed validation.');}

@@ -104,3 +104,11 @@ User feedback showed the first design pass still required zoom. Increased defaul
 ### Fuller typography across LessonPress, 17 October 2026
 
 Replaced light serif/italic display text and platform-dependent screen fonts with self-hosted Inter variable. Body/input weight 500, labels/controls 600, headings 650 and hero 700 preserve hierarchy without reducing reading sizes. Included the original SIL Open Font License, verified the downloaded WOFF2 bytes against their Git blob hash, and added a hashed long-cache font asset with preload hints. No font-service CSP exception is needed. All 80 tests, syntax checks and build pass. The HTTP test also checks font MIME and WOFF2 magic bytes. Live font loading and layout are checked after deployment.
+
+## October 19: focused evidence and consistent local review
+
+- Live production audit before the fix: a fresh three-question Chemistry MCQ paper succeeded with `gemma-4-26b-a4b-it`, one provider call and no fallback. Answers B/C/D and six marks matched the supplied lesson. Student view omitted answers/evidence; teacher view included them. Local save, restore and reopening worked. This is one successful example, not an accuracy benchmark.
+- Replaced arbitrary 500-character evidence blocks with sentence/line passages. Source IDs still resolve to one verbatim continuous slice; unusually long sentences retain a bounded word-boundary fallback. Existing saved evidence is left intact rather than silently changed.
+- Saving a paper now preserves the current tab's teacher approval and refreshes the preview consistently. Persisted/imported/reopened copies still require fresh review. Failed storage writes preserve the current paper.
+- `npm test`: 84 passing tests, including focused sentence selection, exact multi-sentence whitespace, long/line-based notes, save-after-approval in both print views, reopened review reset, edits and failed storage writes. `npm run check`, `npm run build` and `git diff --check` pass.
+- School sign-in was already valid. The school is not verified, so new invitations remain restricted; no verification request, staff invitation or approval was fabricated. Native print/PDF pagination remains unverified.

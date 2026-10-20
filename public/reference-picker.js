@@ -1,9 +1,9 @@
 import {gatherReferences,referenceRequest,MODE_PRESETS} from '/references.js';
-export function initReferencePicker(form){
+export function initReferencePicker(form,storage){
  const doc=form.ownerDocument,$=id=>doc.getElementById(id),selected=new Set();let items=[],working=false;
  function el(tag,text,cls){const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
  function refresh(){
-  const result=gatherReferences(localStorage);items=result.items;const courses=$('reference-course');courses.replaceChildren();const blank=el('option','Choose a saved subject and class');blank.value='';courses.append(blank);
+  const result=gatherReferences(storage);items=result.items;const courses=$('reference-course');courses.replaceChildren();const blank=el('option','Choose a saved subject and class');blank.value='';courses.append(blank);
   const seen=new Set();for(const item of items){const value=JSON.stringify([item.spec.subject,item.spec.level]);if(seen.has(value))continue;seen.add(value);const o=el('option',`${item.spec.subject} · ${item.spec.level}`);o.value=value;courses.append(o);}const current=JSON.stringify([$('subject').value.trim(),$('level').value.trim()]);courses.value=seen.has(current)?current:'';
   const list=$('reference-list');list.replaceChildren();const matches=items.filter(x=>x.spec.subject.trim().toLowerCase()===$('subject').value.trim().toLowerCase()&&x.spec.level.trim().toLowerCase()===$('level').value.trim().toLowerCase());
   for(const id of [...selected])if(!matches.some(x=>x.id===id))selected.delete(id);
@@ -16,5 +16,5 @@ export function initReferencePicker(form){
  $('reference-search').addEventListener('input',refresh);$('source-mode').addEventListener('change',()=>{selected.clear();sync();});$('reference-course').addEventListener('change',()=>{if(!coursesValue())return;const [subject,level]=JSON.parse(coursesValue());$('subject').value=subject;$('level').value=level;selected.clear();refresh();});function coursesValue(){return $('reference-course').value;}
  for(const id of ['subject','level'])$(id).addEventListener('change',()=>{if($('source-mode').value==='references')refresh();});
  $('assessmentMode').addEventListener('change',()=>{const preset=MODE_PRESETS[$('assessmentMode').value];$('minutes').value=preset.minutes;$('count').value=preset.count;$('mode-hint').textContent=`${$('assessmentMode').value==='exam'?'Exam':'Test'} defaults applied. Adjust question count and duration below. This prepares a paper, not a live online test.`;$('count').dispatchEvent(new Event('input',{bubbles:true}));});
- return {sync,reset(){selected.clear();$('source-mode').value='notes';sync();},request(values){if($('source-mode').value!=='references')return {...values,sourceMode:'notes'};const fresh=gatherReferences(localStorage).items;return referenceRequest(values,[...selected].map(id=>fresh.find(x=>x.id===id)).filter(Boolean));}};
+ return {sync,reset(){selected.clear();$('source-mode').value='notes';sync();},request(values){if($('source-mode').value!=='references')return {...values,sourceMode:'notes'};const fresh=gatherReferences(storage).items;return referenceRequest(values,[...selected].map(id=>fresh.find(x=>x.id===id)).filter(Boolean));}};
 }

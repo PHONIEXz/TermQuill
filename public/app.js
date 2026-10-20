@@ -1,3 +1,5 @@
+import {personalContext} from '/account-session.js';
+import {emptyStorage} from '/identity.js';
 import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY} from '/lessons.js';
 import {initReferencePicker} from '/reference-picker.js';
 import {saveBankQuestion} from '/bank.js';
@@ -13,13 +15,15 @@ const form = $('assessment-form');
 let state = null, mode = 'student', active = null, config = {configured:false,accessRequired:false};
 const route=location.pathname.replace(/\/$/,'')||'/';
 const page=['/create','/drafts','/guide','/question-bank'].includes(route)?route.slice(1):'home';
+const personal=['create','drafts','question-bank'].includes(page)?await personalContext():{local:emptyStorage,session:emptyStorage};
+const {local:localStorage,session:sessionStorage}=personal;
 document.body.dataset.page=page;
 document.title=({home:'LessonPress | From lesson to assessment',create:'Create assessment | LessonPress',drafts:'My drafts | LessonPress',guide:'How it works | LessonPress','question-bank':'Question bank | LessonPress'})[page];
 for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===page)link.setAttribute('aria-current','page');
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
 const pendingLayout={};
-let dirty=false,pendingImages=0;const referencePicker=initReferencePicker(form);
+let dirty=false,pendingImages=0;const referencePicker=initReferencePicker(form,localStorage);
 function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function message(text) {$('live-status').textContent=text;}
 function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
@@ -146,7 +150,7 @@ function setMode(next) {
 }
 function loadSample() {
   if(active)return;
-  if(page!=='create'){location.assign('/create?sample=1');return;}
+  if(page!=='create'){location.assign('/demo');return;}
   if(state&&!confirm('Replace the current paper with the sample? Save your draft first if you want to keep it.'))return;
   const paper=structuredClone(samplePaper);carrySetupLogo(paper);fillForm(sampleSpec);state={spec:structuredClone(sampleSpec),paper,sample:true,approved:false,model:'Hand-authored sample'};
   dirty=true;setMode('student');error();message('Sample loaded. This is a hand-authored example, not a live model response.');$('workspace').scrollIntoView({behavior:'smooth',block:'start'});

@@ -18,7 +18,7 @@ async function setup(generate,route="/create",seed,lessonSeed) {
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
   if(seed)w.localStorage.setItem(DRAFTS_KEY,JSON.stringify(seed));
   if(lessonSeed){writeLessons(w.localStorage,lessonSeed);w.sessionStorage.setItem(LESSON_TRANSFER_KEY,JSON.stringify({version:1,ids:lessonSeed.map(x=>x.id),assessmentMode:'test'}));}
-  w.eval(script);await new Promise(r=>setTimeout(r,0));
+  w.personalContext=async()=>({user:{id:'test-user'},local:w.localStorage,session:w.sessionStorage});w.emptyStorage={getItem:()=>null};await w.eval(`(async()=>{${script}})()`);await new Promise(r=>setTimeout(r,0));
   return {dom,w,$:id=>w.document.getElementById(id)};
 }
 test('sample: render, review, print views, edits invalidate approval, local save/restore',async()=>{

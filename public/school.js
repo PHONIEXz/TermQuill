@@ -1,3 +1,4 @@
+import {personalContext,accountRequest} from '/account-session.js';
 import {mountSchoolBank} from '/school-bank-view.js';
 import {mountSchoolReview} from '/school-review.js';
 import {renderBlocks,applyPaperLayout,assertPicturesReady,renderSection,renderLogo} from '/paper-blocks.js';
@@ -10,6 +11,7 @@ const $=id=>document.getElementById(id),params=new URLSearchParams(location.sear
 if(location.hash)history.replaceState(null,'',location.pathname+location.search);
 const view=location.pathname.split('/')[2]||'overview';
 document.title=({overview:'School overview',library:'School papers',reviews:'Review & feedback',team:'Departments & people',bank:'School question bank',paper:'Assessment details',trust:'School trust & activity',location:'School location'})[view]+' | LessonPress';
+let schoolLocal,schoolSession;
 let user=null,schools=[],school=null,data=null,openPaper=null,editing=false,dirty=false,working=false;
 let invite=params.get('invite')||sessionStorage.getItem('lessonpress.invite');
 if(params.has('invite')){sessionStorage.setItem('lessonpress.invite',invite);params.delete('invite');history.replaceState(null,'',location.pathname+(params.size?'?'+params:''));}
@@ -19,7 +21,7 @@ function status(text=''){$('school-status').textContent=text;}
 function error(text=''){$('school-error').textContent=text;$('school-error').hidden=!text;}
 async function request(url,body){const response=await fetch(url,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(25000)});const out=await response.json();if(!response.ok)throw new Error(out.error||'Could not complete this request.');return out;}
 const rpc=(action,payload={})=>{if(action==='save_paper')assertSchoolSize(payload.content);return request('/api/school',{action,payload:{school_id:school?.id,...payload}});};
-async function run(fn){if(working)return;working=true;error();document.body.setAttribute('aria-busy','true');status('Working on your request…');try{await fn();}catch(e){error(e.name==='TimeoutError'?'The request took too long. Reload to check whether your change was saved.':e.message);status('');}finally{working=false;document.body.removeAttribute('aria-busy');if($('school-status').textContent==='Working on your request…')status('');}}
+async function run(fn){if(working)return;working=true;error();document.body.setAttribute('aria-busy','true');status('Working on your request…');try{await fn();}catch(e){if(!$('school-error'))return;error(e.name==='TimeoutError'?'The request took too long. Reload to check whether your change was saved.':e.message);status('');}finally{working=false;document.body.removeAttribute('aria-busy');if($('school-status')?.textContent==='Working on your request…')status('');}}
 function button(text,fn,cls='outline'){const b=el('button',text,cls);b.type='button';b.addEventListener('click',()=>run(fn));return b;}
 function field(form,label,{type='text',value='',max=100,required=true,options}={}){const id=`school-field-${crypto.randomUUID()}`,l=el('label',label);l.htmlFor=id;const n=el(options?'select':type==='textarea'?'textarea':'input');n.id=id;n.required=required;if(options)for(const [v,t] of options){const o=el('option',t);o.value=v;n.append(o);}else{if(type!=='textarea')n.type=type;n.maxLength=max;}n.value=options?(value||options[0]?.[0]||''):value;if(type==='checkbox'){l.className='check-label';l.replaceChildren(n,document.createTextNode(label));form.append(l);}else form.append(l,n);return n;}
 function form(title,fn){const f=el('form',undefined,'school-form');f.append(el('h3',title));f.addEventListener('submit',e=>{e.preventDefault();run(()=>fn(f));});return f;}
@@ -27,15 +29,17 @@ function submit(f,text){const b=el('button',text,'primary');b.type='submit';f.ap
 function department(id){return data.departments.find(d=>d.id===id)?.name||'Department';}
 const date=value=>new Date(value).toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
 function route(path,extra={}){return path+'?'+new URLSearchParams({school:school.id,...extra});}
-async function bootstrap(preferred=params.get('school')||localStorage.getItem('lessonpress.school')){
+async function bootstrap(preferred=params.get('school')||schoolLocal.getItem('lessonpress.school')){
  const result=await rpc('bootstrap');schools=result.schools;school=schools.find(s=>s.id===preferred)||schools[0]||null;
  const select=$('school-select');select.replaceChildren(el('option',schools.length?'Choose a school':'No schools yet'));select.firstChild.value='';
  for(const s of schools){const o=el('option',s.name);o.value=s.id;select.append(o);}select.value=school?.id||'';
  $('accept-invite').hidden=!invite;
- if(school){localStorage.setItem('lessonpress.school',school.id);await load();}else{$('workspace-panel').hidden=true;status('Create a school, or accept an invitation from your principal.');}
+ $('school-empty').hidden=Boolean(school)||Boolean(invite)||params.get('setup')==='1';
+ $('new-school-toggle').hidden=params.get('setup')!=='1';
+ if(school){schoolLocal.setItem('lessonpress.school',school.id);await load();}else{$('workspace-panel').hidden=true;status(invite?'An invitation is waiting. Review and accept it below.':params.get('setup')==='1'?'Create a workspace only if you are authorised to represent this school.':'Your personal workspace is ready. Join a school using an invitation.');}
 }
 async function load(){
- data=await rpc('dashboard');$('workspace-panel').hidden=false;$('school-heading').textContent=school.name;$('school-role').textContent=school.role==='hod'?'Department head':school.role;
+ data=await rpc('dashboard');$('workspace-panel').hidden=false;$('school-heading').textContent=(user.displayName||'Your')+' · '+(school.role==='teacher'?'Teacher workspace':school.role==='hod'?'Department head workspace':'School management');$('school-role').textContent=school.name;
  for(const a of document.querySelectorAll('[data-view]')){a.href=route(a.dataset.view==='overview'?'/school':`/school/${a.dataset.view}`);if(a.dataset.view===view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');}
  const box=$('school-content');box.replaceChildren();status('');
  if(view==='bank')await mountSchoolBank(box,{school,data,user,rpc,run,route});else if(view==='location')await locationView(box);else if(view==='trust')await trustView(box);else if(view==='paper')await paperView(box);else if(view==='team')teamView(box);else if(view==='reviews')listView(box,true);else if(view==='library')libraryView(box);else overview(box);
@@ -105,17 +109,17 @@ function libraryView(box){
  if(!data.departments.length)departmentSetup(box);
  explain(box,'A library for your school’s assessments.','A paper is the full assessment: questions, answers, marks and source notes. Your own drafts and approved departmental copies appear here.','You can return to a draft, reuse an approved paper or send your work for another teacher to review.','For a new paper, choose Create assessment, finish your draft, then Send to school. Import is only for a file you previously downloaded from LessonPress.');
  box.append(el('p','Your own drafts stay private to you and reviewers. Approved copies are shared with staff in the department. School principals can oversee every department.'));
- const transfer=sessionStorage.getItem('lessonpress.school-transfer');
+ const transfer=schoolSession.getItem('lessonpress.school-transfer');
  const f=form(transfer?'Choose where this paper belongs':'Already have a LessonPress backup?',async()=>{
  let raw;if(transfer)raw=JSON.parse(transfer);else{const file=input.files[0];if(!file)throw new Error('Choose a LessonPress JSON draft.');if(file.size>90000)throw new Error('Choose a JSON draft smaller than 90 KB.');raw=JSON.parse(await file.text());}
  const draft=validateDraft({...raw,id:raw.id||crypto.randomUUID(),savedAt:raw.savedAt||new Date().toISOString()});
  const out=await rpc('save_paper',{department_id:dep.value,content:{spec:draft.spec,paper:draft.paper,sample:draft.sample,model:draft.model}});
- sessionStorage.removeItem('lessonpress.school-transfer');location.href=route('/school/paper',{paper:out.id});
+ schoolSession.removeItem('lessonpress.school-transfer');location.href=route('/school/paper',{paper:out.id});
  });
  let input;if(!transfer){input=field(f,'LessonPress JSON file',{type:'file'});input.accept='.json,application/json';}else f.append(el('p','This uploads the assessment and source notes from your current draft. Check the school and department before sending.'));
  const dep=field(f,'Department',{options:[['','Choose a department'],...data.departments.map(d=>[d.id,d.name])]});if(data.departments.length===1)dep.value=data.departments[0].id;
  if(data.departments.length)submit(f,transfer?'Save paper to this department':'Add this file to school papers');else{f.append(el('p',school.role==='principal'?'Use Create your first department above. The department list will update as soon as you save it.':'Ask your principal to add a department and assign you to it.'));dep.disabled=true;if(input)input.disabled=true;}
- if(transfer)f.append(button('Discard transfer',async()=>{sessionStorage.removeItem('lessonpress.school-transfer');await load();},'quiet'));
+ if(transfer)f.append(button('Discard transfer',async()=>{schoolSession.removeItem('lessonpress.school-transfer');await load();},'quiet'));
  if(!transfer&&data.departments.length){const details=el('details',undefined,'school-import no-print');details.append(el('summary','Restore a downloaded paper (optional)'),el('p','A JSON file is an editable LessonPress backup. You do not need one to create a new assessment.','field-help'),f);box.append(link('Create a new assessment →','/create','primary'),details);}else if(transfer||data.departments.length)box.append(f);listView(box);
 }
 function teamView(box){
@@ -181,14 +185,13 @@ function renderEdit(box,p){
  const details=el('details');details.append(el('summary','Original lesson notes'),el('p',content.spec.notes));f.append(details);f.addEventListener('input',()=>dirty=true);submit(f,'Save new version');f.append(button('Cancel editing',async()=>{if(!dirty||confirm('Discard these unsaved edits?')){dirty=false;editing=false;await load();}},'quiet'));box.append(f);
 }
 function download(content){const blob=new Blob([JSON.stringify({...content,id:crypto.randomUUID(),savedAt:new Date().toISOString()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=link('Download',url);a.download='lessonpress-school-paper.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-$('account-form').addEventListener('submit',e=>{e.preventDefault();const action=e.submitter.value;run(async()=>{const out=await request('/api/account',{action,email:$('school-email').value,password:$('school-password').value});$('school-password').value='';if(out.verifyEmail){status('Check your email to verify your account. After verification, return here and sign in.');return;}await start();});});
-$('logout').addEventListener('click',()=>run(async()=>{await request('/api/account',{action:'logout'});location.href='/school';}));
+$('logout').addEventListener('click',()=>run(async()=>{await accountRequest({action:'logout'});location.replace('/login');}));
 $('new-school-toggle').addEventListener('click',()=>{$('new-school').hidden=!$('new-school').hidden;$('new-school-toggle').setAttribute('aria-expanded',String(!$('new-school').hidden));if(!$('new-school').hidden)$('school-name').focus();});
-$('new-school').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('create_school',{name:$('school-name').value});$('new-school').hidden=true;await bootstrap(out.id);status('Your workspace is created. Add a department, then request a school identity check from School trust & activity before inviting staff.');});});
+$('new-school').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('create_school',{name:$('school-name').value,confirmAuthority:$('school-authority').checked});$('new-school').hidden=true;await bootstrap(out.id);status('Your workspace is created. Add a department, then request a school identity check from School trust & activity before inviting staff.');});});
 $('school-select').addEventListener('change',()=>run(async()=>{school=schools.find(s=>s.id===$('school-select').value);if(school){location.href=route('/school');}}));
 $('accept-invite').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('accept_invite',{token:invite});invite=null;sessionStorage.removeItem('lessonpress.invite');await bootstrap(out.id);status('You have joined your school.');});});
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
-async function start(){const out=await request('/api/account');user=out.user;$('account-panel').hidden=Boolean(user);$('signed-panel').hidden=!user;document.body.classList.toggle('signed-in',Boolean(user));if(user){$('account-email').textContent=user.email;await bootstrap();}else status(invite?'Sign in or create an account with the invited email to join your school.':'Sign in to access your school workspace.');}
+async function start(){const personal=await personalContext();user=personal.user;schoolLocal=personal.local;schoolSession=personal.session;$('account-panel').hidden=true;$('signed-panel').hidden=false;document.body.classList.add('signed-in');$('account-email').textContent=user.displayName||user.email;await bootstrap();}
 run(start);
 
 const verificationNames={unverified:'Not yet verified',pending:'Verification requested',verified:'School identity checked',changes_requested:'More information needed'};

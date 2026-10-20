@@ -71,7 +71,7 @@ test('reduced motion avoids entrance animations while home links and examples re
  const dom=new JSDOM(html,{runScripts:'outside-only'}),w=dom.window;
  try{
   w.matchMedia=()=>({matches:true,addEventListener(){}});w.Element.prototype.animate=()=>assert.fail('Reduced motion must not run entrance animation');w.eval(script);
-  assert.equal(w.document.querySelector('.vl-hero a[href="/create"]').textContent.includes('Create'),true);assert.match(w.document.querySelector('.vl-faq').textContent,/Nursery/);
+  assert.equal(w.document.querySelector('.vl-hero a[href="/workspace"]').textContent.includes('Create'),true);assert.match(w.document.querySelector('.vl-faq').textContent,/Nursery/);
   w.document.querySelector('[data-demo-step="2"]').click();assert.equal(w.document.querySelector('[data-demo-panel="2"]').hidden,false);
  }finally{dom.window.close();}
 });

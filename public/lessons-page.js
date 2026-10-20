@@ -1,4 +1,6 @@
+import {personalContext} from '/account-session.js';
 import {readLessons,filterLessons,saveLesson,writeLessons,mergeLessons,lessonBackup,prepareLessonCollection,LESSON_TRANSFER_KEY} from '/lessons.js';
+const {local:localStorage,session:sessionStorage}=await personalContext();
 const $=id=>document.getElementById(id),node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 let items=[],editing=null,dirty=false,lastRemoved=null;const selected=new Set(),terms={'1':'First term','2':'Second term','3':'Third term'};
 function status(message=''){$('lesson-status').textContent=message;}

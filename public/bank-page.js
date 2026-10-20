@@ -1,7 +1,9 @@
+import {personalContext} from '/account-session.js';
 import {readBank,writeBank,validateBank,assemblePaper} from '/bank.js';
 import {saveDraft} from '/drafts.js';
 import {renderBlocks} from '/paper-blocks.js';
 if(document.body.dataset.page==='question-bank'){
+ const {local:localStorage}=await personalContext();
  const $=id=>document.getElementById(id),selected=new Set();let items=[];
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=(message,bad=false)=>{$('bank-status').textContent=message;$('bank-status').classList.toggle('bank-error',bad);};

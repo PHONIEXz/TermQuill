@@ -94,3 +94,10 @@ A dedicated lesson workspace extends the Class Panel shell. A searchable catalog
 Teachers can filter a term and select saved lessons for the existing exam/test builder. Selections must share a school year, subject and class; multiple terms are permitted for cumulative sources. Complete notes are ordered by term/week, labelled and checked against the current 18,000-character generation limit including headings. Oversized sources stop with an explanation; nothing is silently dropped. This source handoff does not generate automatically and does not yet guarantee per-topic question allocation or full-term coverage. Those require the next assessment-blueprint/batched-generation stage.
 
 Saving preserves stable IDs and detects stale edits; failed writes retain the editor and saved data. Removing has one-step undo. Backup import validates the entire file before writing, skips identical notes and preserves conflicting edits as separate copies. Reading preview uses text nodes, not HTML from stored notes.
+
+
+## Account identity and workspace entry (2026-10-20)
+
+A public read-only sample is separate from signed-in working tools. Login/signup share the cream/sage Class Panel typography and educational paper motif. `/workspace` names the personal workspace after its user and lists actual school memberships without auto-creating a school. School entry uses invitation links; authorised school creation is a distinct setup path. Self-described occupation is explanatory only, never a permission grant. School labels distinguish teacher, department-head and management workspaces.
+
+The personal library remains browser-local in this milestone, under per-account keys. Explain its lack of cloud syncing and encryption. Earlier anonymous notes are not claimed automatically: a dedicated ownership-confirmed copy action validates and preserves original records. Keep personal vs school visibility clear next to the entry points and school tools.

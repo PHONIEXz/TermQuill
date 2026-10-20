@@ -13,6 +13,7 @@ export default async function school(req,res){
   const {action,payload={}}=await readBody(req);
   if(!actions.has(action)||!payload||Array.isArray(payload)||typeof payload!=='object')return json(res,400,{error:'Invalid workspace request.'});
   if(['assemble_school_paper','school_bank_catalogue'].includes(action)){const out=await (action==='assemble_school_paper'?assembleSchoolPaper:listSchoolBank)(payload,async(action,payload)=>{const {data,error}=await client.rpc('lp_workspace',{p_action:action,p_payload:payload});if(error)throw Object.assign(new Error(['42501','28000'].includes(error.code)?'You do not have permission to reuse this school source.':error.code==='40001'?'A newer version exists. Reload the bank.':'Could not access or save this school paper.'),{status:['42501','28000'].includes(error.code)?403:400});return data;});return json(res,200,out);}
+  if(action==='create_school'&&payload.confirmAuthority!==true)return json(res,400,{error:'Confirm you are authorised to create this school workspace.'});
   if(action==='place_save'){try{Object.assign(payload,validateSchoolLocation(payload));}catch(e){return json(res,400,{error:e.message});}}
   if(action==='save_paper'){
    const draft=validateDraft({...payload.content,id:'00000000-0000-4000-8000-000000000001',savedAt:new Date().toISOString()});

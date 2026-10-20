@@ -1,3 +1,4 @@
+import {getAccount} from '/account-session.js';
 // Progressive enhancement: links remain available if JavaScript does not load.
 const header = document.querySelector('.topbar');
 const navigation = header?.querySelector('nav');
@@ -35,3 +36,6 @@ if (navigation) {
     close();
   });
 }
+
+const accountLink=document.querySelector('[data-nav="login"]');
+if(accountLink){const updateAccount=async(refresh=false)=>{try{const user=await getAccount(refresh);accountLink.textContent=user?'My account':'Sign in';accountLink.href=user?'/workspace':'/login';accountLink.setAttribute('aria-label',user?'Open your account workspace':'Sign in to LessonPress');}catch{accountLink.textContent='Sign in';accountLink.href='/login';}};updateAccount();window.addEventListener('storage',e=>{if(e.key==='lessonpress.active-account')updateAccount(true);});}

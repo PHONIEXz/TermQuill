@@ -36,7 +36,7 @@ async function bootstrap(preferred=params.get('school')||schoolLocal.getItem('le
  $('accept-invite').hidden=!invite;
  $('school-empty').hidden=Boolean(school)||Boolean(invite)||params.get('setup')==='1';
  $('new-school-toggle').hidden=params.get('setup')!=='1';
- if(school){schoolLocal.setItem('lessonpress.school',school.id);await load();}else{$('workspace-panel').hidden=true;status(invite?'An invitation is waiting. Review and accept it below.':params.get('setup')==='1'?'Create a workspace only if you are authorised to represent this school.':'Your personal workspace is ready. Join a school using an invitation.');}
+ if(school&&user.educator?.allowed!==false){schoolLocal.setItem('lessonpress.school',school.id);await load();}else{$('workspace-panel').hidden=true;$('school-empty').hidden=Boolean(invite);if(user.educator?.allowed===false)$('new-school-toggle').hidden=true;status(user.educator?.allowed===false?'Educator approval is required for school tools. Open My workspace to request access, or accept your invitation below.':invite?'An invitation is waiting. Review and accept it below.':params.get('setup')==='1'?'Create a workspace only if you are authorised to represent this school.':'Your personal workspace is ready. Join a school using an invitation.');}
 }
 async function load(){
  data=await rpc('dashboard');$('workspace-panel').hidden=false;$('school-heading').textContent=(user.displayName||'Your')+' · '+(school.role==='teacher'?'Teacher workspace':school.role==='hod'?'Department head workspace':'School management');$('school-role').textContent=school.name;
@@ -189,7 +189,7 @@ $('logout').addEventListener('click',()=>run(async()=>{await accountRequest({act
 $('new-school-toggle').addEventListener('click',()=>{$('new-school').hidden=!$('new-school').hidden;$('new-school-toggle').setAttribute('aria-expanded',String(!$('new-school').hidden));if(!$('new-school').hidden)$('school-name').focus();});
 $('new-school').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('create_school',{name:$('school-name').value,confirmAuthority:$('school-authority').checked});$('new-school').hidden=true;await bootstrap(out.id);status('Your workspace is created. Add a department, then request a school identity check from School trust & activity before inviting staff.');});});
 $('school-select').addEventListener('change',()=>run(async()=>{school=schools.find(s=>s.id===$('school-select').value);if(school){location.href=route('/school');}}));
-$('accept-invite').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('accept_invite',{token:invite});invite=null;sessionStorage.removeItem('lessonpress.invite');await bootstrap(out.id);status('You have joined your school.');});});
+$('accept-invite').addEventListener('submit',e=>{e.preventDefault();run(async()=>{const out=await rpc('accept_invite',{token:invite});invite=null;sessionStorage.removeItem('lessonpress.invite');if(user.educator?.allowed===false){location.href='/school?school='+encodeURIComponent(out.id);return;}await bootstrap(out.id);status('You have joined your school.');});});
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 async function start(){const personal=await personalContext();user=personal.user;schoolLocal=personal.local;schoolSession=personal.session;$('account-panel').hidden=true;$('signed-panel').hidden=false;document.body.classList.add('signed-in');$('account-email').textContent=user.displayName||user.email;await bootstrap();}
 run(start);

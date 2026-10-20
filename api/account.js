@@ -1,12 +1,12 @@
 import {validateProfile,publicUser} from '../lib/identity.js';
 import {json,readBody,makeLimiter} from '../lib/http.js';
-import {authClient,signedIn,setSession,sameOrigin,cookies} from '../lib/school-auth.js';
+import {authClient,signedIn,setSession,sameOrigin,cookies,educatorStatus} from '../lib/school-auth.js';
 const allow=makeLimiter(15,600000,300);
 export default async function account(req,res){
  try{
   const client=authClient();
   if(req.method==='GET'){
-   try{const {user}=await signedIn(req,res,client);return json(res,200,{user:publicUser(user)});}catch(e){if(e.status===401)return json(res,200,{user:null});throw e;}
+   try{const {user,client:scoped}=await signedIn(req,res,client);return json(res,200,{user:publicUser(user),educator:await educatorStatus(scoped)});}catch(e){if(e.status===401)return json(res,200,{user:null});throw e;}
   }
   if(req.method!=='POST')return json(res,405,{error:'Use GET or POST.'});
   if(!sameOrigin(req))return json(res,403,{error:'Open LessonPress and try again.'});

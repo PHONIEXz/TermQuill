@@ -206,3 +206,9 @@ A separately approved `app_operators` record provides owner testing access, with
 ## Brand identity
 
 The product is **TermQuill**: “From what you teach to what you assess.” Renamed from LessonPress on 20 October 2026. The existing GitHub repository, deployment address, environment variable names, database schema, browser storage keys, event names and backup identifiers remain compatible. They are implementation identifiers, not the public product name. Existing backups and saved work do not need conversion. No new domain has been purchased or connected.
+
+## Instructions / topic source
+
+Choose **Instructions / topic · no notes required** in Create assessment. Select an education stage (Nursery / Kindergarten, Primary, Secondary, vocational, undergraduate, postgraduate or adult education), enter the exact class/course and a 20–6,000-character brief. No lesson notes are sent in this mode. Existing question counts, marks, formats, paper styles, visual blocks, logo/picture uploads, editing, personal saving, school sharing/review and printing remain available. Topic-generated questions carry answer rationales, not supplied-note quotes, and require independent factual review. No browsing, live facts, guaranteed syllabus alignment or universal subject accuracy is provided.
+
+Draft/import/bank/school round trips preserve per-question topic provenance, including papers assembled from both note-based and topic questions. Student copies exclude rationales. Fresh generation from saved past-question references continues to use only questions with retained lesson-note evidence; topic questions remain reusable through bank assembly. The educator access requirement is unchanged.

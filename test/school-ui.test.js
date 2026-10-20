@@ -128,3 +128,13 @@ test('dashboard counts accessible papers honestly and links recent work without 
   assert.ok(w.document.body.classList.contains('shell-school-ready'));assert.ok(w.document.querySelector('.app-rail .school-nav'));assert.equal(w.document.querySelector('.school-layout .school-nav'),null);
  }finally{dom.window.close();}
 });
+
+test('school topic papers retain rationales in marking guide and editor without showing them on student copies',async()=>{
+ const example=earlyYearsSample(),spec={...example.spec,notes:'',sourceMode:'topic',educationStage:'early',topicInstructions:'Assess counting, shapes and letters using familiar visual tasks.'},paper=structuredClone(example.paper);for(const q of paper.questions){q.evidence='';q.grounding='topic';q.rationale='Check the visual task and its expected response independently.';}
+ const content={spec,paper},p={id:'p1',author_id:'u1',department_id:'d1',status:'draft',revision:1,current_revision:1,approved_revision:null,content,versions:[{revision:1,created_at:new Date().toISOString()}],reviews:[]};
+ const {dom,w}=await setup('/school/paper?school=s1&paper=p1',signedHandler(()=>p));try{
+  const copy=w.document.querySelector('.school-print');assert.equal(copy.textContent.includes('Check the visual task'),false);
+  [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Marking guide').click();await new Promise(r=>setTimeout(r,10));assert.match(copy.textContent,/Topic-generated · Not source-verified/);assert.equal(copy.textContent.includes('Lesson evidence:'),false);
+  [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Edit a new version').click();await new Promise(r=>setTimeout(r,10));assert.ok([...w.document.querySelectorAll('label')].some(l=>l.textContent==='Answer rationale / teacher verification notes'));assert.ok(![...w.document.querySelectorAll('label')].some(l=>l.textContent==='Exact source quote'));
+ }finally{dom.window.close();}
+});

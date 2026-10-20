@@ -192,3 +192,7 @@ Supabase advisories were inspected. RLS without policies is intentional default-
 ## TermQuill rename, 20 October 2026
 
 Public labels, titles, navigation, account/privacy/help screens, printed-paper attribution and download filenames now use TermQuill. The favicon is an original T/quill SVG. Existing storage keys, backup kind identifiers, database schema, environment variable names and deployment URL remain unchanged for compatibility. All 145 tests, syntax checks, build and diff checks pass.
+
+## Instructions / topic generation, 20 October 2026
+
+All 154 tests, syntax checks, build and diff checks pass. Added coverage verifies every education stage, brief bounds, omission of inactive notes, mandatory rationales, rejection of fabricated source-evidence claims, preservation of note-mode source checks, bounded repair, draft/bank/import round trips, mixed-source assembly, review comparison, API validation, stage-specific examples, supported visual tools and student/teacher separation in both personal and school papers. Provider responses are mocked for this milestone; live model quality and subject suitability are not established by these checks. No production privilege grants, auth changes or database migration are included. The existing owner account remains educator-gated pending separately authorised access.

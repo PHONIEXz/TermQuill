@@ -569,3 +569,5 @@ strong, b, .topbar nav a[aria-current=page], .school-nav a[aria-current=page],
   .landing-section h2, .landing-paths h3 {line-height:1.2;}
 }
 @media print {body {font-weight:400;} .paper-head h2 {font-weight:650;}}
+
+.topic-entry{margin-block:1rem;padding:1.2rem;border:1px solid #a8c5d4;border-radius:16px;background:#edf4f8}.topic-entry>strong{display:block;color:#214b5d}.topic-entry textarea{background:#fff}.topic-entry p{line-height:1.55}

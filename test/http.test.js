@@ -37,3 +37,8 @@ test('optional pilot code gates generation',async()=>{
     assert.equal((await post(base,sampleSpec,{'X-Access-Code':'pilot-test'})).status,200);
   },createHandler({limiter:()=>true,generate:async()=>({paper:samplePaper})}));}finally{if(previous===undefined)delete process.env.LESSONPRESS_ACCESS_CODE;else process.env.LESSONPRESS_ACCESS_CODE=previous;}
 });
+
+test('topic generation endpoint accepts a bounded brief without notes and preserves source mode',async()=>{
+ let captured;const body={...sampleSpec,sourceMode:'topic',educationStage:'undergraduate',level:'First-year chemistry',notes:'inactive private notes',topicInstructions:'Assess elements, compounds and mixtures using established chemistry knowledge.'};
+ await fixture(async base=>{const response=await post(base,body);assert.equal(response.status,200);const result=await response.json();assert.equal(result.spec.sourceMode,'topic');assert.equal(result.spec.notes,'');assert.equal(captured.notes,'');assert.equal(captured.educationStage,'undergraduate');assert.equal((await post(base,{...body,topicInstructions:'short'})).status,400);},createHandler({limiter:()=>true,generate:async spec=>{captured=spec;return {paper:{instructions:'Answer all questions.',questions:[]},model:'mock-gemma'};}}));
+});

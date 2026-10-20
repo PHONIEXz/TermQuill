@@ -209,3 +209,18 @@ test('selected term lessons hand off together without generating automatically o
 
 
 test('cloud lesson selection checks saved versions again before loading assessment sources',async()=>{const notes=[{...validateLesson({year:'2026/2027',level:'SS1',subject:'Chemistry',term:'1',week:1,topic:'Cloud elements',body:sampleSpec.notes}),version:1}];let result=await setup(undefined,'/create?lessons=1',undefined,notes,notes);try{assert.match(result.$('notes').value,/Cloud elements/);assert.match(result.$('live-status').textContent,/1 saved lessons loaded/);assert.equal(result.w.sessionStorage.getItem(LESSON_TRANSFER_KEY),null);}finally{result.dom.window.close();}result=await setup(undefined,'/create?lessons=1',undefined,notes,[{...notes[0],version:2}]);try{assert.match(result.$('error').textContent,/cloud lessons changed/);assert.ok(result.w.sessionStorage.getItem(LESSON_TRANSFER_KEY));assert.equal(result.$('notes').value,'');}finally{result.dom.window.close();}});
+
+test('topic source sends no notes, restores settings, retains visual tools and keeps rationales teacher-only',async()=>{
+ let sent;const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);const paper=structuredClone(samplePaper);for(const q of paper.questions){q.evidence='';q.grounding='topic';q.rationale='Independently check the chemical definition and expected answer.';}return {ok:true,json:async()=>({paper,model:'mock-gemma'})};});
+ try{
+  $('notes').value='Private inactive source material that must not be sent';$('source-mode').value='topic';$('source-mode').dispatchEvent(new w.Event('change'));
+  assert.equal($('notes').disabled,true);assert.equal($('notes').required,false);assert.equal($('topic-entry').hidden,false);assert.equal($('topicInstructions').required,true);
+  $('educationStage').value='undergraduate';$('educationStage').dispatchEvent(new w.Event('change'));$('level').value='First-year chemistry';$('topicInstructions').value='Assess elements, compounds and mixtures with definitions and application questions.';
+  $('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent.sourceMode,'topic');assert.equal(sent.educationStage,'undergraduate');assert.equal(sent.notes,'');assert.match(sent.topicInstructions,/elements/);
+  assert.match($('preview').textContent,/not verified source evidence/);assert.ok([...$('preview').querySelectorAll('label')].some(x=>x.textContent==='Answer rationale / teacher verification notes'));assert.match($('preview').textContent,/Pictures, tables/);
+  $('save').click();$('restore').click();assert.equal($('source-mode').value,'topic');assert.equal($('topicInstructions').disabled,false);assert.equal($('notes').disabled,true);assert.equal($('educationStage').value,'undergraduate');
+  $('tab-student').click();assert.equal($('preview').textContent.includes('Independently check the chemical'),false);$('tab-teacher').click();assert.match($('preview').textContent,/Topic-generated · Not source-verified/);
+  $('educationStage').value='early';$('educationStage').dispatchEvent(new w.Event('change'));assert.equal($('presentation').value,'early');$('topic-example').click();assert.match($('topicInstructions').value,/Count objects/);
+  $('source-mode').value='notes';$('source-mode').dispatchEvent(new w.Event('change'));assert.equal($('topicInstructions').disabled,true);assert.equal($('notes').required,true);
+ }finally{dom.window.close();}
+});

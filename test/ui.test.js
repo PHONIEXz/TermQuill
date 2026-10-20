@@ -1,3 +1,4 @@
+import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,writeLessons,validateLesson} from '../lib/lessons.js';
 import {saveBankQuestion,readBank} from '../lib/bank.js';
 import {installVisuals} from './visual-helpers.js';
 import test from 'node:test';
@@ -9,13 +10,14 @@ import { auditAssessment,validateRequest,parseModelOutput } from '../lib/assessm
 import {readDrafts,saveDraft,deleteDraft,validateDraft,DRAFTS_KEY} from '../lib/drafts.js';
 const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
 const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
-async function setup(generate,route="/create",seed) {
+async function setup(generate,route="/create",seed,lessonSeed) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
-  Object.assign(w,{structuredClone,saveBankQuestion,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
+  Object.assign(w,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
   installVisuals(w);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
   if(seed)w.localStorage.setItem(DRAFTS_KEY,JSON.stringify(seed));
+  if(lessonSeed){writeLessons(w.localStorage,lessonSeed);w.sessionStorage.setItem(LESSON_TRANSFER_KEY,JSON.stringify({version:1,ids:lessonSeed.map(x=>x.id),assessmentMode:'test'}));}
   w.eval(script);await new Promise(r=>setTimeout(r,0));
   return {dom,w,$:id=>w.document.getElementById(id)};
 }
@@ -196,4 +198,10 @@ test('visible logo upload before generation stays local and survives both copies
   $('save').click();$('restore').click();$('tab-student').click();assert.equal($('preview').querySelector('.school-logo')?.src,png);
   $('approved').checked=true;$('approved').dispatchEvent(new w.Event('change'));[...$('paper-logo').querySelectorAll('button')].find(b=>b.textContent==='Remove logo').click();assert.equal($('approved').checked,false);assert.equal($('preview').querySelector('.school-logo'),null);
  }finally{dom.window.close();}
+});
+
+test('selected term lessons hand off together without generating automatically or changing the library',async()=>{
+ let sent;const notes=[1,2].map(week=>validateLesson({year:'2026/2027',level:sampleSpec.level,subject:sampleSpec.subject,term:'1',week,topic:`Topic ${week}`,body:sampleSpec.notes}));
+ const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({paper:samplePaper,model:'mock'})};},'/create?lessons=1',undefined,notes);
+ try{assert.equal(sent,undefined);assert.match($('notes').value,/LESSON: Topic 1/);assert.match($('notes').value,/LESSON: Topic 2/);assert.match($('notes').value,/2026\/2027/);assert.match($('live-status').textContent,/2 saved lessons loaded/);assert.equal(w.sessionStorage.getItem(LESSON_TRANSFER_KEY),null);$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,15));assert.match(sent.notes,/Topic 2/);assert.equal(readLessons(w.localStorage).length,2);$('tab-student').click();assert.match($('preview').textContent,/First term/);}finally{dom.window.close();}
 });

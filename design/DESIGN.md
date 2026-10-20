@@ -112,3 +112,7 @@ The personal dashboard places an educator-access panel before its working tools.
 ## TermQuill identity (2026-10-20)
 
 The user selected TermQuill as the public product name. Use the exact capitalisation TermQuill across navigation, account pages, document UI, privacy copy and help. Tagline: “From what you teach to what you assess.” The deep-green rounded mark combines an ivory T and a sage quill. Keep the existing palette and motion. Technical storage/backup/database identifiers remain stable for compatibility.
+
+## Instructions / topic assessment source (2026-10-20)
+
+Add a clearly labelled source choice distinct from supplied notes and saved note-based references. A blue brief panel collects 20–6,000 characters and a stage selector covers early years, primary, secondary, vocational, undergraduate, postgraduate and adult education, with a free-text specific class/course. Stage changes suggest Early Years/Primary/Standard paper style without locking the visual editor. Topic mode never claims supplied-note evidence: every topic question retains a generated answer rationale and visible independent-check label in editor, teacher copy, banks and school review. Student copies exclude rationales. Saved topic provenance survives backup, restoration and mixed-source bank assembly; topic-only questions are excluded from note-based fresh-reference generation. No browsing, curriculum certification or universal subject-accuracy claim.

@@ -8,7 +8,7 @@ const actions=new Set(['bootstrap','dashboard','create_school','create_departmen
 export default async function school(req,res){
  try{
   if(req.method!=='POST')return json(res,405,{error:'Use POST.'});
-  if(!sameOrigin(req))return json(res,403,{error:'Open LessonPress and try again.'});
+  if(!sameOrigin(req))return json(res,403,{error:'Open TermQuill and try again.'});
   const {client}=await signedIn(req,res);
   const {action,payload={}}=await readBody(req);
   if(!actions.has(action)||!payload||Array.isArray(payload)||typeof payload!=='object')return json(res,400,{error:'Invalid workspace request.'});

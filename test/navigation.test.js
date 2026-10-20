@@ -6,7 +6,7 @@ import {JSDOM} from 'jsdom';
 const script = (await readFile(new URL('../public/navigation.js', import.meta.url), 'utf8')).replace(/^import .*;\n/gm,'');
 
 test('compact navigation opens, closes with Escape, and restores toggle focus', () => {
-  const dom = new JSDOM('<header class="topbar"><a class="brand" href="/">LessonPress</a><nav aria-label="Main navigation"><a href="/create">Create assessment</a></nav></header>', {runScripts:'outside-only'});
+  const dom = new JSDOM('<header class="topbar"><a class="brand" href="/">TermQuill</a><nav aria-label="Main navigation"><a href="/create">Create assessment</a></nav></header>', {runScripts:'outside-only'});
   try {
     const w = dom.window;
     let breakpointChanged;

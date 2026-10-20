@@ -38,4 +38,4 @@ if (navigation) {
 }
 
 const accountLink=document.querySelector('[data-nav="login"]');
-if(accountLink){const updateAccount=async(refresh=false)=>{try{const user=await getAccount(refresh);accountLink.textContent=user?'My account':'Sign in';accountLink.href=user?'/workspace':'/login';accountLink.setAttribute('aria-label',user?'Open your account workspace':'Sign in to LessonPress');}catch{accountLink.textContent='Sign in';accountLink.href='/login';}};updateAccount();window.addEventListener('storage',e=>{if(e.key==='lessonpress.active-account')updateAccount(true);});}
+if(accountLink){const updateAccount=async(refresh=false)=>{try{const user=await getAccount(refresh);accountLink.textContent=user?'My account':'Sign in';accountLink.href=user?'/workspace':'/login';accountLink.setAttribute('aria-label',user?'Open your account workspace':'Sign in to TermQuill');}catch{accountLink.textContent='Sign in';accountLink.href='/login';}};updateAccount();window.addEventListener('storage',e=>{if(e.key==='lessonpress.active-account')updateAccount(true);});}

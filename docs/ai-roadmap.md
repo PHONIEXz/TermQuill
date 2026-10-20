@@ -1,4 +1,4 @@
-# LessonPress AI workflow proposals
+# TermQuill AI workflow proposals
 
 Status: proposed, not implemented. The deployed AI feature remains assessment generation, now including manual format and thinking-level preferences.
 

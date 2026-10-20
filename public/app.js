@@ -1,3 +1,4 @@
+import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY} from '/lessons.js';
 import {initReferencePicker} from '/reference-picker.js';
 import {saveBankQuestion} from '/bank.js';
 import {assertSchoolSize,visualAnswer,hasAnswerSpace,paperTotal} from '/visuals.js';
@@ -27,7 +28,7 @@ function mountLogo(){
  const layout=state?(state.paper.layout??={preset:state.spec.presentation||'standard',schoolName:'',term:''}):pendingLayout;
  logoEditor(box,layout,()=>{if(state){resetApproval();preview();}else dirty=true;},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on&&state)resetApproval();busy(Boolean(active));}});
 }
-function carrySetupLogo(paper){if(!state&&pendingLayout.logo){paper.layout??={preset:'standard',schoolName:'',term:''};paper.layout.logo=pendingLayout.logo;}}
+function carrySetupLogo(paper){if(!state&&(pendingLayout.logo||pendingLayout.term)){paper.layout??={preset:'standard',schoolName:'',term:''};if(pendingLayout.logo)paper.layout.logo=pendingLayout.logo;if(pendingLayout.term)paper.layout.term=pendingLayout.term;}}
 mountLogo();
 function fieldValues() {
   const values=Object.fromEntries(new FormData(form));
@@ -232,4 +233,9 @@ function openBankDialog(index){
  function bankField(label,value,max){const l=el('label',label),input=el('input');input.id=`bank-${crypto.randomUUID()}`;l.htmlFor=input.id;input.value=value;input.maxLength=max;f.append(l,input);return input;}const topic=bankField('Topic','',80),term=bankField('Term (optional)',state.paper.layout?.term||'',60);topic.required=true;
  const label=el('label',undefined,'check-label'),check=el('input');check.type='checkbox';check.required=true;label.append(check,document.createTextNode(' I checked the question, answer and source evidence.'));f.append(label);
  const note=el('p');note.setAttribute('role','status');const actions=el('div',undefined,'block-controls'),save=el('button','Save to question bank','primary');save.type='submit';actions.append(save);actionButton(actions,'Cancel',()=>dialog.close());f.append(note,actions);dialog.append(f);document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove());f.addEventListener('submit',event=>{event.preventDefault();try{saveBankQuestion(localStorage,state,index,{topic:topic.value,term:term.value});dialog.close();message('Question saved to your device bank. Open Question bank to assemble another paper.');}catch(e){note.textContent=e.message;}});dialog.showModal();topic.focus();
+}
+
+if(page==='create'&&new URLSearchParams(location.search).get('lessons')==='1'){
+ try{const raw=sessionStorage.getItem(LESSON_TRANSFER_KEY);if(!raw)throw new Error('No lesson selection is waiting. Open Lesson library and select your notes.');const transfer=JSON.parse(raw);if(transfer.version!==1||!['exam','test'].includes(transfer.assessmentMode))throw new Error('Invalid lesson selection. Return to Lesson library.');const group=prepareLessonCollection(readLessons(localStorage),transfer.ids);if(state)throw new Error('A saved paper is already open. Start from Lesson library in a new assessment.');fillForm({...fieldValues(),...group,assessmentMode:transfer.assessmentMode,count:transfer.assessmentMode==='exam'?12:6,minutes:transfer.assessmentMode==='exam'?60:20});pendingLayout.term=group.heading.slice(0,60);sessionStorage.removeItem(LESSON_TRANSFER_KEY);message(`${group.count} saved lessons loaded: ${group.subject} · ${group.level} · ${group.heading}. Review the source notes and settings before generating. Topic allocation and verified coverage are not applied yet.`);error();}
+ catch(e){error(e.message);}
 }

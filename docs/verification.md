@@ -168,3 +168,8 @@ Public production verification at `82611f68cfd9fc913da993607f6b579e92db989d`: bo
 ## Class Panel shell and school dashboard (2026-10-19)
 
 121 checks pass, including the shared shell’s task-specific navigation, homepage exclusion, mobile drawer inert/focus/Escape/breakpoint behaviour, school-navigation relocation, genuine scoped paper counts, latest-version pipeline totals, escaped titles, recent-paper links and review queue. Existing school UI tests execute with the shell mounted, retaining authenticated/unauthenticated visibility, version editing, question visuals and print-review checks. Syntax, build and whitespace checks pass. No database migrations, permissions, paper records or auth changes are included. Live production visual and navigation checks accompany release; real-phone and physical-printer verification remain outside these DOM tests.
+
+
+### Lesson library foundation — 2026-10-20
+
+127 automated tests pass, including lesson metadata/identity, atomic writes and quota failures, stale edits, backup merge/idempotence, complete ordered collection sources, mixed-course/oversized-source rejection, safe reading previews, save/edit/remove/undo, term filtering and builder handoff without automatic generation. `npm run check`, `npm run build` and `git diff --check` pass. Live UI verification follows deployment. This release deliberately uses browser-local storage; cloud school sharing and assessment coverage allocation remain follow-up work.

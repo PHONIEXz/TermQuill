@@ -18,3 +18,5 @@ body[data-page=home] .vl-footer{padding:70px 10px 25px;overflow:hidden}body[data
 @media(prefers-reduced-motion:reduce){body[data-page=home] .vl-hero-image img,body[data-page=home] .vl-floating-book{animation:none}body[data-page=home] .vl-hero-image{transform:none}}
 html[data-motion=reduced] body[data-page=home] .vl-hero-image img,html[data-motion=reduced] body[data-page=home] .vl-floating-book{animation:none}html[data-motion=reduced] body[data-page=home] .vl-hero-image{transform:none}
 @media print{body[data-page=home] [data-for=home]{display:none!important}}
+
+body[data-page=home] .topbar nav [data-nav=lessons]{display:none}

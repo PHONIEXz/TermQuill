@@ -173,3 +173,10 @@ Public production verification at `82611f68cfd9fc913da993607f6b579e92db989d`: bo
 ### Lesson library foundation — 2026-10-20
 
 127 automated tests pass, including lesson metadata/identity, atomic writes and quota failures, stale edits, backup merge/idempotence, complete ordered collection sources, mixed-course/oversized-source rejection, safe reading previews, save/edit/remove/undo, term filtering and builder handoff without automatic generation. `npm run check`, `npm run build` and `git diff --check` pass. Live UI verification follows deployment. This release deliberately uses browser-local storage; cloud school sharing and assessment coverage allocation remain follow-up work.
+
+
+### Account and workspace entry foundation — 2026-10-20
+
+Working tools now require verified sign-in. Personal collections are account-scoped on the device, with ownership-confirmed legacy copying; this is not cloud personal storage or encrypted browser storage. Public sample access remains read-only. Existing database school membership and invitation checks are retained. Self-described occupation is never used for authority.
+
+Automated checks cover page/auth failures, verified generation identity before provider use, same-origin requests, allowed profile metadata, forged-token rejection, account-specific storage and stale contexts, legacy-copy ownership/idempotence/conflict handling, named personal dashboards and membership-derived roles. Existing paper, school role/approval and UI regression suites remain required. Live production verification follows release; no real school membership, invitation or paper is modified as part of verification.

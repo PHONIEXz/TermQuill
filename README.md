@@ -45,9 +45,9 @@ Optional `LESSONPRESS_ACCESS_CODE` restricts generation to a small invited pilot
 
 Import the new repository, use the included `vercel.json`, and add `GOOGLE_GENERATIVE_AI_API_KEY`, `GOOGLE_MODEL`, and a pilot access code as server environment variables. Redeploy after changing variables. Build command: `npm run build`. Output: `public`. API functions: `api/`.
 
-The build copies shared validation, draft-storage and sample modules into `public`; do not edit those generated copies. Local development serves the original `lib` files through an explicit allowlist. The account-free builder needs no database. School workspaces require the Supabase migration below.
+The build copies shared validation, draft-storage and sample modules into `public`; do not edit those generated copies. Local development serves the original `lib` files through an explicit allowlist. The public read-only sample needs no account. Working tools and generation require verified Supabase sign-in. School workspaces require the Supabase migrations below.
 
-Before a public launch, add durable rate limits and platform protections. The included limits (8 generations per client/hour and 100 total/hour) are in-memory per server instance and reset when instances restart; distributed instances do not share them. They are not a reliable account-wide spending cap. Configure provider spending controls separately. Current deployment verification is recorded in `docs/verification.md`.
+Before a public launch, add durable rate limits and platform protections. The included limits (8 generations per account/client combination/hour and 100 total/hour) are in-memory per server instance and reset when instances restart; distributed instances do not share them. They are not a reliable account-wide spending cap. Configure provider spending controls separately. Current deployment verification is recorded in `docs/verification.md`.
 
 ## Privacy and review
 
@@ -89,17 +89,17 @@ Provider recovery: after two transient 5xx errors from the primary Gemma, the ap
 
 ## Milestone 2: teacher workspace
 
-Separate pages and multiple saved drafts make the create → review → save → reopen → print workflow usable across sessions. Saving updates the same draft rather than silently adding duplicates. Imported papers get a new ID and always need review. Unsaved papers show a warning before leaving the creator. This personal draft library uses browser storage. The School Review Pilot below adds separate accounts and shared cloud storage.
+Separate pages and multiple saved drafts make the create → review → save → reopen → print workflow usable across sessions. Saving updates the same draft rather than silently adding duplicates. Imported papers get a new ID and always need review. Unsaved papers show a warning before leaving the creator. This personal draft library uses browser storage. Verified accounts separate personal browser storage; the School Review Pilot adds distinct school-owned cloud records.
 
 Next milestone: classroom pilot. Review outputs in Chemistry, Basic Science and one non-science subject; inspect student/teacher PDFs; check a real phone; collect feedback from two teachers and measure preparation/editing time without inventing results.
 
 ## School Review Pilot
 
-School accounts use Supabase Auth. The existing account-free assessment builder and browser drafts remain available. `/school`, `/school/library`, `/school/reviews`, `/school/team` and `/school/paper` provide school management, a departmental library and independent approval.
+School accounts use Supabase Auth. All working tools require verified sign-in. `/workspace` is the personal entry point; `/login` and `/signup` are separate account pages. `/demo` is a public read-only sample. `/school`, `/school/library`, `/school/reviews`, `/school/team` and `/school/paper` provide school management, a departmental library and independent approval.
 
 Apply `migrations/001_school_review.sql`, then `migrations/002_pilot_trust.sql` and `migrations/003_school_locations.sql` to the provisioned Supabase database before deploying. The Vercel Marketplace integration supplies `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (legacy anon keys are also supported). The app never uses the service-role key or database password. For local development, put the public URL/key in your private `.env`.
 
-Accounts require email verification and a password of at least 12 characters. The Supabase Auth production Site URL is configured as `https://lessonpress-pi.vercel.app/school`. Configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. After confirming an email, users can return to `/school` to sign in. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
+Accounts require email verification and a password of at least 12 characters. The Supabase Auth production Site URL is configured as `https://lessonpress-pi.vercel.app/school`. Configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. The existing email confirmation redirect remains `/school`; after verification its account guard leads to `/login`. Users can also open `/login` directly. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
 
 A principal creates a school, departments and email-bound invitation links for teachers or department heads. Invitations expire after seven days, are single use and can be revoked. The app displays a link for the principal to share; it does not send invitations. School creation does not verify institutional ownership. Principals request an independent check on School trust & activity; only the platform operator can record a decision after checking school identity and authority. New invitations require verification, with a persistent database limit of 20 per school per hour. Existing invitations retain their prior validity rules. One account can create at most three schools in this pilot.
 
@@ -184,3 +184,12 @@ No cross-account history or automatic school-paper retrieval is added. No histor
 School paper pages can compare accessible versions, including changed wording, answers, marks, source evidence and visuals. Exact question wording is matched first; remaining questions use positional pairing, so rewrites combined with reorder need manual review. Question feedback appears beside its question and in the feedback list. Reviewers can tick each question before the UI enables approval; progress is tab-local and scoped to school/paper/revision/user. It is a review aid, not a server-recorded attestation. Existing database role, self-approval and version-concurrency checks remain authoritative.
 
 Approved-copy links and printed headers distinguish approved versions from new drafts. `/school/bank` lists approved source papers allowed by the existing school/department permissions. Select 3–20 questions from one subject/class and up to five papers. The server re-reads each exact source under the signed-in user's permissions, verifies it is the current approved copy, and creates a new draft through the existing save RPC. Source questions are never accepted from client-authored answers. Source credit preserves paper/version/question/author identifiers; it does not confer approval on an adapted question. Metadata attribution is not a cryptographic certificate. No database migration or new storage policy is required.
+
+
+### Accounts and personal workspace (2026-10-20)
+
+`middleware.js` gates personal application pages on Vercel; the local server applies the same page check. Browser modules re-check identity before reading private collections. Generation independently verifies identity and same-origin requests before provider access; school RPCs continue to enforce verified identity and database membership. Public HTML and JavaScript are not treated as a data security boundary.
+
+Signup stores a display name and self-described occupation in Auth metadata. Metadata never grants a school role; existing school membership remains authoritative. Personal lessons, drafts, question-bank items, transfers and school preferences use account-specific browser keys. Other tabs lock/reload when the active account changes. Browser storage remains unencrypted and is not protection against someone controlling the browser profile or developer tools. Personal cloud sync is not implemented in this milestone.
+
+My workspace offers an explicit ownership-confirmed copy of earlier anonymous browser work. It validates each collection, preserves originals, skips identical content, keeps conflicting IDs as separate copies and reports partial failures by collection. School creation is a separate authorised setup path with an acknowledgement; teachers normally join with an email-bound invitation. No invitations are sent automatically.

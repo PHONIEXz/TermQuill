@@ -5,7 +5,7 @@
   font-weight: 100 900;
   font-display: swap;
 }
-/* LessonPress design contract: design/DESIGN.md. Load after page styles. */
+/* TermQuill design contract: design/DESIGN.md. Load after page styles. */
 :root {
   --ink: #20352e;
   --green: #154f41;

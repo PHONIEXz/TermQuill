@@ -40,4 +40,4 @@ export const server = http.createServer(async (req,res) => {
     res.end(req.method === 'HEAD' ? undefined : body);
   } catch {json(res,500,{error:'Could not load this page.'});}
 });
-if (process.argv[1] === fileURLToPath(import.meta.url)) server.listen(Number(process.env.PORT || 3000),'127.0.0.1',() => console.log(`LessonPress: http://127.0.0.1:${server.address().port}`));
+if (process.argv[1] === fileURLToPath(import.meta.url)) server.listen(Number(process.env.PORT || 3000),'127.0.0.1',() => console.log(`TermQuill: http://127.0.0.1:${server.address().port}`));

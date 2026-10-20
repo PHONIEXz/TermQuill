@@ -1,10 +1,10 @@
-# LessonPress design contract
+# TermQuill design contract
 
 ## Standing design preference
 
 Phoniex wants the design approach chosen to suit each project's users and purpose. Use Apple and Geist for restrained product polish, Fluent and Carbon for institutional workflows, Material or Apple conventions for the target mobile platform, editorial layouts for learning, and selective cinematic treatment for portfolios and launches. StyleKit is a source of candidate visual directions; Mobbin is a reference library. External skills and libraries are evaluated when needed, not installed automatically. Keep one coherent identity within each product.
 
-The broader Phoenix UI Playbook is the reusable reference. This contract records its application to LessonPress so future changes do not depend on chat history or a memory feature.
+The broader Phoenix UI Playbook is the reusable reference. This contract records its application to TermQuill so future changes do not depend on chat history or a memory feature.
 
 ## Direction
 
@@ -70,7 +70,7 @@ The school bank derives its catalogue from approved versions already accessible 
 
 The latest user direction supersedes the earlier orbit/studio home hero: closely adapt the layout and choreography of Plainthing Studio’s Verdant Website Animation (Dribbble shot 27820662). The 28.01-second clip was inspected as a motion reference: full-width cinematic hero, oversized lower wordmark, pale sage background, floating central object with glass callouts, staggered feature blocks, a dark green walkthrough, version/workspace rows, translucent values cards, restrained FAQ and oversized footer lettering.
 
-LessonPress uses original generated educational artwork, school-specific content and native DOM/CSS/WAAPI animation. Hero imagery drifts and zooms, the learning garden floats, headlines reveal through line masks, words enter in sequence, and cards stagger on intersection. A passive scroll listener moves only the hero artwork with a bounded transform. There is no scroll hijacking, 3D runtime, external animation dependency, fake usage metric or promise of exact reproduction of pre-rendered 3D footage. Pause motion and device reduced-motion settings disable decorative movement. Content and links stay readable without animation. Working editors, role checks, assessment generation and print styles retain their existing workflow.
+TermQuill uses original generated educational artwork, school-specific content and native DOM/CSS/WAAPI animation. Hero imagery drifts and zooms, the learning garden floats, headlines reveal through line masks, words enter in sequence, and cards stagger on intersection. A passive scroll listener moves only the hero artwork with a bounded transform. There is no scroll hijacking, 3D runtime, external animation dependency, fake usage metric or promise of exact reproduction of pre-rendered 3D footage. Pause motion and device reduced-motion settings disable decorative movement. Content and links stay readable without animation. Working editors, role checks, assessment generation and print styles retain their existing workflow.
 
 Original assets, generated through the built-in image tool:
 - `public/images/learning-landscape.webp`: cinematic open ivory book with curved paper terraces, fine green moss, miniature schoolhouse, forest-green pencil, sage ruler and counting blocks; soft studio daylight, quiet upper-left text area, no embedded text or branding.
@@ -80,7 +80,7 @@ Full generation prompts are preserved in `design/landing-art-prompts.md`. WebP a
 
 ## Class Panel application shell and dashboard (2026-10-19)
 
-The user selected UIX Alii’s Class Panel Dashboard SaaS UI Design Concept (Dribbble shot 26840183) as the primary internal-page reference. Adapt the compact permanent navigation rail, breadcrumb header, modular status cards, tables and clear task hierarchy to LessonPress. Sage/cream surfaces, deep-green selection and original line icons connect the application to its Verdant-inspired landing page. This is an assessment preparation tool, not a school ERP: do not add student, payment or attendance widgets just because the reference has them.
+The user selected UIX Alii’s Class Panel Dashboard SaaS UI Design Concept (Dribbble shot 26840183) as the primary internal-page reference. Adapt the compact permanent navigation rail, breadcrumb header, modular status cards, tables and clear task hierarchy to TermQuill. Sage/cream surfaces, deep-green selection and original line icons connect the application to its Verdant-inspired landing page. This is an assessment preparation tool, not a school ERP: do not add student, payment or attendance widgets just because the reference has them.
 
 The progressive application shell covers the assessment studio, personal drafts, question library, school routes, guide and school directory. The homepage keeps its marketing navigation. Existing school navigation nodes move into the shared rail, retaining permission-scoped school URLs and active states. On narrow screens, a labelled button opens the drawer; closed navigation is inert, Escape restores button focus, and breakpoint changes close it safely. Links remain available through the original header without shell JavaScript. Print removes both shell elements and restores full paper width.
 
@@ -108,3 +108,7 @@ The personal library remains browser-local in this milestone, under per-account 
 The lesson library now saves to a private per-account cloud collection. Browser-note copying and backup import are explicit upload actions; original local notes remain. Show connection state, a refresh control and successful-save acknowledgement. Keep editor text on failures; stable new-note IDs and server versions prevent duplicate retry writes and stale overwrites. Selection is rechecked in the library and builder. Recently removed lessons can be recovered for seven days and count towards limits. No offline-sync claim. Drafts and saved questions remain account-scoped browser storage in this milestone.
 
 The personal dashboard places an educator-access panel before its working tools. A professional request collects teaching context without government IDs or student data. Profile descriptions and email verification never grant educator authority. Independently verified school membership or an operator-reviewed application can unlock tools. Operator exceptions are distinctly labelled, never presented as educator or school verification. Pending users keep public-demo, account and invitation access. Validation asks for corrections, never infers dishonesty from a typo.
+
+## TermQuill identity (2026-10-20)
+
+The user selected TermQuill as the public product name. Use the exact capitalisation TermQuill across navigation, account pages, document UI, privacy copy and help. Tagline: “From what you teach to what you assess.” The deep-green rounded mark combines an ivory T and a sage quill. Keep the existing palette and motion. Technical storage/backup/database identifiers remain stable for compatibility.

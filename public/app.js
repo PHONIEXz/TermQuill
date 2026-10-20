@@ -19,7 +19,7 @@ const page=['/create','/drafts','/guide','/question-bank'].includes(route)?route
 const personal=['create','drafts','question-bank'].includes(page)?await personalContext():{local:emptyStorage,session:emptyStorage};
 const {local:localStorage,session:sessionStorage}=personal;
 document.body.dataset.page=page;
-document.title=({home:'LessonPress | From lesson to assessment',create:'Create assessment | LessonPress',drafts:'My drafts | LessonPress',guide:'How it works | LessonPress','question-bank':'Question bank | LessonPress'})[page];
+document.title=({home:'TermQuill | From what you teach to what you assess',create:'Create assessment | TermQuill',drafts:'My drafts | TermQuill',guide:'How it works | TermQuill','question-bank':'Question bank | TermQuill'})[page];
 for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===page)link.setAttribute('aria-current','page');
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
@@ -89,7 +89,7 @@ function preview() {
     }else if(q.kind==='short'&&q.answerSpace!=='none'&&!hasAnswerSpace(q))section.append(el('div',undefined,'answer-lines'));
     target.append(section);
   });
-  target.append(el('p',`${state.approved?'Teacher review confirmed':'DRAFT · Awaiting teacher review'} · Prepared with LessonPress`,'print-note'));
+  target.append(el('p',`${state.approved?'Teacher review confirmed':'DRAFT · Awaiting teacher review'} · Prepared with TermQuill`,'print-note'));
 }
 function editable(container,label,value,onInput,{multiline=true,max=1200}={}) {
   const id=`field-${crypto.randomUUID()}`,l=el('label',label);l.htmlFor=id;
@@ -191,15 +191,15 @@ $('restore').addEventListener('click',()=>{
 });
 $('clear').textContent='Remove this saved copy';
 $('clear').addEventListener('click',()=>{if(!state?.id){message('This paper has not been saved yet.');return;}if(!confirm('Remove this paper from My drafts? Download a backup first if you want to keep it.'))return;try{deleteDraft(localStorage,state.id);delete state.id;dirty=true;updateReview();message('Saved copy removed. The paper currently open in this tab is unchanged.');}catch{error('Could not remove this saved copy.');}});
-$('download').addEventListener('click',()=>{if(!state)return;const blob=new Blob([JSON.stringify({...state,approved:false},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='lessonpress-assessment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('Editable JSON downloaded. Keep it somewhere private if the notes are sensitive.');});
+$('download').addEventListener('click',()=>{if(!state)return;const blob=new Blob([JSON.stringify({...state,approved:false},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='termquill-assessment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message('Editable JSON downloaded. Keep it somewhere private if the notes are sensitive.');});
 $('about-button').addEventListener('click',()=>$('about').showModal());$('close-about').addEventListener('click',()=>$('about').close());
-window.addEventListener('beforeprint',()=>{if(!state?.approved||mode==='edit'||auditAssessment(state.paper,state.spec).length||[...$('preview').querySelectorAll('img.paper-image')].some(img=>!img.complete||!img.naturalWidth)){$('preview').replaceChildren(el('p','This draft has not been approved for printing. Review it in LessonPress, confirm your review, and choose Student paper or Marking guide.'));}});
+window.addEventListener('beforeprint',()=>{if(!state?.approved||mode==='edit'||auditAssessment(state.paper,state.spec).length||[...$('preview').querySelectorAll('img.paper-image')].some(img=>!img.complete||!img.naturalWidth)){$('preview').replaceChildren(el('p','This draft has not been approved for printing. Review it in TermQuill, confirm your review, and choose Student paper or Marking guide.'));}});
 window.addEventListener('afterprint',()=>{if(state)preview();});
 updateCount();setMode('student');busy(false);
 if(page==='create')fetch('/api/config').then(r=>{if(!r.ok)throw new Error();return r.json();}).then(data=>{config=data;$('access-wrap').hidden=!data.accessRequired;$('connection').textContent=data.configured?'Hosted generation connected. Provider quota and availability apply.':'Generation is not connected yet. Explore the sample to try editing and printing.';busy(false);}).catch(()=>{$('connection').textContent='Could not check generation availability. Refresh to retry. The sample still works.';busy(false);});
 
 function libraryMessage(text,failed=false){$('library-status').textContent=failed?'':text;$('library-error').hidden=!failed;$('library-error').textContent=failed?text:'';}
-function downloadDraft(draft){const blob=new Blob([JSON.stringify({...draft,approved:false},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='lessonpress-assessment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function downloadDraft(draft){const blob=new Blob([JSON.stringify({...draft,approved:false},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='termquill-assessment.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function renderLibrary(){
   if(page!=='drafts')return;
   const container=$('draft-list');container.replaceChildren();
@@ -220,7 +220,7 @@ $('draft-search').addEventListener('input',renderLibrary);
 $('import-button').addEventListener('click',()=>$('import-file').click());
 $('import-file').addEventListener('change',async()=>{
   const file=$('import-file').files?.[0];if(!file)return;
-  try{if(file.size>200000)throw new Error('Choose a LessonPress JSON file smaller than 200 KB.');const value=JSON.parse(await file.text());const draft=validateDraft(value);draft.id=crypto.randomUUID();saveDraft(localStorage,draft);libraryMessage('Draft imported. Open the paper and review it before printing.');renderLibrary();}catch(e){libraryMessage(`Could not import this file. ${e instanceof SyntaxError?'Choose a valid LessonPress JSON export.':e.message}`,true);}finally{$('import-file').value='';}
+  try{if(file.size>200000)throw new Error('Choose a TermQuill JSON file smaller than 200 KB.');const value=JSON.parse(await file.text());const draft=validateDraft(value);draft.id=crypto.randomUUID();saveDraft(localStorage,draft);libraryMessage('Draft imported. Open the paper and review it before printing.');renderLibrary();}catch(e){libraryMessage(`Could not import this file. ${e instanceof SyntaxError?'Choose a valid TermQuill JSON export.':e.message}`,true);}finally{$('import-file').value='';}
 });
 if(page==='drafts')renderLibrary();
 if(page==='create'){

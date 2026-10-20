@@ -43,7 +43,7 @@ Apply migrations in numeric order, once each. Migration 002 runs transactionally
 
 ## Dependencies still outstanding
 
-No transactional email sender or custom LessonPress domain is configured. Signup remains restricted by Supabase's existing email delivery. Invitation links are still shared manually. Do not advertise automatic invitation emails or working password recovery.
+No transactional email sender or custom TermQuill domain is configured. Signup remains restricted by Supabase's existing email delivery. Invitation links are still shared manually. Do not advertise automatic invitation emails or working password recovery.
 
 Complete email-provider provisioning and sender-domain verification first, configure Supabase SMTP and allowed redirects, then implement and verify recovery using provider-supported PKCE or token-hash flows. Do not weaken email confirmation or place recovery tokens in logs. Test expired/reused links and a real mailbox before announcing delivery.
 

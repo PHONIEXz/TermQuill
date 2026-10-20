@@ -15,7 +15,7 @@ Implemented routes: `/school/location` and `/find-schools`.
 
 - Device location may come from GPS, Wi-Fi or other signals and can be wrong. Save only a checked school point, not someone's home. Accuracy and rounded public points make distance estimates approximate.
 - Nearby cards show straight-line distance among loaded directory records, not driving routes or a guarantee that the globally closest result loaded first. Load more is explicit.
-- This is an opt-in LessonPress directory, not an external catalogue of all schools. An empty result is expected before schools verify and choose to publish. Do not seed a real institution's location or auto-publish a school to populate the interface.
+- This is an opt-in TermQuill directory, not an external catalogue of all schools. An empty result is expected before schools verify and choose to publish. Do not seed a real institution's location or auto-publish a school to populate the interface.
 - Rounded public points remain identifiable school locations. School administrators must have authority to publish them. Turning listing off removes active results but cannot recall third-party copies.
 - No continuous tracking, student/staff attendance, automated school verification, location-based access enforcement, location history or sending GPS to AI was implemented.
 - Public directory request limiting is per-instance and bounded; broader durable abuse controls remain separate work.

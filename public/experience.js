@@ -1,4 +1,4 @@
-// Original LessonPress interactions. Design references are recorded in design/DESIGN.md.
+// Original TermQuill interactions. Design references are recorded in design/DESIGN.md.
 const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
 let paused = false;
 const header = document.querySelector('.topbar');

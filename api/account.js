@@ -9,7 +9,7 @@ export default async function account(req,res){
    try{const {user,client:scoped}=await signedIn(req,res,client);return json(res,200,{user:publicUser(user),educator:await educatorStatus(scoped)});}catch(e){if(e.status===401)return json(res,200,{user:null});throw e;}
   }
   if(req.method!=='POST')return json(res,405,{error:'Use GET or POST.'});
-  if(!sameOrigin(req))return json(res,403,{error:'Open LessonPress and try again.'});
+  if(!sameOrigin(req))return json(res,403,{error:'Open TermQuill and try again.'});
   if(!allow(req.headers['x-forwarded-for']?.split(',')[0]||req.socket?.remoteAddress||'local'))return json(res,429,{error:'Too many attempts. Wait ten minutes before retrying.'});
   const body=await readBody(req);
   if(body.action==='logout'){

@@ -1,4 +1,4 @@
-# LessonPress
+# TermQuill
 
 **From lesson notes to a paper you can stand behind.**
 
@@ -8,7 +8,7 @@ UI direction and future design rules: [design/DESIGN.md](design/DESIGN.md). The 
 
 Created by **Paul Ayoade David** for private tutors and classroom teachers. This new project began on October 16, 2026 for DEV's Hacktoberfest Week 2: Side Hustle challenge. Phoenix Offline AI is a separate, paused project.
 
-LessonPress turns teacher-supplied notes into an editable assessment and separate marking guide. Each generated question includes a verbatim supporting quote. Deterministic checks validate question counts, formats, expected answers, duplicates and marking totals. The teacher reviews the content before printing. It is a draft assistant, not a factual certification tool.
+TermQuill turns teacher-supplied notes into an editable assessment and separate marking guide. Each generated question includes a verbatim supporting quote. Deterministic checks validate question counts, formats, expected answers, duplicates and marking totals. The teacher reviews the content before printing. It is a draft assistant, not a factual certification tool.
 
 ## What works in this pilot
 
@@ -103,7 +103,7 @@ Accounts require email verification and a password of at least 12 characters. Th
 
 A principal creates a school, departments and email-bound invitation links for teachers or department heads. Invitations expire after seven days, are single use and can be revoked. The app displays a link for the principal to share; it does not send invitations. School creation does not verify institutional ownership. Principals request an independent check on School trust & activity; only the platform operator can record a decision after checking school identity and authority. New invitations require verification, with a persistent database limit of 20 per school per hour. Existing invitations retain their prior validity rules. One account can create at most three schools in this pilot.
 
-Use **Send to school** from the assessment builder, or import a LessonPress JSON file in the department library. This explicitly uploads the questions and source notes to Supabase. Personal drafts remain in browser storage. School staff must avoid student records and confidential live exam material during the pilot. Removing a member removes workspace access but preserves their school papers and audit records.
+Use **Send to school** from the assessment builder, or import a TermQuill JSON file in the department library. This explicitly uploads the questions and source notes to Supabase. Personal drafts remain in browser storage. School staff must avoid student records and confidential live exam material during the pilot. Removing a member removes workspace access but preserves their school papers and audit records.
 
 Permissions are checked in the database on every call, from verified Supabase user identity and current membership, never client role metadata. Principals oversee all school departments; department heads review their own department; teachers can edit their own papers and read the approved copy of their department's other papers. Direct table access is revoked; RLS is enabled without permissive table policies. A public invoker RPC wraps the guarded private-schema function with an empty search path. Anonymous callers cannot execute it. The private schema must not be added to Supabase's exposed schemas.
 
@@ -202,3 +202,7 @@ Apply migrations 004 and 005 after 001–003. `lp_personal_lessons` derives owne
 Educator access is independent of profile occupation and email verification. `lp_educator` accepts requests and returns only the current user's status. Verified membership of an independently verified school grants access; independent educators require manual review. `lessonpress.review_educator` is callable only by the database owner/service role and records a review history. Operators must independently check professional context before approval; form accuracy alone proves nothing. No automatic school email or review notification is sent. Corrections are allowed; there is no typo-based dishonesty classifier.
 
 A separately approved `app_operators` record provides owner testing access, without certifying professional or institutional status. Never seed one automatically from self-declared roles. The existing owner's proposed exception requires explicit approval; it has not been granted by this change. Normal accounts cannot write their own approvals or operator records. Both page/API checks and database RPC gates enforce access. Pending users can open their account, use the public demo and accept an invitation. Private personal notes are not visible to school managers through the application.
+
+## Brand identity
+
+The product is **TermQuill**: “From what you teach to what you assess.” Renamed from LessonPress on 20 October 2026. The existing GitHub repository, deployment address, environment variable names, database schema, browser storage keys, event names and backup identifiers remain compatible. They are implementation identifiers, not the public product name. Existing backups and saved work do not need conversion. No new domain has been purchased or connected.

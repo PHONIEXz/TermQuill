@@ -1,9 +1,11 @@
+import {mountEducatorPanel} from '/educator-panel.js';
 import {personalContext,accountRequest} from '/account-session.js';
 import {OCCUPATIONS} from '/identity.js';
 import {legacySummary,importLegacy} from '/personal-import.js';
 const context=await personalContext(),$=id=>document.getElementById(id),node=(tag,text,cls)=>{const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e;};let user=context.user;
 $('workspace-account-email').textContent='Signed in as '+user.email;
 function name(){const label=user.displayName||'Your';$('workspace-title').textContent=user.displayName?`${label}’s workspace`:'Your personal workspace.';$('workspace-subtitle').textContent=`${OCCUPATIONS[user.occupation]||'Personal account'} · A space for your own teaching work.`;$('profile-name').value=user.displayName;$('profile-occupation').value=user.occupation||'teacher';}name();
+mountEducatorPanel(context);
 function fail(message){$('workspace-error').textContent=message;$('workspace-error').hidden=!message;}
 $('workspace-logout').addEventListener('click',async()=>{try{await accountRequest({action:'logout'});location.replace('/login');}catch(e){fail(e.message);}});
 $('profile-form').addEventListener('submit',async e=>{e.preventDefault();const button=e.currentTarget.querySelector('button');button.disabled=true;try{const out=await accountRequest({action:'profile',displayName:$('profile-name').value,occupation:$('profile-occupation').value});user=out.user;name();window.dispatchEvent(new CustomEvent('lessonpress:account',{detail:user}));$('workspace-status').textContent='Profile saved. School permissions are unchanged.';fail('');}catch(e){fail(e.message);}finally{button.disabled=false;}});

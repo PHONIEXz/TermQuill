@@ -14,7 +14,7 @@ test('serves UI and browser modules, never source secrets or package files',asyn
   assert.equal((await fetch(base+'/drafts.js')).status,200);
   const privacy=await fetch(base+'/privacy');assert.equal(privacy.status,200);assert.match(await privacy.text(),/Privacy, in plain language/);assert.equal((await fetch(base+'/landing.css')).status,200);
   const font=await fetch(base+'/fonts/InterVariable-5a8d3e72.woff2');assert.equal(font.status,200);assert.equal(font.headers.get('content-type'),'font/woff2');assert.equal(Buffer.from(await font.arrayBuffer()).subarray(0,4).toString(),'wOF2');
-  for(const path of ['/login','/signup','/demo','/lessons.js','/lessons-page.js','/lessons.css','/app-shell.js','/app-shell.css','/find-schools','/places.js','/places.css','/location.js','/school/location','/workspace.css','/navigation.js','/experience.js'])assert.equal((await fetch(base+path)).status,200);
+  for(const path of ['/login','/signup','/demo','/educator.js','/educator-panel.js','/cloud-lessons.js','/lessons.js','/lessons-page.js','/lessons.css','/app-shell.js','/app-shell.css','/find-schools','/places.js','/places.css','/location.js','/school/location','/workspace.css','/navigation.js','/experience.js'])assert.equal((await fetch(base+path)).status,200);
   for(const path of ['/.env','/package.json','/lib/generator.js'])assert.equal((await fetch(base+path)).status,404);
   for(const path of ['/workspace','/create','/drafts','/lessons','/question-bank']){const response=await fetch(base+path,{redirect:'manual'});assert.equal(response.status,303);assert.match(response.headers.get('location'),/^\/login\?next=/);}
   const config=await(await fetch(base+'/api/config')).json();assert.equal('key' in config,false);

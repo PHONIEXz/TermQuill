@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {JSDOM} from 'jsdom';
 
-const script = await readFile(new URL('../public/navigation.js', import.meta.url), 'utf8');
+const script = (await readFile(new URL('../public/navigation.js', import.meta.url), 'utf8')).replace(/^import .*;\n/gm,'');
 
 test('compact navigation opens, closes with Escape, and restores toggle focus', () => {
   const dom = new JSDOM('<header class="topbar"><a class="brand" href="/">LessonPress</a><nav aria-label="Main navigation"><a href="/create">Create assessment</a></nav></header>', {runScripts:'outside-only'});
@@ -47,3 +47,5 @@ test('every page loads the shared navigation and presentation assets', async () 
     } finally {dom.window.close();}
   }
 });
+
+test('signed-in navigation replaces the sign-in link with the account workspace',async()=>{const dom=new JSDOM('<header class="topbar"><nav><a href="/login" data-nav="login">Sign in</a></nav></header>',{url:'https://lessonpress.test/',runScripts:'outside-only'});try{dom.window.getAccount=async()=>({id:'teacher'});dom.window.eval(script);await new Promise(r=>setTimeout(r,0));const link=dom.window.document.querySelector('[data-nav=login]');assert.equal(link.textContent,'My account');assert.equal(link.getAttribute('href'),'/workspace');}finally{dom.window.close();}});

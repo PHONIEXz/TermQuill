@@ -10,14 +10,15 @@ import { auditAssessment,validateRequest,parseModelOutput } from '../lib/assessm
 import {readDrafts,saveDraft,deleteDraft,validateDraft,DRAFTS_KEY} from '../lib/drafts.js';
 const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
 const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
-async function setup(generate,route="/create",seed,lessonSeed) {
+async function setup(generate,route="/create",seed,lessonSeed,cloudActual) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
   Object.assign(w,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
   installVisuals(w);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
   if(seed)w.localStorage.setItem(DRAFTS_KEY,JSON.stringify(seed));
-  if(lessonSeed){writeLessons(w.localStorage,lessonSeed);w.sessionStorage.setItem(LESSON_TRANSFER_KEY,JSON.stringify({version:1,ids:lessonSeed.map(x=>x.id),assessmentMode:'test'}));}
+  if(lessonSeed){writeLessons(w.localStorage,lessonSeed);w.sessionStorage.setItem(LESSON_TRANSFER_KEY,JSON.stringify({version:1,ids:lessonSeed.map(x=>x.id),assessmentMode:'test',...(cloudActual?{storage:'cloud',versions:lessonSeed.map(x=>[x.id,x.version])}:{})}));}
+  w.cloudLessons=()=>({list:async()=>({items:cloudActual})});
   w.personalContext=async()=>({user:{id:'test-user'},local:w.localStorage,session:w.sessionStorage});w.emptyStorage={getItem:()=>null};await w.eval(`(async()=>{${script}})()`);await new Promise(r=>setTimeout(r,0));
   return {dom,w,$:id=>w.document.getElementById(id)};
 }
@@ -205,3 +206,6 @@ test('selected term lessons hand off together without generating automatically o
  const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({paper:samplePaper,model:'mock'})};},'/create?lessons=1',undefined,notes);
  try{assert.equal(sent,undefined);assert.match($('notes').value,/LESSON: Topic 1/);assert.match($('notes').value,/LESSON: Topic 2/);assert.match($('notes').value,/2026\/2027/);assert.match($('live-status').textContent,/2 saved lessons loaded/);assert.equal(w.sessionStorage.getItem(LESSON_TRANSFER_KEY),null);$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,15));assert.match(sent.notes,/Topic 2/);assert.equal(readLessons(w.localStorage).length,2);$('tab-student').click();assert.match($('preview').textContent,/First term/);}finally{dom.window.close();}
 });
+
+
+test('cloud lesson selection checks saved versions again before loading assessment sources',async()=>{const notes=[{...validateLesson({year:'2026/2027',level:'SS1',subject:'Chemistry',term:'1',week:1,topic:'Cloud elements',body:sampleSpec.notes}),version:1}];let result=await setup(undefined,'/create?lessons=1',undefined,notes,notes);try{assert.match(result.$('notes').value,/Cloud elements/);assert.match(result.$('live-status').textContent,/1 saved lessons loaded/);assert.equal(result.w.sessionStorage.getItem(LESSON_TRANSFER_KEY),null);}finally{result.dom.window.close();}result=await setup(undefined,'/create?lessons=1',undefined,notes,[{...notes[0],version:2}]);try{assert.match(result.$('error').textContent,/cloud lessons changed/);assert.ok(result.w.sessionStorage.getItem(LESSON_TRANSFER_KEY));assert.equal(result.$('notes').value,'');}finally{result.dom.window.close();}});

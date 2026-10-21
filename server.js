@@ -1,3 +1,4 @@
+import media from './api/media.js';
 import access from './api/access.js';
 import educator from './api/educator.js';
 import lessons from './api/lessons.js';
@@ -13,15 +14,16 @@ import school from './api/school.js';
 import { securityHeaders, json } from './lib/http.js';
 const routes = new Map([
  ...['login','signup','workspace','demo','access'].flatMap(name=>[[`/${name}`,`public/${name}.html`],[`/${name}.html`,`public/${name}.html`]]),...['account-session.js','account-page.js','workspace-page.js','demo-page.js','account.css'].map(name=>['/'+name,'public/'+name]),
- ['/access-page.js','public/access-page.js'],['/access.css','public/access.css'],['/educator-panel.js','public/educator-panel.js'],['/cloud-lessons.js','public/cloud-lessons.js'],['/lessons','public/lessons.html'],['/lessons-page.js','public/lessons-page.js'],['/lessons.css','public/lessons.css'],['/app-shell.js','public/app-shell.js'],['/app-shell.css','public/app-shell.css'],['/verdant.css','public/verdant.css'],
+ ['/media-picker.js','public/media-picker.js'],['/access-page.js','public/access-page.js'],['/access.css','public/access.css'],['/educator-panel.js','public/educator-panel.js'],['/cloud-lessons.js','public/cloud-lessons.js'],['/lessons','public/lessons.html'],['/lessons-page.js','public/lessons-page.js'],['/lessons.css','public/lessons.css'],['/app-shell.js','public/app-shell.js'],['/app-shell.css','public/app-shell.css'],['/verdant.css','public/verdant.css'],
   ...['/school','/school/bank','/school/library','/school/reviews','/school/team','/school/paper','/school/trust','/school/location'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
   ['/find-schools','public/find-schools.html'],['/places.js','public/places.js'],['/places.css','public/places.css'],['/location.js','lib/location.js'],
   ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/question-bank','public/index.html'],['/bank-page.js','public/bank-page.js'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],['/workspace.css','public/workspace.css'],['/navigation.js','public/navigation.js'],['/experience.js','public/experience.js'],['/fonts/InterVariable-5a8d3e72.woff2','public/fonts/InterVariable-5a8d3e72.woff2'],['/fonts/Inter-OFL.txt','public/fonts/Inter-OFL.txt'],
-  ...['educator','identity','personal-import','visuals','early-years','bank','references','review','lessons'].map(name=>[`/${name}.js`,`lib/${name}.js`]),...['paper-blocks.js','paper-blocks.css','visual-editor.js','reference-picker.js','school-review.js','school-bank-view.js'].map(name=>[`/${name}`,`public/${name}`]),
+  ...['lesson-examples','educator','identity','personal-import','visuals','early-years','bank','references','review','lessons'].map(name=>[`/${name}.js`,`lib/${name}.js`]),...['paper-blocks.js','paper-blocks.css','visual-editor.js','reference-picker.js','school-review.js','school-bank-view.js'].map(name=>[`/${name}`,`public/${name}`]),
   ['/assessment.js','lib/assessment.js'],['/drafts.js','lib/drafts.js'],['/sample.js','lib/sample.js'],['/favicon.svg','public/favicon.svg']
 ]);
 export const server = http.createServer(async (req,res) => {
   const path = new URL(req.url,'http://localhost').pathname.replace(/\/$/,'')||'/';
+  if (path === '/api/media') return media(req,res);
   if (path === '/api/access') return access(req,res);
   if (path === '/api/educator') return educator(req,res);
   if (path === '/api/lessons') return lessons(req,res);

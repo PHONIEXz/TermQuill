@@ -120,3 +120,7 @@ Add a clearly labelled source choice distinct from supplied notes and saved note
 ## Creator reviews and staff discovery (2026-10-21)
 
 The signed-in Access & requests page remains reachable before educator approval. It uses the shared sage/cream shell, readable form cards and separate creator-only review queues for educators, school identity and staff membership. All claims are plain text; school registration and identity verification are visibly distinct. Require a meaningful decision reason, preserve forms on errors, and present pending/clarification/approved states honestly. The creator role never certifies the creator’s educator identity. No self-approval. Registered schools explicitly opt into signed-in discovery of names and departments; the public location map remains separate. Staff requests grant teacher role in a verified school and specified department only after review. Personal lesson contents never appear in these queues.
+
+## Education-stage defaults (2026-10-21)
+
+Changing Education stage applies an editable starting class/course, paper style, question format, thinking level, marks per question and stage-specific Exam/Test count and duration. Stock subject/title examples follow the stage while teacher-written alternatives remain. Retain notes, topic/custom instructions, logos and the current preview paper. Announce what changed and ask the teacher to check retained source suitability; these defaults are not curriculum requirements. Restoring saved papers does not reapply presets.

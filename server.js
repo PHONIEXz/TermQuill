@@ -1,3 +1,4 @@
+import access from './api/access.js';
 import educator from './api/educator.js';
 import lessons from './api/lessons.js';
 import {authorizePage} from './lib/page-access.js';
@@ -11,8 +12,8 @@ import places from './api/places.js';
 import school from './api/school.js';
 import { securityHeaders, json } from './lib/http.js';
 const routes = new Map([
- ...['login','signup','workspace','demo'].flatMap(name=>[[`/${name}`,`public/${name}.html`],[`/${name}.html`,`public/${name}.html`]]),...['account-session.js','account-page.js','workspace-page.js','demo-page.js','account.css'].map(name=>['/'+name,'public/'+name]),
- ['/educator-panel.js','public/educator-panel.js'],['/cloud-lessons.js','public/cloud-lessons.js'],['/lessons','public/lessons.html'],['/lessons-page.js','public/lessons-page.js'],['/lessons.css','public/lessons.css'],['/app-shell.js','public/app-shell.js'],['/app-shell.css','public/app-shell.css'],['/verdant.css','public/verdant.css'],
+ ...['login','signup','workspace','demo','access'].flatMap(name=>[[`/${name}`,`public/${name}.html`],[`/${name}.html`,`public/${name}.html`]]),...['account-session.js','account-page.js','workspace-page.js','demo-page.js','account.css'].map(name=>['/'+name,'public/'+name]),
+ ['/access-page.js','public/access-page.js'],['/access.css','public/access.css'],['/educator-panel.js','public/educator-panel.js'],['/cloud-lessons.js','public/cloud-lessons.js'],['/lessons','public/lessons.html'],['/lessons-page.js','public/lessons-page.js'],['/lessons.css','public/lessons.css'],['/app-shell.js','public/app-shell.js'],['/app-shell.css','public/app-shell.css'],['/verdant.css','public/verdant.css'],
   ...['/school','/school/bank','/school/library','/school/reviews','/school/team','/school/paper','/school/trust','/school/location'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
   ['/find-schools','public/find-schools.html'],['/places.js','public/places.js'],['/places.css','public/places.css'],['/location.js','lib/location.js'],
   ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/question-bank','public/index.html'],['/bank-page.js','public/bank-page.js'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],['/workspace.css','public/workspace.css'],['/navigation.js','public/navigation.js'],['/experience.js','public/experience.js'],['/fonts/InterVariable-5a8d3e72.woff2','public/fonts/InterVariable-5a8d3e72.woff2'],['/fonts/Inter-OFL.txt','public/fonts/Inter-OFL.txt'],
@@ -21,6 +22,7 @@ const routes = new Map([
 ]);
 export const server = http.createServer(async (req,res) => {
   const path = new URL(req.url,'http://localhost').pathname.replace(/\/$/,'')||'/';
+  if (path === '/api/access') return access(req,res);
   if (path === '/api/educator') return educator(req,res);
   if (path === '/api/lessons') return lessons(req,res);
   if (path === '/api/generate') return generate(req,res);

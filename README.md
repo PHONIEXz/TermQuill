@@ -216,3 +216,13 @@ Draft/import/bank/school round trips preserve per-question topic provenance, inc
 ### TermQuill infrastructure (2026-10-21)
 
 Canonical site: https://termquill.vercel.app/. Repository: https://github.com/PHONIEXz/TermQuill. Vercel project: `termquill`. Supabase display name: `TermQuill`; existing project reference, database schema and browser backup identifiers stay stable. Exact old and new `/school` confirmation destinations remain allowed; no wildcard redirects. The old hostname remains available to export personal browser-local drafts and question-bank backups before importing on the new hostname. Cloud lessons use the same account after signing in again. No automatic cross-origin storage transfer.
+
+## Creator reviews and school staff requests
+
+Open `/access` after verified sign-in. The creator’s account is provisioned by a database operator record tied to a verified Auth user ID, never by user-editable metadata, a profile occupation or an email value sent by the browser. There is no endpoint to grant operator privileges. Bootstrap provisioning is a separate explicit owner-authorised operation, outside migrations.
+
+Creator queues cover pending educator requests, school identity checks and teacher membership requests, with written reasons and an append-only decision ledger. SQL checks creator authorization on every queue, history and decision call; self-review and stale decisions fail. No personal lesson contents are included. No notification email is automatically sent. Applicants refresh My workspace / Access & requests to see outcomes. The dashboard displays the latest 50 decisions; full history remains stored. Pending queues and school search support keyset pagination.
+
+School administrators explicitly enable name/department discovery in `/access`. This is separate from the public opt-in school-location map. A teacher first submits an educator profile, searches a discoverable registered school and sends affiliation details for manual review. School registration is not identity verification. Approving membership requires a verified school, an active applicant without revoked educator access, and a department in the same school. It grants teacher membership only, never principal or department-head authority. Existing memberships are not upgraded. Schools without departments must finish their team setup first.
+
+Migration: `supabase/migrations/20261021041851_creator_reviews_school_requests.sql` follows existing `migrations/001`–`005` in this repository. Fresh setups must apply those baseline migrations first. Existing database resource IDs and private schema names remain compatible.

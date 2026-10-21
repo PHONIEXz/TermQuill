@@ -95,3 +95,15 @@ test('unrepaired marking totals stay rejected with a specific user-facing explan
  const bad=copy();bad.questions[3].marking=[{point:'Creditworthy criterion',marks:1}];let calls=0;
  await assert.rejects(generateAssessment(sampleSpec,{key:'test',generate:async()=>{calls++;return{text:JSON.stringify(bad)};}}),e=>e.code==='ASSESSMENT_VALIDATION'&&/Marking criteria or totals need correction in Q4/.test(e.message)&&/Expected 2; found 1/.test(e.validationChecks));assert.equal(calls,2);
 });
+
+test('rubric-only repair edits marking fields only and preserves every question, answer and source',async()=>{
+ const bad=copy();bad.questions[3].marking=[{point:'One fact',marks:1}];let calls=0;
+ const result=await generateAssessment(sampleSpec,{key:'test',generate:async({prompt})=>{calls++;if(calls===1)return{text:JSON.stringify(bad)};assert.match(prompt,/Repair ONLY the marking rubrics/);assert.match(prompt,/"question":4/);const patch=copy();patch.questions[0].prompt='An unwanted replacement';patch.questions[0].answer='An unsupported unrelated change';return{text:JSON.stringify(patch)};}});
+ assert.equal(calls,2);assert.deepEqual(result.paper,samplePaper);
+});
+test('targeted rubric patch has exact question identities and still rejects incorrect sums',async()=>{
+ const bad=copy();bad.questions[3].marking=[{point:'One fact',marks:1}];
+ for(const repairs of [[{question:5,marking:samplePaper.questions[3].marking}],[],[{question:4,marking:[{point:'Fact',marks:3}]}]]){let calls=0;await assert.rejects(generateAssessment(sampleSpec,{key:'test',generate:async()=>({text:JSON.stringify(++calls===1?bad:{repairs})})}),e=>e.code==='ASSESSMENT_VALIDATION');assert.equal(calls,2);}
+ let changedCalls=0;const changed=copy();changed.questions[3].answer='A different answer';await assert.rejects(generateAssessment(sampleSpec,{key:'test',generate:async()=>({text:JSON.stringify(++changedCalls===1?bad:changed)})}),e=>e.code==='ASSESSMENT_VALIDATION');
+ let calls=0;const out=await generateAssessment(sampleSpec,{key:'test',generate:async()=>({text:JSON.stringify(++calls===1?bad:{repairs:[{question:4,marking:samplePaper.questions[3].marking}]})})});assert.deepEqual(out.paper,samplePaper);
+});

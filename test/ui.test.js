@@ -246,3 +246,18 @@ test('education stage changes apply coherent defaults, preserve written work and
  }finally{dom.window.close();}});
 
 test('visual task controls, object search and stage lesson examples feed the actual request',async()=>{let sent;const {dom,w,$}=await setup(async(url,opts)=>{sent=JSON.parse(opts.body);return {ok:false,json:async()=>({error:'Test stops before model generation.'})};});try{$('educationStage').value='early';$('educationStage').dispatchEvent(new w.Event('change'));assert.equal(w.document.querySelectorAll('[name="visualTask"]:checked').length,5);$('stage-lesson-example').click();assert.equal($('level').value,'Kindergarten');assert.match($('notes').value,/Counting: one apple/);assert.equal($('source-mode').value,'notes');$('visual-object-search').value='car';$('visual-object-search').dispatchEvent(new w.Event('input'));const car=w.document.querySelector('[name="visualObject"][value="car"]');assert.equal(car.parentElement.hidden,false);assert.equal(w.document.querySelector('[name="visualObject"][value="apple"]').parentElement.hidden,true);car.checked=true;car.dispatchEvent(new w.Event('change'));$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent.visualTasks.length,5);assert.deepEqual(sent.visualObjects,['car']);assert.equal(sent.format,'short');assert.equal(sent.visualTask,undefined);$('educationStage').value='postgraduate';$('educationStage').dispatchEvent(new w.Event('change'));$('stage-lesson-example').click();assert.match($('notes').value,/No standard deviations/);assert.equal($('level').value,'Postgraduate');assert.equal(w.document.querySelectorAll('[name="visualTask"]:checked').length,1);}finally{dom.window.close();}});
+
+test('format cards and visual task choices stay compatible in either order and reach generation',async()=>{
+ let sent;const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return{ok:false,json:async()=>({error:'Stop after validating the request.'})};});
+ try{
+  $('educationStage').value='early';$('educationStage').dispatchEvent(new w.Event('change'));$('stage-lesson-example').click();
+  const notes=$('notes').value,choose=value=>w.document.querySelector(`[data-format="${value}"]`).click();
+  for(const format of ['mixed','mcq']){
+   choose(format);assert.equal(w.document.querySelectorAll('[name="visualTask"]:checked').length,0);assert.match($('visual-format-status').textContent,/Picture tasks cleared/);
+   $('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent.format,format);assert.deepEqual(sent.visualTasks,[]);
+   const task=w.document.querySelector('[name="visualTask"][value="counting"]');task.checked=true;task.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal($('format').value,'short');assert.equal(w.document.querySelector('[data-format="short"]').getAttribute('aria-pressed'),'true');
+  }
+  choose('custom');$('formatInstructions').value='Include counting pictures followed by a written explanation.';const task=w.document.querySelector('[name="visualTask"][value="matching"]');task.checked=true;task.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal($('format').value,'custom');assert.match($('formatInstructions').value,/counting pictures/);
+  $('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent.format,'custom');assert.deepEqual(sent.visualTasks,['counting','matching']);assert.equal($('notes').value,notes);
+ }finally{dom.window.close();}
+});

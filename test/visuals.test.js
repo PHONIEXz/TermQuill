@@ -51,3 +51,18 @@ test('generated matching tasks shuffle aligned rows while teacher-saved order st
  const saved=parseModelOutput(JSON.stringify(early.paper),early.spec);assert.deepEqual(saved.questions[1].blocks[0].order,[0,1,2]);
  const generated=parseModelOutput(JSON.stringify(early.paper),early.spec,{generated:true});assert.deepEqual(generated.questions[1].blocks[0].order,[1,2,0]);assert.match(generated.questions[1].answer,/1–C: Circle = Round/);assert.deepEqual(auditAssessment(generated,early.spec),[]);
 });
+
+test('header layout survives draft round trips and rejects unsafe positions and sizes',()=>{
+ const draft=structuredClone({spec:sampleSpec,paper:samplePaper});draft.paper.layout={preset:'standard',schoolName:'Example school',term:'First term',header:{align:'left',logoAlign:'right',logoSize:28,gap:6,order:['title','school','term']}};
+ const saved=validateDraft(JSON.parse(JSON.stringify(draft)));assert.deepEqual(saved.paper.layout,draft.paper.layout);
+ for(const patch of [{logoSize:100},{gap:-1},{align:'absolute'},{order:['school','school','title']}])assert.throws(()=>validateDraft({...draft,paper:{...draft.paper,layout:{...draft.paper.layout,header:{...draft.paper.layout.header,...patch}}}}));
+});
+test('header designer moves rows, previews changes, undoes and resets without replacing paper content',()=>{
+ const dom=new JSDOM('<div id="editor"></div><article id="paper"></article>',{runScripts:'outside-only'}),w=dom.window;w.structuredClone=structuredClone;installVisuals(w);const paper=structuredClone(samplePaper);let changes=0;w.layoutEditor(w.document.querySelector('#editor'),paper,()=>changes++,{includeLogo:false});
+ const byLabel=label=>{const l=[...w.document.querySelectorAll('label')].find(l=>l.textContent===label);return w.document.getElementById(l.htmlFor);};
+ const select=byLabel('Header alignment');select.value='left';select.dispatchEvent(new w.Event('change'));assert.equal(paper.layout.header.align,'left');assert.equal(w.document.querySelector('.header-layout-sample').style.textAlign,'left');
+ [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Move Assessment title up').click();assert.deepEqual([...paper.layout.header.order],['school','title','term']);
+ [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Undo layout change').click();assert.deepEqual([...paper.layout.header.order],['school','term','title']);assert.equal(paper.layout.header.align,'left');
+ [...w.document.querySelectorAll('button')].find(b=>b.textContent==='Reset header layout').click();assert.equal(paper.layout.header.align,'center');assert.equal(paper.questions.length,samplePaper.questions.length);assert.equal(changes,4);
+ w.applyPaperLayout(w.document.querySelector('#paper'),{header:{align:'right',logoAlign:'left',logoSize:30,gap:8,order:['title','term','school']}});assert.equal(w.document.querySelector('#paper').style.getPropertyValue('--logo-size'),'30mm');assert.equal(w.document.querySelector('#paper').style.getPropertyValue('--order-title'),'1');dom.window.close();
+});

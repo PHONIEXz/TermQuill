@@ -107,3 +107,19 @@ test('targeted rubric patch has exact question identities and still rejects inco
  let changedCalls=0;const changed=copy();changed.questions[3].answer='A different answer';await assert.rejects(generateAssessment(sampleSpec,{key:'test',generate:async()=>({text:JSON.stringify(++changedCalls===1?bad:changed)})}),e=>e.code==='ASSESSMENT_VALIDATION');
  let calls=0;const out=await generateAssessment(sampleSpec,{key:'test',generate:async()=>({text:JSON.stringify(++calls===1?bad:{repairs:[{question:4,marking:samplePaper.questions[3].marking}]})})});assert.deepEqual(out.paper,samplePaper);
 });
+
+test('generated tables cannot require more independent responses than their whole-mark budget',()=>{
+ const bad=copy();bad.questions[3].blocks=[{type:'table',headers:['Element','Symbol'],rows:[['Iron',''],['Copper',' '],['Oxygen','']]}];
+ for(const spec of [sampleSpec,{...sampleSpec,sourceMode:'topic',topic:'Chemical symbols'}]){
+  const paper=structuredClone(bad);if(spec.sourceMode==='topic')for(const q of paper.questions)q.rationale='A teacher can check the chemical symbols.';
+  assert.throws(()=>parseModelOutput(JSON.stringify(paper),spec,{generated:true}),/3 blank cells for 2 marks/);
+ }
+ assert.doesNotThrow(()=>parseModelOutput(JSON.stringify(bad),sampleSpec));
+ bad.questions[3].blocks[0].rows.pop();assert.doesNotThrow(()=>parseModelOutput(JSON.stringify(bad),sampleSpec,{generated:true}));
+ bad.questions[3].blocks.push({type:'table',headers:['Element','Symbol'],rows:[['Oxygen','']]});assert.throws(()=>parseModelOutput(JSON.stringify(bad),sampleSpec,{generated:true}),/3 blank cells for 2 marks/);
+});
+test('table task-budget repair regenerates the question and answer rather than patching its rubric',async()=>{
+ const bad=copy();bad.questions[3].blocks=[{type:'table',headers:['Element','Symbol'],rows:[['Iron',''],['Copper',''],['Oxygen','']]}];let calls=0;
+ const result=await generateAssessment(sampleSpec,{key:'test',generate:async({prompt})=>{calls++;if(calls===1)return{text:JSON.stringify(bad)};assert.match(prompt,/Reduce the required blanks/);assert.doesNotMatch(prompt,/Repair ONLY the marking rubrics/);return{text:JSON.stringify(copy())};}});
+ assert.equal(calls,2);assert.deepEqual(result.paper,samplePaper);
+});

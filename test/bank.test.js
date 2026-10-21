@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {saveBankQuestion,readBank,writeBank,validateBank,assemblePaper,BANK_KEY} from '../lib/bank.js';
+import {saveBankQuestion,saveBankQuestions,readBank,writeBank,validateBank,assemblePaper,BANK_KEY} from '../lib/bank.js';
 import {earlyYearsSample} from '../lib/early-years.js';
 import {validateDraft} from '../lib/drafts.js';
 import {paperTotal} from '../lib/visuals.js';
@@ -24,3 +24,5 @@ test('assembling creates an unreviewed paper, preserves order and rejects mixed 
 test('bank import and storage writes are bounded and atomic',()=>{
  const s=storage(),d=earlyYearsSample();saveBankQuestion(s,d,0,{topic:'Counting'});const before=s.getItem(BANK_KEY),items=readBank(s),backup={version:1,items};assert.deepEqual(validateBank(JSON.parse(JSON.stringify(backup))),items);assert.throws(()=>writeBank(s,[...items,...items]),/Duplicate/);assert.equal(s.getItem(BANK_KEY),before);assert.throws(()=>validateBank({version:9,items}),/backup/);assert.throws(()=>writeBank(s,Array.from({length:51},()=>items[0])),/50/);
 });
+
+test('saving a selection is atomic, skips duplicates and keeps source content',()=>{const s=storage(),d=earlyYearsSample();let result=saveBankQuestions(s,d,[0,1],{topic:'Early learning'});assert.equal(result.saved,2);assert.equal(readBank(s).length,2);result=saveBankQuestions(s,d,[0,1,2],{topic:'Early learning'});assert.deepEqual(result,{saved:1,skipped:2});const before=s.getItem(BANK_KEY);assert.throws(()=>saveBankQuestions(s,d,[],{topic:'Early learning'}));const broken=structuredClone(d);broken.paper.questions[3].evidence='This was never taught.';assert.throws(()=>saveBankQuestions(s,broken,[0,3],{topic:'Early learning'}));assert.equal(s.getItem(BANK_KEY),before);assert.equal(readBank(s)[0].spec.notes,d.spec.notes);});

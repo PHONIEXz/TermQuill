@@ -1,6 +1,6 @@
 import * as deviceSetup from '../lib/device-setup.js';
 import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,writeLessons,validateLesson} from '../lib/lessons.js';
-import {saveBankQuestion,readBank} from '../lib/bank.js';
+import {saveBankQuestion,saveBankQuestions,readBank} from '../lib/bank.js';
 import {initBuilderGuide} from '../public/builder-guide.js';
 import {installVisuals} from './visual-helpers.js';
 import test from 'node:test';
@@ -14,7 +14,7 @@ const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8'
 const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
 async function setup(generate,route="/create",seed,lessonSeed,cloudActual,setupSeed,brandingSeed) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
-  Object.assign(w,deviceSetup,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
+  Object.assign(w,deviceSetup,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,saveBankQuestions,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
   installVisuals(w);const guide=initBuilderGuide(w.document);guide?.show(2);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
@@ -181,7 +181,7 @@ test('document editing updates section, individual marks, totals and preserves t
 });
 
 test('question bank dialog saves reviewed content without changing paper review status',async()=>{
- const {dom,w,$}=await setup();try{w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'));};$('early-sample').click();const button=[...w.document.querySelectorAll('.question-bank-actions button')][0];button.click();const dialog=w.document.querySelector('.bank-dialog'),topic=[...dialog.querySelectorAll('label')].find(l=>l.textContent==='Topic');w.document.getElementById(topic.htmlFor).value='Counting';dialog.querySelector('input[type=checkbox]').checked=true;dialog.querySelector('form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(readBank(w.localStorage).length,1);assert.equal(readBank(w.localStorage)[0].topic,'Counting');assert.equal(w.document.querySelector('.bank-dialog'),null);assert.match($('live-status').textContent,/saved to your device bank/);
+ const {dom,w,$}=await setup();try{w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'));};$('early-sample').click();const button=[...w.document.querySelectorAll('.question-bank-actions button')][0];button.click();const dialog=w.document.querySelector('.bank-dialog'),topic=[...dialog.querySelectorAll('label')].find(l=>l.textContent==='Topic');w.document.getElementById(topic.htmlFor).value='Counting';dialog.querySelector('input[type=checkbox]').checked=true;dialog.querySelector('form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(readBank(w.localStorage).length,1);assert.equal(readBank(w.localStorage)[0].topic,'Counting');assert.equal(w.document.querySelector('.bank-dialog'),null);assert.match($('live-status').textContent,/saved to your question library/);
  }finally{dom.window.close();}
 });
 
@@ -273,3 +273,5 @@ test('device setup restores settings, sources and branding without generating, w
  const draft=validateDraft({spec:sampleSpec,paper:samplePaper}),opened=await setup(undefined,`/create?draft=${draft.id}`,[draft],undefined,undefined,saved,branding);try{assert.equal(opened.$('level').value,sampleSpec.level);assert.equal(opened.$('tab-edit').getAttribute('aria-selected'),'true');opened.$('save-setup').click();assert.equal(deviceSetup.readBranding(opened.w.localStorage).logo,undefined);}finally{opened.dom.window.close();}
  const removed=await setup(undefined,'/create',undefined,undefined,undefined,{...saved,layout:{...saved.layout,logo:png}},{schoolName:'Phoenix School',term:'',preset:'standard'});try{assert.equal(removed.$('paper-logo').querySelector('img'),null);}finally{removed.dom.window.close();}
 });
+
+test('library save is available on student and teacher copies and saves a reviewed selection',async()=>{const{dom,w,$}=await setup();try{w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'));};assert.equal($('save-library').disabled,true);$('try-sample').click();assert.equal($('save-library').disabled,false);assert.equal($('preview').querySelectorAll('.question-bank-actions button').length,6);$('tab-teacher').click();assert.equal($('preview').querySelectorAll('.question-bank-actions button').length,6);$('save-library').click();let dialog=w.document.querySelector('.bank-dialog');for(const c of dialog.querySelectorAll('[data-question-index]'))c.checked=Number(c.dataset.questionIndex)<2;dialog.querySelector('form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(readBank(w.localStorage).length,0);assert.match(dialog.textContent,/Confirm that you checked/);dialog.querySelector('.check-label input').checked=true;dialog.querySelector('form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(readBank(w.localStorage).length,2);assert.equal($('approved').checked,false);assert.match($('live-status').textContent,/2 questions saved/);$('save-library').click();dialog=w.document.querySelector('.bank-dialog');for(const c of dialog.querySelectorAll('[data-question-index]'))c.checked=Number(c.dataset.questionIndex)<2;dialog.querySelector('.check-label input').checked=true;dialog.querySelector('form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(readBank(w.localStorage).length,2);assert.match($('live-status').textContent,/already saved/);}finally{dom.window.close();}});

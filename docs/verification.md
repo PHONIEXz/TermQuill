@@ -260,3 +260,9 @@ Added Save to question library to the paper toolbar and per-question actions on 
 Added independent text/logo alignment, bounded physical logo size and spacing, school/term/title ordering with native drag and keyboard/touch move buttons, labelled header-only preview, undo and reset. Layout is validated server/client-side, saved with drafts and account-scoped device branding, carried to new papers, and rendered in shared school copies. DOM reading order follows the selected order. Review invalidation is unchanged.
 
 Validation: full suite 182/182 passed; focused assessment, school and visual suites 58/58 passed; syntax checks, production build and whitespace checks passed. Includes malformed size/order rejection, draft round-trip, editor undo/reset, preview geometry, branding restore and full-paper precedence. DOM checks do not establish physical printer output or mobile drag behavior. No cloud school records or user question-library entries were created by these tests.
+
+### Creation accuracy audit and first fixes, 2026-10-21
+
+Recorded the five-chunk audit in `docs/assessment-readiness-audit.md`. Added selected-lesson allocations, exact source-body tracking, generated assignment/range/count checks, editable planning and changed-source preflight, requested/current coverage, device/draft persistence and bank reassembly compatibility. Fixed first-attempt topic visual preferences, MCQ marking label consistency, unnecessary insufficient-source repair and the MCQ-only illustrative preview.
+
+Validation: 188 tests passed, including six new coverage/UI cases; syntax checks, build and whitespace checks passed. Source fixtures verify structural attribution, not whether each answer is semantically supported. This release does not establish 99.9% reliability, complete curriculum coverage, physical PDF pagination or a classroom pilot.

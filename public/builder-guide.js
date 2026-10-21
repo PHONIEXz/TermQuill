@@ -47,7 +47,7 @@ export function initBuilderGuide(doc=document) {
   cards.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.format===$('format').value)));
   purpose.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.purpose===$('assessmentMode').value)));
   heading.textContent=$('title').value||'Your assessment title';meta.textContent=`${$('subject').value} · ${$('level').value} · ${$('minutes').value} minutes · ${Number($('count').value)*Number($('marksEach').value)} marks`;
-  rows.replaceChildren();const chosen=[...form.querySelectorAll('[name="visualTask"]:checked')].map(x=>x.value),styles=chosen.length?chosen:[$('format').value==='mcq'?'multiple choice':$('format').value==='short'?'written response':'multiple choice','written response'];
+  rows.replaceChildren();const chosen=[...form.querySelectorAll('[name="visualTask"]:checked')].map(x=>x.value),styles=chosen.length?chosen:$('format').value==='mcq'?['multiple choice']:$('format').value==='short'?['written response']:['multiple choice','written response'];
   for(const [i,style] of styles.slice(0,5).entries()){const row=make('div',null,'builder-sample-row');row.append(make('strong',`${i+1}. ${style[0].toUpperCase()+style.slice(1)} layout`));const art=make('div',null,'sample-answer-shape');
    if(style==='counting'){for(let n=0;n<3;n++)art.append(make('span',null,'sample-shape'));art.append(make('span','Count:'));
    }else if(style==='multiple choice'){for(const option of ['A','B','C','D'])art.append(make('span',option,'sample-choice'));

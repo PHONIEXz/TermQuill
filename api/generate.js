@@ -18,7 +18,7 @@ export function createHandler({generate = generateAssessment, limiter = allow, a
     const address = process.env.VERCEL ? String(req.headers['x-vercel-forwarded-for'] || 'unknown').split(',')[0] : req.socket.remoteAddress;
     if (!limiter(account.user.id+':'+address)) { res.setHeader('Retry-After','3600'); return json(res,429,{error:'Generation limit reached. Try again in an hour; you can still edit and print your draft.'}); }
     let spec;
-    try { spec = validateRequest(await readBody(req)); }
+    try { spec = validateRequest(await readBody(req),{forGeneration:true}); }
     catch (error) { return json(res,error.status || 400,{error:error.message}); }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 105000);

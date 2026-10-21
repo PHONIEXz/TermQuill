@@ -6,7 +6,7 @@ Date: 21 October 2026. Scope: the five agreed assessment chunks. This is a code 
 
 | Area / when used | Evidence and current gap | Required action / completion check |
 | --- | --- | --- |
-| Saved lessons, before generating an exam | `prepareLessonCollection` originally concatenated all lessons with no quotas. A model could ignore a lesson. | Add visible balanced/custom allocations, preserve exact body boundaries, require generated lesson assignments and matching passage ranges, reject omitted or overrepresented lessons. A count is sampling, not proof of full curriculum coverage. |
+| Saved lessons, before generating an exam | `prepareLessonCollection` originally concatenated all lessons with no quotas. A model could ignore a lesson. | Add visible balanced/custom allocations, preserve exact body boundaries, derive lesson assignment from matching passage ranges or a unique exact body quote, reject omitted or overrepresented lessons. A count is sampling, not proof of full curriculum coverage. |
 | Topic mode with selected visual tasks | `buildTopicPrompt` originally omitted the visual-preference text, although the output validator required those tasks. | Include tasks and preferred objects on the first attempt; test all five task types and early-years defaults. |
 | Insufficient lesson material or unseen topic context | The model can return an explicit insufficient-source response. Previously it went through the general repair path. | Stop with a useful source-specific error and no unnecessary second generation call. Preserve the previous paper. |
 | MCQ answer and marking guide | Selected option and answer are structurally checked, but model-authored marking text can contradict them. | Construct generated MCQ marking labels from the chosen answer. Independently review whether the chosen answer is actually correct. |
@@ -78,4 +78,4 @@ Finish the creation controls and source-allocation checks first. Then build the 
 
 ## First creation batch implemented
 
-The selected-lesson allocation/source-boundary checks, topic visual preferences, explicit insufficient-source handling, generated MCQ marking-label consistency and MCQ-only illustrative preview are implemented in this batch. Tests: 188 passed. The remaining semantic-quality, objective-level coverage, large-exam, editing, recovery, PDF and real-user items above remain open.
+The selected-lesson allocation/source-boundary checks, topic visual preferences, explicit insufficient-source handling, generated MCQ marking-label consistency and MCQ-only illustrative preview are implemented in this batch. Tests: 189 passed. The remaining semantic-quality, objective-level coverage, large-exam, editing, recovery, PDF and real-user items above remain open.

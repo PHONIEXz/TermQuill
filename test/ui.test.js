@@ -211,7 +211,7 @@ test('selected term lessons hand off together without generating automatically o
 test('cloud lesson selection checks saved versions again before loading assessment sources',async()=>{const notes=[{...validateLesson({year:'2026/2027',level:'SS1',subject:'Chemistry',term:'1',week:1,topic:'Cloud elements',body:sampleSpec.notes}),version:1}];let result=await setup(undefined,'/create?lessons=1',undefined,notes,notes);try{assert.match(result.$('notes').value,/Cloud elements/);assert.match(result.$('live-status').textContent,/1 saved lessons loaded/);assert.equal(result.w.sessionStorage.getItem(LESSON_TRANSFER_KEY),null);}finally{result.dom.window.close();}result=await setup(undefined,'/create?lessons=1',undefined,notes,[{...notes[0],version:2}]);try{assert.match(result.$('error').textContent,/cloud lessons changed/);assert.ok(result.w.sessionStorage.getItem(LESSON_TRANSFER_KEY));assert.equal(result.$('notes').value,'');}finally{result.dom.window.close();}});
 
 test('topic source sends no notes, restores settings, retains visual tools and keeps rationales teacher-only',async()=>{
- let sent;const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);const paper=structuredClone(samplePaper);for(const q of paper.questions){q.evidence='';q.grounding='topic';q.rationale='Independently check the chemical definition and expected answer.';}return {ok:true,json:async()=>({paper,model:'mock-gemma'})};});
+ let sent;const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);const paper=structuredClone(samplePaper);for(const q of paper.questions){q.marks=sent.marksEach;q.marking=[{point:q.answer,marks:sent.marksEach}];q.evidence='';q.grounding='topic';q.rationale='Independently check the chemical definition and expected answer.';}return {ok:true,json:async()=>({paper,model:'mock-gemma'})};});
  try{
   $('notes').value='Private inactive source material that must not be sent';$('source-mode').value='topic';$('source-mode').dispatchEvent(new w.Event('change'));
   assert.equal($('notes').disabled,true);assert.equal($('notes').required,false);assert.equal($('topic-entry').hidden,false);assert.equal($('topicInstructions').required,true);
@@ -224,3 +224,21 @@ test('topic source sends no notes, restores settings, retains visual tools and k
   $('source-mode').value='notes';$('source-mode').dispatchEvent(new w.Event('change'));assert.equal($('topicInstructions').disabled,true);assert.equal($('notes').required,true);
  }finally{dom.window.close();}
 });
+
+test('education stage changes apply coherent defaults, preserve written work and respect Exam/Test',async()=>{const {dom,w,$}=await setup();try{
+ const change=id=>$(id).dispatchEvent(new w.Event('change',{bubbles:true}));
+ $('notes').value='My own lesson content must not be replaced when I select a different education stage.';
+ $('topicInstructions').value='Use my supplied topic instructions, including the visual tasks I have described.';
+ $('formatInstructions').value='My custom format remains available if I select it again.';
+ $('educationStage').value='early';change('educationStage');
+ assert.equal($('level').value,'Kindergarten');assert.equal($('subject').value,'Early learning');assert.equal($('presentation').value,'early');assert.equal($('format').value,'short');assert.equal($('difficulty').value,'recall');assert.equal($('marksEach').value,'1');assert.equal($('total-marks').textContent,'6 marks');assert.match($('stage-settings-status').textContent,/defaults applied/);
+ $('assessmentMode').value='exam';change('assessmentMode');assert.equal($('count').value,'10');assert.equal($('minutes').value,'30');assert.match($('mode-hint').textContent,/Nursery/);
+ $('educationStage').value='primary';change('educationStage');assert.equal($('level').value,'Primary 4');assert.equal($('subject').value,'Basic Science');assert.equal($('presentation').value,'primary');assert.equal($('count').value,'12');assert.equal($('minutes').value,'45');
+ $('title').value='My teacher-written paper title';$('subject').value='Mathematics';
+ $('educationStage').value='postgraduate';change('educationStage');assert.equal($('level').value,'Postgraduate');assert.equal($('subject').value,'Mathematics');assert.equal($('title').value,'My teacher-written paper title');assert.equal($('minutes').value,'120');assert.equal($('format').value,'short');
+ assert.match($('notes').value,/My own lesson/);assert.match($('topicInstructions').value,/my supplied topic/);assert.match($('formatInstructions').value,/My custom format/);
+ $('assessmentMode').value='test';change('assessmentMode');assert.equal($('minutes').value,'45');assert.equal($('count').value,'6');
+ for(const [stage,level] of [['vocational','Level 1'],['undergraduate','Year 1'],['adult','Adult learners'],['secondary','SS1']]){$('educationStage').value=stage;change('educationStage');assert.equal($('level').value,level);}
+ // Loading an existing paper restores its actual settings rather than applying a stage preset.
+ $('early-sample').click();assert.equal($('minutes').value,'30');assert.equal($('level').value,'Kindergarten');assert.equal($('preview').querySelectorAll('.question-editor').length,6);
+ }finally{dom.window.close();}});

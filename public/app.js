@@ -1,3 +1,4 @@
+import {saveSetup,readSetup,saveBranding,readBranding,forgetSetup} from '/device-setup.js';
 import {LESSON_EXAMPLES,exampleVisualTasks} from '/lesson-examples.js';
 import {stagePreset} from '/references.js';
 import {cloudLessons} from '/cloud-lessons.js';
@@ -25,7 +26,7 @@ document.title=({home:'TermQuill | From what you teach to what you assess',creat
 for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===page)link.setAttribute('aria-current','page');
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
-const pendingLayout={};
+const pendingLayout={preset:'standard',schoolName:'',term:''};
 let dirty=false,pendingImages=0;const referencePicker=initReferencePicker(form,localStorage);
 function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function message(text) {$('live-status').textContent=text;}
@@ -33,9 +34,17 @@ function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
 function mountLogo(){
  const box=$('paper-logo');if(!box)return;box.replaceChildren();
  const layout=state?(state.paper.layout??={preset:state.spec.presentation||'standard',schoolName:'',term:''}):pendingLayout;
- logoEditor(box,layout,()=>{if(state){resetApproval();preview();}else dirty=true;},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on&&state)resetApproval();busy(Boolean(active));}});
+ if(!state)for(const [key,label,max] of [['schoolName','School name (optional)',100],['term','Term / exam heading (optional)',60]]){const wrap=el('label',label),input=el('input');input.type='text';input.maxLength=max;input.value=layout[key]||'';input.addEventListener('input',()=>{layout[key]=input.value;dirty=!rememberBranding(layout);});wrap.append(input);box.append(wrap);}
+ logoEditor(box,layout,()=>{const saved=rememberBranding(layout);if(state){resetApproval();preview();}else dirty=!saved;},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on&&state)resetApproval();busy(Boolean(active));}});
 }
-function carrySetupLogo(paper){if(!state&&(pendingLayout.logo||pendingLayout.term)){paper.layout??={preset:'standard',schoolName:'',term:''};if(pendingLayout.logo)paper.layout.logo=pendingLayout.logo;if(pendingLayout.term)paper.layout.term=pendingLayout.term;}}
+function rememberBranding(layout){if(page!=='create')return;try{saveBranding(localStorage,layout);$('setup-save-status').textContent='School branding saved on this device for your account.';return true;}catch{$('setup-save-status').textContent='Could not save branding on this device. It remains in the open paper; save or export the paper to keep it.';return false;}}
+function carrySetupLogo(paper){const layout=state?.paper.layout||pendingLayout;paper.layout??={preset:'standard',schoolName:'',term:''};for(const key of ['schoolName','term','logo'])if(layout[key])paper.layout[key]=layout[key];}
+if(page==='create'){
+ try{const saved=readSetup(localStorage);if(saved){fillForm(saved.settings);Object.assign(pendingLayout,saved.layout);$('setup-save-status').textContent='Saved setup restored from this device.'+(saved.settings.sourceMode==='references'?' Select your past questions again.':'');}}catch{$('setup-save-status').textContent='Saved setup could not be restored. Your saved copy is unchanged; you can save a replacement or forget it.';}
+ try{const branding=readBranding(localStorage);if(branding){delete pendingLayout.logo;Object.assign(pendingLayout,branding);}}catch{$('setup-save-status').textContent='Saved school branding could not be restored. Upload it again to replace the saved copy.';}
+ $('save-setup').addEventListener('click',()=>{if(active||pendingImages)return;try{saveBranding(localStorage,state?.paper.layout||pendingLayout);saveSetup(localStorage,fieldValues(),state?.paper.layout||pendingLayout);$('setup-save-status').textContent='Setup saved on this device for your account, including source text and school branding. It will restore when you reopen the studio.'+($('source-mode').value==='references'?' Select past questions again after reopening.':'');if(!state)dirty=false;}catch(e){$('setup-save-status').textContent='Could not save setup: '+e.message+' Your current entries are unchanged.';}});
+ $('forget-setup').addEventListener('click',()=>{if(active||pendingImages)return;if(!confirm('Forget the setup and school branding saved on this device? Your open paper and saved drafts stay unchanged.'))return;try{forgetSetup(localStorage);$('setup-save-status').textContent='Saved setup and branding removed from this device. Your current entries stay; reopening starts with the default setup.';}catch{$('setup-save-status').textContent='Could not remove the saved setup. Your current entries are unchanged.';}});
+}
 mountLogo();
 function fieldValues() {
   const values=Object.fromEntries(new FormData(form));
@@ -54,6 +63,7 @@ function busy(on) {on=on||pendingImages>0;
   $('generate').disabled=on||!config.configured;
   $('generate').textContent=active?'Preparing assessment…':pendingImages?'Preparing picture…':'Create my assessment →';
 for(const id of ['early-sample','try-sample','sample-notes','empty-sample','restore'])if($(id))$(id).disabled=on||(id==='restore'&&!hasSaved());
+  for(const id of ['save-setup','forget-setup'])if($(id))$(id).disabled=on;
   $('cancel').disabled=false;$('cancel').hidden=!active;
   document.querySelector('.output').setAttribute('aria-busy',String(on));
   syncCustomSettings();referencePicker.sync(on);updateReview();
@@ -127,7 +137,7 @@ function questionControls(box,q,i){
 }
 function renderEditor(target) {
   const intro=el('div',undefined,'editor-intro');intro.append(el('strong','Make it yours, one question at a time.'),el('p','Set your paper heading, open a question to edit, then use Student paper to check the result. Every edit resets your review.'));target.append(intro);
-  layoutEditor(target,state.paper,()=>{resetApproval();},{includeLogo:false,onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on)resetApproval();busy(Boolean(active));}});
+  layoutEditor(target,state.paper,()=>{rememberBranding(state.paper.layout);resetApproval();},{includeLogo:false,onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on)resetApproval();busy(Boolean(active));}});
   const modeLabel=el('label','Paper assessment mode'),modeSelect=el('select');modeSelect.id='paper-assessment-mode';modeLabel.htmlFor=modeSelect.id;for(const [value,text] of [['test','Test'],['exam','Exam']]){const option=el('option',text);option.value=value;modeSelect.append(option);}modeSelect.value=state.spec.assessmentMode||'test';modeSelect.addEventListener('change',()=>{state.spec.assessmentMode=modeSelect.value;resetApproval();});target.append(modeLabel,modeSelect);
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{

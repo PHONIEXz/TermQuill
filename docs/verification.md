@@ -244,3 +244,9 @@ Hosted visual follow-up: production landing/studio/library were reachable with t
 ## 2026-10-21 — Compatible visual-task and format choices
 
 Fixed visual preferences remaining checked when a teacher chose Multiple choice or A balanced mix, which triggered the format validation error at generation. Both the native selector and enhanced cards now clear incompatible picture tasks with a visible live announcement. Selecting a picture task switches to Written / visual responses; an existing custom format remains selected and its instructions are retained. Notes and current papers are unchanged. Backend validation remains strict. Regression covers both selection orders, Early Years defaults, pressed-card state, custom instruction preservation and actual generation request payloads.
+
+## 2026-10-21 — Device setup and branding persistence
+
+Added validated account-scoped device setup/branding records. Logo and school name/heading changes save locally with honest status; Save setup on this device explicitly includes current form settings and source text. Restore precedes explicit saved-paper/sample/lesson handoffs. Reuse branding on new generations, including when another paper is already open. Forget removes saved preferences without modifying an open paper or saved drafts. Original cloud lesson and paper-save flows remain separate. Whitelists exclude auth/access-code/model/review fields; corrupted records and storage failures preserve current entries and report failure.
+
+Regression covers account isolation, invalid/corrupt data, denied image URLs, failed writes, saved-source/settings/logo restoration before generation, paper precedence, removed-logo precedence and forget behaviour. No migration or external profile change is involved.

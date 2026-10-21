@@ -138,3 +138,7 @@ Progressively enhance Create assessment into three steps: choose class, add mate
 ## Visual polish and content refinement (2026-10-21)
 
 Retain the established palette and artwork. Use `public/polish.css` as the final screen-only finish across source page templates: consistent 11px control / 16px card radii, restrained shadows, clear type hierarchy, generous control spacing and subtle hover/focus feedback. Preserve 18px form/reading text, reduced-motion preferences and printed paper geometry. Shorten primary copy and move secondary storage/privacy guidance into native disclosures without removing it. Guided setup uses compact step labels, one visible choice per setting and real illustrative response-space geometry rather than text punctuation. No new AI, auth or database behaviour is introduced.
+
+## Device setup and persistent branding (2026-10-21)
+
+School logo/name/heading changes save automatically through account-scoped browser storage with explicit success/failure feedback. A distinct Save setup on this device action persists the current generation settings and source text without requiring a generated paper. Restore this setup before explicit paper/sample/lesson handoffs so those retain precedence. Past-question selections are reselected after reopening. Keep paper saving and cloud lessons distinct. Forget saved setup removes only the two local setup/branding records, preserving the current paper and saved drafts. Never persist access codes, auth data or review approval in this setup.

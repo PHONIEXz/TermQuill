@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {saveSetup,readSetup,saveBranding,readBranding,forgetSetup,SETUP_KEY} from '../lib/device-setup.js';
+import {accountStorage} from '../lib/identity.js';
+import {sampleSpec} from '../lib/sample.js';
+const logo='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==';
+const settings={...sampleSpec,educationStage:'secondary',assessmentMode:'test',presentation:'standard',sourceMode:'notes',visualTasks:[],visualObjects:[]};
+function storage(){const m=new Map();return{getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)};}
+test('device setup round trips allowlisted settings and branding under separate account keys',()=>{const base=storage(),a=accountStorage(base,'account-a'),b=accountStorage(base,'account-b');saveSetup(a,{...settings,accessCode:'never-store',token:'never-store'}, {schoolName:'School A',term:'First term',logo});const restored=readSetup(a);assert.equal(restored.settings.notes,sampleSpec.notes);assert.equal(restored.layout.logo,logo);assert.equal(restored.settings.token,undefined);assert.equal(restored.settings.accessCode,undefined);assert.equal(readSetup(b),null);saveBranding(a,{schoolName:'School A',logo});saveBranding(a,{schoolName:'School A'});assert.equal(readBranding(a).logo,undefined);forgetSetup(a);assert.equal(readSetup(a),null);assert.equal(readBranding(a),null);});
+test('malformed settings, unsupported images and failed storage writes do not replace valid setup',()=>{const s=storage();saveSetup(s,settings,{});const before=s.getItem(SETUP_KEY);assert.throws(()=>saveSetup(s,{...settings,minutes:0},{}));assert.equal(s.getItem(SETUP_KEY),before);assert.throws(()=>saveBranding(s,{logo:'https://example.com/logo.svg'}));assert.throws(()=>saveSetup({...s,setItem(){throw Error('Storage full');}},settings,{}),/Storage full/);assert.equal(s.getItem(SETUP_KEY),before);s.setItem(SETUP_KEY,'not json');assert.throws(()=>readSetup(s));});

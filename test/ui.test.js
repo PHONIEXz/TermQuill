@@ -1,3 +1,4 @@
+import * as deviceSetup from '../lib/device-setup.js';
 import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,writeLessons,validateLesson} from '../lib/lessons.js';
 import {saveBankQuestion,readBank} from '../lib/bank.js';
 import {initBuilderGuide} from '../public/builder-guide.js';
@@ -11,12 +12,13 @@ import { auditAssessment,validateRequest,parseModelOutput } from '../lib/assessm
 import {readDrafts,saveDraft,deleteDraft,validateDraft,DRAFTS_KEY} from '../lib/drafts.js';
 const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8');
 const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
-async function setup(generate,route="/create",seed,lessonSeed,cloudActual) {
+async function setup(generate,route="/create",seed,lessonSeed,cloudActual,setupSeed,brandingSeed) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
-  Object.assign(w,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
+  Object.assign(w,deviceSetup,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
   installVisuals(w);const guide=initBuilderGuide(w.document);guide?.show(2);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
+  if(setupSeed)w.localStorage.setItem(deviceSetup.SETUP_KEY,JSON.stringify(setupSeed));if(brandingSeed)w.localStorage.setItem(deviceSetup.BRANDING_KEY,JSON.stringify(brandingSeed));
   if(seed)w.localStorage.setItem(DRAFTS_KEY,JSON.stringify(seed));
   if(lessonSeed){writeLessons(w.localStorage,lessonSeed);w.sessionStorage.setItem(LESSON_TRANSFER_KEY,JSON.stringify({version:1,ids:lessonSeed.map(x=>x.id),assessmentMode:'test',...(cloudActual?{storage:'cloud',versions:lessonSeed.map(x=>[x.id,x.version])}:{})}));}
   w.cloudLessons=()=>({list:async()=>({items:cloudActual})});
@@ -260,4 +262,14 @@ test('format cards and visual task choices stay compatible in either order and r
   choose('custom');$('formatInstructions').value='Include counting pictures followed by a written explanation.';const task=w.document.querySelector('[name="visualTask"][value="matching"]');task.checked=true;task.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal($('format').value,'custom');assert.match($('formatInstructions').value,/counting pictures/);
   $('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent.format,'custom');assert.deepEqual(sent.visualTasks,['counting','matching']);assert.equal($('notes').value,notes);
  }finally{dom.window.close();}
+});
+
+test('device setup restores settings, sources and branding without generating, while saved papers take precedence',async()=>{
+ let first=await setup();let saved,branding;
+ const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==';
+ try{first.$('save-setup').click();assert.equal(deviceSetup.readSetup(first.w.localStorage).settings.notes,'');first.$('educationStage').value='early';first.$('educationStage').dispatchEvent(new first.w.Event('change'));first.$('stage-lesson-example').click();const name=[...first.$('paper-logo').querySelectorAll('label')].find(l=>l.textContent.startsWith('School name')).querySelector('input');name.value='Phoenix School';name.dispatchEvent(new first.w.Event('input'));assert.equal(deviceSetup.readBranding(first.w.localStorage).schoolName,'Phoenix School');first.$('save-setup').click();saved=deviceSetup.readSetup(first.w.localStorage);branding={...deviceSetup.readBranding(first.w.localStorage),logo:png};assert.match(first.$('setup-save-status').textContent,/Setup saved on this device/);}finally{first.dom.window.close();}
+ const reopened=await setup(undefined,'/create',undefined,undefined,undefined,saved,branding);
+ try{assert.equal(reopened.$('level').value,'Kindergarten');assert.match(reopened.$('notes').value,/Counting: one apple/);assert.equal(reopened.$('paper-logo').querySelector('img').src,png);assert.equal(reopened.$('draft-badge').textContent,'NOT STARTED');reopened.$('try-sample').click();reopened.$('tab-student').click();assert.match(reopened.$('preview').textContent,/Phoenix School/);assert.equal(reopened.$('preview').querySelector('.school-logo').src,png);reopened.$('forget-setup').click();assert.equal(deviceSetup.readSetup(reopened.w.localStorage),null);assert.equal(deviceSetup.readBranding(reopened.w.localStorage),null);assert.equal(reopened.$('preview').querySelector('.school-logo').src,png);}finally{reopened.dom.window.close();}
+ const draft=validateDraft({spec:sampleSpec,paper:samplePaper}),opened=await setup(undefined,`/create?draft=${draft.id}`,[draft],undefined,undefined,saved,branding);try{assert.equal(opened.$('level').value,sampleSpec.level);assert.equal(opened.$('tab-edit').getAttribute('aria-selected'),'true');opened.$('save-setup').click();assert.equal(deviceSetup.readBranding(opened.w.localStorage).logo,undefined);}finally{opened.dom.window.close();}
+ const removed=await setup(undefined,'/create',undefined,undefined,undefined,{...saved,layout:{...saved.layout,logo:png}},{schoolName:'Phoenix School',term:'',preset:'standard'});try{assert.equal(removed.$('paper-logo').querySelector('img'),null);}finally{removed.dom.window.close();}
 });

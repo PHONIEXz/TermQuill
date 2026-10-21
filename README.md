@@ -2,7 +2,7 @@
 
 **From lesson notes to a paper you can stand behind.**
 
-Live pilot: https://lessonpress-pi.vercel.app/
+Live pilot: https://termquill.vercel.app/
 
 UI direction and future design rules: [design/DESIGN.md](design/DESIGN.md). The interface combines an original multicolor editorial landing page and interactive workflow example with grouped school navigation, a sectioned assessment builder and a distinct supporting-evidence area. Decorative motion can be paused and respects device reduced-motion preferences.
 
@@ -39,7 +39,7 @@ Open http://127.0.0.1:3000. The sample works immediately. For real generation, c
 
 The initial model is `gemma-4-26b-a4b-it`, listed in Google's Gemma-on-Gemini-API documentation on the build date. Set `GOOGLE_MODEL` to an available Gemma model in your account. Run `npm run models` to check access. Quotas, regional availability and billing depend on your provider account; no unlimited-free claim is made. Model listing alone does not prove a generation request will succeed.
 
-Optional `LESSONPRESS_ACCESS_CODE` restricts generation to a small invited pilot. It is a shared code, not individual authentication. It stays in tab memory and is sent over the same-origin request header. Use HTTPS on a deployed site.
+Optional `TERMQUILL_ACCESS_CODE` (legacy `LESSONPRESS_ACCESS_CODE` remains supported) restricts generation to a small invited pilot. It is a shared code, not individual authentication. It stays in tab memory and is sent over the same-origin request header. Use HTTPS on a deployed site.
 
 ## Deploy to Vercel
 
@@ -99,7 +99,7 @@ School accounts use Supabase Auth. All working tools require verified sign-in. `
 
 Apply `migrations/001_school_review.sql`, then `migrations/002_pilot_trust.sql` and `migrations/003_school_locations.sql` to the provisioned Supabase database before deploying. The Vercel Marketplace integration supplies `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (legacy anon keys are also supported). The app never uses the service-role key or database password. For local development, put the public URL/key in your private `.env`.
 
-Accounts require email verification and a password of at least 12 characters. The Supabase Auth production Site URL is configured as `https://lessonpress-pi.vercel.app/school`. Configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. The existing email confirmation redirect remains `/school`; after verification its account guard leads to `/login`. Users can also open `/login` directly. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
+Accounts require email verification and a password of at least 12 characters. The Supabase Auth production Site URL is configured as `https://termquill.vercel.app/school`. Configure a production SMTP sender before inviting users outside the Supabase team. Built-in email delivery is limited and should not be treated as production email. The existing email confirmation redirect remains `/school`; after verification its account guard leads to `/login`. Users can also open `/login` directly. Password recovery, SSO, MFA and principal transfer are not implemented in this pilot.
 
 A principal creates a school, departments and email-bound invitation links for teachers or department heads. Invitations expire after seven days, are single use and can be revoked. The app displays a link for the principal to share; it does not send invitations. School creation does not verify institutional ownership. Principals request an independent check on School trust & activity; only the platform operator can record a decision after checking school identity and authority. New invitations require verification, with a persistent database limit of 20 per school per hour. Existing invitations retain their prior validity rules. One account can create at most three schools in this pilot.
 
@@ -212,3 +212,7 @@ The product is **TermQuill**: “From what you teach to what you assess.” Rena
 Choose **Instructions / topic · no notes required** in Create assessment. Select an education stage (Nursery / Kindergarten, Primary, Secondary, vocational, undergraduate, postgraduate or adult education), enter the exact class/course and a 20–6,000-character brief. No lesson notes are sent in this mode. Existing question counts, marks, formats, paper styles, visual blocks, logo/picture uploads, editing, personal saving, school sharing/review and printing remain available. Topic-generated questions carry answer rationales, not supplied-note quotes, and require independent factual review. No browsing, live facts, guaranteed syllabus alignment or universal subject accuracy is provided.
 
 Draft/import/bank/school round trips preserve per-question topic provenance, including papers assembled from both note-based and topic questions. Student copies exclude rationales. Fresh generation from saved past-question references continues to use only questions with retained lesson-note evidence; topic questions remain reusable through bank assembly. The educator access requirement is unchanged.
+
+### TermQuill infrastructure (2026-10-21)
+
+Canonical site: https://termquill.vercel.app/. Repository: https://github.com/PHONIEXz/TermQuill. Vercel project: `termquill`. Supabase display name: `TermQuill`; existing project reference, database schema and browser backup identifiers stay stable. Exact old and new `/school` confirmation destinations remain allowed; no wildcard redirects. The old hostname remains available to export personal browser-local drafts and question-bank backups before importing on the new hostname. Cloud lessons use the same account after signing in again. No automatic cross-origin storage transfer.

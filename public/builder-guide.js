@@ -9,13 +9,13 @@ export function initBuilderGuide(doc=document) {
  let current=0,paperStatus=null,invalidPending=false,invalidField=null;
  const steps=make('nav',null,'builder-steps');steps.setAttribute('aria-label','Assessment setup steps');
  const announcement=make('p',null,'micro');announcement.id='builder-progress';announcement.setAttribute('role','status');
- const buttons=sections.map((section,i)=>{section.id=`builder-step-${i+1}`;section.querySelector('legend').textContent=`${i+1}. ${names[i]}`;const b=make('button',`${i+1}. ${names[i]}`);b.type='button';b.setAttribute('aria-controls',section.id);b.addEventListener('click',()=>{if(!working())show(i,true);});steps.append(b);return b;});
+ const buttons=sections.map((section,i)=>{section.id=`builder-step-${i+1}`;section.querySelector('legend').textContent=`${i+1}. ${names[i]}`;const b=make('button',`${i+1}. ${['Class','Material','Questions'][i]}`);b.setAttribute('aria-label',`${i+1}. ${names[i]}`);b.type='button';b.setAttribute('aria-controls',section.id);b.addEventListener('click',()=>{if(!working())show(i,true);});steps.append(b);return b;});
  form.prepend(steps,announcement);
  const early=form.querySelector('.early-start');sections[1].append(early);early.querySelector('strong').textContent='Need a starting point?';early.querySelector('p').textContent='Load a lesson example for your stage, or explore a finished Early Years paper.';
  const purpose=make('div',null,'builder-purpose');
  const lesson=make('a','Write a lesson note');lesson.href='/lessons';purpose.append(lesson);
  for(const [value,text] of [['test','Class test'],['exam','Examination']]){const b=make('button',text);b.type='button';b.dataset.purpose=value;b.addEventListener('click',()=>{$('assessmentMode').value=value;$('assessmentMode').dispatchEvent(new win.Event('change',{bubbles:true}));});purpose.append(b);}
- sections[0].querySelector('legend').after(purpose);
+ sections[0].querySelector('legend').after(purpose);for(const id of ['assessmentMode','format']){$(id).hidden=true;form.querySelector(`label[for="${id}"]`).hidden=true;}
  // Keep optional paper styling and difficulty out of the main decision path.
  const extras=make('details',null,'builder-extras');extras.append(make('summary','More options: paper style & thinking level'));
  for(const id of ['presentation','difficulty']){const control=$(id),label=form.querySelector(`label[for="${id}"]`);extras.append(label,control);}
@@ -48,8 +48,16 @@ export function initBuilderGuide(doc=document) {
   purpose.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.purpose===$('assessmentMode').value)));
   heading.textContent=$('title').value||'Your assessment title';meta.textContent=`${$('subject').value} · ${$('level').value} · ${$('minutes').value} minutes · ${Number($('count').value)*Number($('marksEach').value)} marks`;
   rows.replaceChildren();const chosen=[...form.querySelectorAll('[name="visualTask"]:checked')].map(x=>x.value),styles=chosen.length?chosen:[$('format').value==='mcq'?'multiple choice':$('format').value==='short'?'written response':'multiple choice','written response'];
-  for(const [i,style] of styles.slice(0,5).entries()){const row=make('div',null,'builder-sample-row');row.append(make('strong',`${i+1}. ${style[0].toUpperCase()+style.slice(1)} layout`));const art=make('div',null,'sample-answer-shape');art.textContent=({counting:'△  △  △     Count: ___',matching:'1. △       A. Shape',tracing:'△ · · · · △',drawing:'[ Space for a drawing ]',table:'Item  |  Number  |  Answer','multiple choice':'○ A     ○ B     ○ C     ○ D','written response':'________________________________'})[style]||'________________________________';row.append(art);rows.append(row);}
-  const started=$('draft-badge').textContent!=='NOT STARTED';sample.hidden=started;$('preview').classList.toggle('builder-empty-hidden',!started);toolbar.hidden=!started;
+  for(const [i,style] of styles.slice(0,5).entries()){const row=make('div',null,'builder-sample-row');row.append(make('strong',`${i+1}. ${style[0].toUpperCase()+style.slice(1)} layout`));const art=make('div',null,'sample-answer-shape');
+   if(style==='counting'){for(let n=0;n<3;n++)art.append(make('span',null,'sample-shape'));art.append(make('span','Count:'));
+   }else if(style==='multiple choice'){for(const option of ['A','B','C','D'])art.append(make('span',option,'sample-choice'));
+   }else if(style==='table'){const table=make('table',null,'sample-table'),head=make('tr');for(const text of ['Item','Answer'])head.append(make('th',text));table.append(head);for(let n=0;n<2;n++){const tr=make('tr');tr.append(make('td','Example'),make('td'));table.append(tr);}art.append(table);
+   }else if(style==='drawing')art.append(make('div',null,'sample-drawing'));
+   else if(style==='tracing')for(let n=0;n<3;n++)art.append(make('span',null,'sample-trace'));
+   else if(style==='matching'){const pair=make('div',null,'sample-matching');pair.append(make('span','1. Picture'),make('span','A. Match'));art.append(pair);
+   }else for(let n=0;n<2;n++)art.append(make('div',null,'sample-rule'));
+   art.setAttribute('aria-label',`${style} response space illustration`);row.append(art);rows.append(row);}
+  const started=$('draft-badge').textContent!=='NOT STARTED';sample.hidden=started;doc.querySelector('.draft-actions').hidden=!started;saveHint.hidden=!started;saveState.hidden=!started;$('preview').classList.toggle('builder-empty-hidden',!started);toolbar.hidden=!started;
   // Derive saved status from the existing successful save acknowledgement, never from a click.
   saveState.textContent=!started?'No paper generated yet.':paperStatus?.saved&&!paperStatus.dirty?'Saved copy open on this device.':'Unsaved changes. Save this paper on your device to keep your latest work.';
  }

@@ -62,7 +62,7 @@ test('landing reveal choreography preserves accessible text and observes only on
   w.IntersectionObserver=class{constructor(fn){this.fn=fn;this.targets=[];this.removed=[];observers.push(this);}observe(el){this.targets.push(el);}unobserve(el){this.removed.push(el);}};
   w.eval(script);
   const title=w.document.querySelector('.vl-hero h1');assert.ok(calls.some(c=>title.contains(c.element)&&c.frames[0].transform==='translateY(115%)'));
-  const statement=w.document.querySelector('[data-word-reveal]');assert.match(statement.getAttribute('aria-label'),/Great teaching/);assert.ok([...statement.querySelectorAll('span')].every(s=>s.getAttribute('aria-hidden')==='true'));
+  const statement=w.document.querySelector('[data-word-reveal]');assert.match(statement.getAttribute('aria-label'),/Turn the lessons you teach/);assert.ok([...statement.querySelectorAll('span')].every(s=>s.getAttribute('aria-hidden')==='true'));
   const observer=observers.find(o=>o.targets.includes(statement)),heading=w.document.getElementById('vl-solutions-heading');observer.fn([{target:heading,isIntersecting:true},{target:statement,isIntersecting:true}]);
   assert.ok(observer.removed.includes(heading));assert.ok(observer.removed.includes(statement));assert.equal(heading.dataset.entered,'true');assert.ok(calls.some(c=>statement.contains(c.element)&&c.options.delay>0));
  }finally{dom.window.close();}

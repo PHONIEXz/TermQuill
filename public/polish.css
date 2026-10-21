@@ -1,0 +1,125 @@
+/* Shared screen finish. Keep printed assessment geometry independent. */
+@media screen {
+ :root{--finish-radius:16px;--finish-control:11px;--finish-line:#29482a20;--finish-shadow:0 2px 4px #23382803,0 12px 32px -20px #23382832;--finish-ease:cubic-bezier(.22,.68,0,1.01)}
+ body{line-height:1.65;text-rendering:optimizeLegibility}
+ h1,h2,h3{ text-wrap:balance}p{ text-wrap:pretty}
+ :where(button,a,input,textarea,select,summary){-webkit-tap-highlight-color:transparent}
+ :where(input,textarea,select){transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+ :where(button,a){text-underline-offset:4px}
+ :where(button,a,input,textarea,select,summary):focus-visible{outline:3px solid #79549e;outline-offset:4px}
+ :where(input,textarea,select):focus{box-shadow:0 0 0 4px #79549e12}
+ :where(input,textarea,select)[aria-invalid=true]{border-color:#9b342a}
+ :where(input,textarea)::placeholder{color:#758073;opacity:1}
+ :where(button,.primary,.outline,.vl-button){transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s var(--finish-ease)}
+ :where(.primary,.outline){border-radius:var(--finish-control);min-height:46px;padding:12px 18px;font-size:16px;line-height:1.45;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:9px;text-decoration:none}
+ .application-shell .primary{border-radius:var(--finish-control);background-image:linear-gradient(#ffffff0a,#00000006);box-shadow:inset 0 1px #ffffff1f,0 2px 3px #29482a12}
+ .application-shell .outline{border-radius:var(--finish-control);border-color:#29482a35;background:#fffefb;box-shadow:0 1px 2px #29482a06}
+ .application-shell .primary:hover:not(:disabled){box-shadow:0 4px 12px #29482a25}
+ .application-shell .outline:hover:not(:disabled){border-color:#29482a65;background:#f1f5ec}
+ .application-shell :where(input,textarea,select):not([type=checkbox]):not([type=radio]):not([type=file]){border:1px solid #29482a35;border-radius:var(--finish-control);background:#fffefc;min-height:48px;padding:12px 14px;font-size:18px;line-height:1.6;box-shadow:inset 0 1px 2px #29482a03}
+ .application-shell :where(input[type=checkbox],input[type=radio]){accent-color:#62408b;flex-shrink:0}
+ .application-shell textarea{resize:vertical}
+ .application-shell .app-rail{background:#fafbf7;border-color:var(--finish-line);padding-inline:17px}
+ .application-shell .shell-workspace{border-radius:13px;border-color:var(--finish-line);box-shadow:inset 0 1px #ffffffb0;margin-bottom:26px}
+ .application-shell .shell-kicker,.application-shell .shell-nav-label,.application-shell .app-rail .school-nav-label{font-size:14px;letter-spacing:.04em;color:#5e6e56}
+ .application-shell .shell-studio-nav a,.application-shell .app-rail .school-nav a,.application-shell .shell-rail-footer>a{border-radius:10px;min-height:48px;font-weight:600}
+ .application-shell .app-shellbar{border-color:var(--finish-line);background:#fafbf6f0;box-shadow:0 2px 12px #29482a03}
+ .application-shell .shell-context{border-radius:999px;font-size:14px}
+ .application-shell>main,.application-shell #school-main,.application-shell #places-main{padding:38px clamp(20px,3vw,48px) 64px}
+ .application-shell :where(.page-intro,.personal-heading,.lesson-heading){margin-bottom:32px}
+ .application-shell :where(.page-intro h1,.personal-heading h1,.lesson-heading h1,.bank-heading>h1){font-size:clamp(30px,2.8vw,40px);line-height:1.22;letter-spacing:-1.2px;font-weight:700;margin:8px 0 12px}
+ .application-shell :where(.page-intro .lede,.personal-heading p,.lesson-heading p){color:#58684f;line-height:1.75;max-width:65ch}
+ .application-shell :where(.page-intro>.eyebrow,.personal-heading .eyebrow,.lesson-heading .eyebrow,.workspace-tools>a>span){font-size:14px;line-height:1.5;letter-spacing:.06em;font-weight:650;color:#607154}
+ .application-shell :where(.workspace-section,.workspace-tools>a,.lesson-catalogue,.lesson-writing,.school-panel,.school-card,.access-card,.draft-library,.question-bank-page,.draft-card,.bank-question){border:1px solid var(--finish-line);border-radius:var(--finish-radius);box-shadow:var(--finish-shadow)}
+ .application-shell :where(.workspace-section,.lesson-catalogue,.lesson-writing,.school-panel){padding:clamp(22px,2.5vw,32px)}
+ .application-shell :where(.workspace-section h2,.lesson-panel-heading h2,.school-panel h2){font-size:25px;letter-spacing:-.65px;line-height:1.4;margin:0 0 12px;font-weight:650}
+ .application-shell :where(.workspace-section>p,.school-panel>p){max-width:72ch;line-height:1.75;margin:10px 0 20px}
+ .application-shell :where(details.workspace-section,.workspace-boundary,.lesson-storage){border:1px solid var(--finish-line);border-radius:13px;padding:18px 22px;background:#edf2e7}
+ .application-shell :where(details.workspace-section,.workspace-boundary,.lesson-storage)>summary{cursor:pointer;font-size:17px;font-weight:650;line-height:1.6;color:#37532a;min-height:30px}
+ .application-shell details[open]>summary{margin-bottom:18px}
+ .application-shell .workspace-tools{gap:20px;margin:28px 0 36px}
+ .application-shell .workspace-tools>a{padding:28px;position:relative;overflow:hidden;transition:box-shadow .2s ease,border-color .2s ease,transform .2s var(--finish-ease)}
+ .application-shell .workspace-tools>a:hover{transform:translateY(-3px);border-color:#29482a50;box-shadow:0 12px 28px -14px #29482a35}
+ .application-shell .workspace-tools h2{font-size:25px;line-height:1.35;margin:14px 0 10px}
+ .application-shell .workspace-tools p{margin:0 0 24px;max-width:40ch;line-height:1.7;color:#566a4c}
+ .application-shell .workspace-tools b{display:inline-flex;min-height:36px;align-items:center;font-size:16px}
+ .application-shell .workspace-join{gap:28px;margin-top:28px;padding-top:28px;border-color:var(--finish-line)}
+ .application-shell .workspace-join h3{margin:0 0 10px;font-size:21px}
+ .application-shell .lesson-layout{gap:24px;grid-template-columns:minmax(0,.9fr) minmax(0,1.15fr)}
+ .application-shell .lesson-panel-heading{padding-bottom:18px;border-bottom:1px solid var(--finish-line);margin-bottom:22px}
+ .application-shell .lesson-panel-heading h2{margin:0}
+ .application-shell .lesson-actions{gap:10px;margin-top:20px}
+ .application-shell :where(.lesson-filters,.lesson-fields){gap:16px}
+ .application-shell .lesson-view-controls{background:#eef1e9;border:1px solid var(--finish-line);padding:5px;border-radius:13px;gap:5px}
+ .application-shell .lesson-view-controls .outline{background:transparent;border-color:transparent;box-shadow:none;flex:1}
+ .application-shell .lesson-view-controls [aria-pressed=true]{background:#fffefb;border-color:#29482a20;box-shadow:0 2px 5px #29482a0c}
+ .application-shell :where(.lesson-selection,.bank-assemble){border:1px solid var(--finish-line);border-radius:13px;padding:22px;background:#edf2e7}
+ .application-shell .workspace.guided-builder{grid-template-columns:minmax(350px,1fr) minmax(0,1.08fr);border-radius:20px;border-color:var(--finish-line);box-shadow:0 8px 40px -22px #29482a35}
+ .application-shell .workspace.guided-builder.editing-paper{grid-template-columns:minmax(0,1fr)}
+ .application-shell .guided-builder .setup{padding:28px;background:linear-gradient(145deg,#fffefa,#faf7fc)}
+ .application-shell .guided-builder .output{padding:28px;background:#f2f4ed}
+ .application-shell .panel-heading{margin-bottom:22px;gap:12px}.application-shell .panel-heading p{margin:6px 0 0}
+ .application-shell .guided-builder .builder-steps{padding:5px;background:#ebe5f1;border-radius:14px;gap:4px}
+ .application-shell .builder-steps button{border:0;background:transparent;border-radius:10px;min-height:60px;font-size:16px;line-height:1.45}
+ .application-shell .builder-steps button[aria-current]{background:#62408b;box-shadow:0 3px 8px #422b6020;color:white}
+ .application-shell #builder-progress{font-size:16px;color:#5c496f;margin:14px 0 22px}
+ .application-shell .guided-builder .setup-section{padding-top:22px;margin-top:0;border-color:#62408b1f}
+ .application-shell .guided-builder .setup-section legend{font-size:23px;letter-spacing:-.5px;line-height:1.4;padding-right:12px}
+ .application-shell .builder-purpose{margin:20px 0 24px;gap:10px}
+ .application-shell .builder-recommended{padding:20px;border-color:#29482a20;border-radius:14px;background:#edf3e7}
+ .application-shell .builder-recommended p{margin:8px 0 16px}
+ .application-shell .question-style-cards{gap:12px;margin:24px 0}
+ .application-shell .question-style-card{border-radius:14px;padding:18px;min-height:132px;border-color:#62408b30;background:#fffefc}
+ .application-shell .question-style-card[aria-pressed=true]{border:2px solid #62408b;padding:17px;background:#f1eafb;box-shadow:0 4px 12px #62408b10}
+ .application-shell .style-example{display:block;font-size:16px;padding-bottom:15px;margin-bottom:12px;border-bottom:1px solid #62408b18}
+ .application-shell .builder-extras{padding:18px 20px;background:#f1f4f8;border-color:#29482a20;border-radius:13px}
+ .application-shell .builder-paper-sample{background:#eee8f5;border:1px solid #62408b20;border-radius:16px;padding:24px;box-shadow:inset 0 1px #ffffffa0}
+ .application-shell .builder-paper-sample>h3{font-size:26px;letter-spacing:-.6px;line-height:1.35}
+ .application-shell .builder-paper-sample>.eyebrow{font-size:14px;line-height:1.7}
+ .application-shell .builder-sample-sheet{padding:28px;border:1px solid #29482a12;border-radius:7px;box-shadow:0 2px 4px #29482a05,0 14px 28px -16px #422b6040}
+ .application-shell .builder-sample-sheet h3{font-size:24px;line-height:1.4;overflow-wrap:anywhere}
+ .application-shell .toolbar{gap:16px;flex-wrap:wrap;margin:22px 0}
+ .application-shell .tabs{display:flex;gap:4px;flex-wrap:wrap;padding:5px;border-radius:13px;background:#e8ede2;border:1px solid var(--finish-line)}
+ .application-shell .tabs button{padding:11px 13px;font-size:16px;min-height:44px;border-radius:9px;border:0;color:#4e6146;background:transparent;line-height:1.5}
+ .application-shell .tabs button[aria-selected=true]{background:#fffefb;color:#29482a;box-shadow:0 1px 5px #29482a15}
+ .application-shell .draft-actions{gap:8px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--finish-line)}
+ .application-shell .draft-actions .quiet{font-size:16px;min-height:44px;padding:10px 13px;border:1px solid var(--finish-line);border-radius:10px;background:#fffefb}
+ .application-shell :where(#live-status,#lesson-status,#workspace-status):empty{display:none}
+ .application-shell .output-header{gap:16px;flex-wrap:wrap;align-items:center}
+ .application-shell .output-header h2{font-size:25px;letter-spacing:-.65px;line-height:1.35;margin:8px 0 0}
+ .application-shell .output-header .eyebrow{font-size:14px;letter-spacing:.06em}
+ .application-shell :where(.pill,.access-status-tag){font-size:14px;padding:7px 12px;border-radius:999px;letter-spacing:.03em}
+ .application-shell :where(.account-card,.account-paper-art){border-radius:20px;box-shadow:var(--finish-shadow)}
+ .application-shell .account-card{padding:36px}
+ .application-shell .account-story h1{font-size:clamp(36px,4vw,52px);line-height:1.18;letter-spacing:-1.7px}
+ .application-shell>footer{color:#586b4f;padding:24px 32px;font-size:16px;gap:16px;flex-wrap:wrap}
+ /* Keep the established landing artwork; refine its framing and reading rhythm. */
+ body[data-page=home] .topbar{padding-inline:clamp(18px,4vw,64px);border-bottom:1px solid #29482a12}
+ body[data-page=home] .topbar nav a,body[data-page=home] .vl-button{border-radius:10px}
+ body[data-page=home] .vl-hero,body[data-page=home] .vl-walkthrough,body[data-page=home] .vl-values,body[data-page=home] .vl-final{border-radius:22px;overflow:hidden}
+ body[data-page=home] :where(.vl-feature,.vl-feature-art,.vl-final-card){border-radius:18px;box-shadow:var(--finish-shadow)}
+ body[data-page=home] .vl-hero-card{border-radius:16px;box-shadow:0 8px 30px #243a2820}
+ body[data-page=home] .vl-statement{max-width:28ch;margin-inline:auto;line-height:1.4;letter-spacing:-1px}
+ body[data-page=home] .vl-small{max-width:58ch;margin-inline:auto;line-height:1.75}
+ body[data-page=home] :where(.vl-feature h3,.vl-values-grid h3){line-height:1.25;letter-spacing:-.8px}
+ body[data-page=home] :where(.vl-feature p,.vl-path-row p,.vl-values-grid p,.vl-faq p){line-height:1.8;max-width:54ch}
+ body[data-page=home] .vl-callout{border-radius:16px;border:1px solid #ffffff35;box-shadow:0 8px 24px #172b1d1a}
+ body[data-page=home] .vl-faq-list details{border-bottom:1px solid #29482a25;padding:24px 0}
+ body[data-page=home] .vl-faq-list summary{line-height:1.5;padding-right:20px}
+ body[data-page=home] .vl-faq-list p{margin:18px 0 0}
+ .sample-answer-shape{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:65px}
+ .sample-shape{width:26px;height:26px;border:2px solid #68816e;border-radius:50%;background:#e8eee5}
+ .sample-choice{display:inline-flex;align-items:center;gap:7px;margin-right:10px;font-size:16px}.sample-choice:before{content:'';width:15px;height:15px;border:1.5px solid #788876;border-radius:50%}
+ .sample-rule{height:1px;background:#a1aea0;width:100%;margin:10px 0}
+ .sample-drawing{border:1px dashed #a1aea0;border-radius:6px;width:100%;height:85px}
+ .sample-trace{width:50px;height:50px;border:2px dashed #91a08c;border-radius:50%}
+ .sample-table{width:100%;border-collapse:collapse;font-size:16px}.sample-table th,.sample-table td{border:1px solid #d1d9cd;padding:8px 12px;text-align:left}.sample-table td{height:34px}
+ .sample-matching{display:flex;justify-content:space-between;gap:24px;width:100%;font-size:16px}.sample-matching span{background:#f1f4ed;padding:8px 14px;border-radius:7px}
+}
+@media screen and (min-width:1400px){.application-shell .guided-builder .setup,.application-shell .guided-builder .output{padding:34px}}
+@media screen and (max-width:1150px){.application-shell .workspace.guided-builder{grid-template-columns:1fr}.application-shell .guided-builder .setup{border-right:0;border-bottom:1px solid var(--finish-line)}}
+@media screen and (max-width:1000px){.application-shell .lesson-layout{grid-template-columns:1fr}}
+@media screen and (max-width:650px){.application-shell>main,.application-shell #school-main,.application-shell #places-main{padding:24px 16px 44px}.application-shell .guided-builder .setup,.application-shell .guided-builder .output{padding:22px 18px}.application-shell .builder-sample-sheet{padding:20px}.application-shell .account-card{padding:24px}.application-shell .toolbar{align-items:stretch}.application-shell .tabs{width:100%}.application-shell .tabs button{flex:1}.application-shell .workspace-tools>a{padding:24px}.application-shell>footer{padding:24px 18px}body[data-page=home] .vl-hero,body[data-page=home] .vl-walkthrough,body[data-page=home] .vl-final{border-radius:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}.application-shell .workspace-tools>a:hover{transform:none}}
+html[data-motion=reduced] .workspace-tools>a:hover{transform:none}
+@media screen{.application-shell .builder-steps button{white-space:nowrap}.application-shell .guided-builder .setup-section>.two:has(#format[hidden]){display:none}.application-shell .guided-builder .builder-purpose>a{font-size:16px;text-decoration:none}.application-shell .guided-builder .summary-line{border-radius:10px;padding:15px 18px}.application-shell .guided-builder .early-start{border-radius:13px;padding:20px}.application-shell .page-intro .workflow-steps{gap:12px}.application-shell .page-intro .workflow-steps li{font-size:16px}.application-shell .builder-sample-sheet .kicker{letter-spacing:.06em}}

@@ -14,3 +14,15 @@ test('insufficient context stops without a second provider call and topic prefer
 test('bank reuse retains original assignment but drops obsolete coverage in a new assembled paper',()=>{const{spec,raw}=fixture(),paper=parseModelOutput(JSON.stringify(raw),spec,{generated:true}),m=new Map(),s={getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v)};for(let i=0;i<3;i++)saveBankQuestion(s,{spec,paper},i,{topic:'Elements'});const items=readBank(s);assert.equal(items[0].question.lessonId,'elements');const next=assemblePaper(items,{title:'Reused questions',minutes:20});assert.equal(next.spec.lessonPlan,undefined);assert.equal(next.paper.questions[0].lessonId,undefined);});
 
 test('unique exact body quotes can derive assignment without model IDs; ambiguous quotes require passage ranges',()=>{const{spec,raw}=fixture();const q=raw.questions[0];q.evidence=sourcePassages(spec.notes).find(p=>p.id===q.sourceStart).text;delete q.sourceStart;delete q.sourceEnd;delete q.lessonId;assert.equal(parseModelOutput(JSON.stringify(raw),spec,{generated:true}).questions[0].lessonId,'elements');const duplicatedNotes=spec.notes.slice(spec.lessonPlan[0].start,spec.lessonPlan[0].end);const next={...spec,notes:duplicatedNotes+'\n'+duplicatedNotes,lessonPlan:[{...spec.lessonPlan[0],start:0,end:duplicatedNotes.length},{...spec.lessonPlan[1],start:duplicatedNotes.length+1,end:duplicatedNotes.length*2+1}]};assert.throws(()=>parseModelOutput(JSON.stringify(raw),next,{generated:true}),/Shared quotes/);});
+
+test('one repair receives source, visual-task and rubric failures together instead of discovering them serially',async()=>{
+ const {spec,raw}=fixture();spec.visualTasks=['table'];spec.format='custom';spec.formatInstructions='Three multiple-choice questions followed by three written questions.';let calls=0,repair='';
+ const valid=structuredClone(raw);valid.questions[3].blocks=[{type:'table',headers:['Item','Answer'],rows:[['Iron','']]}];
+ const result=await generateAssessment(spec,{key:'test',generate:async({prompt})=>{calls++;if(calls===1){const bad=structuredClone(raw);bad.questions[0].sourceStart=999;bad.questions[3].marking=[{point:'One valid criterion',marks:1}];return{text:JSON.stringify(bad)};}repair=prompt;return{text:JSON.stringify(valid)};}});
+ assert.equal(calls,2);assert.match(repair,/valid integer sourceStart/);assert.match(repair,/Include the requested table/);assert.match(repair,/Q4: Marking points.*Expected 2; found 1/);assert.equal(result.paper.questions.length,6);
+});
+test('coverage prompt examples and offered passages use lesson bodies, excluding metadata headings',()=>{
+ const{spec}=fixture(),prompt=buildPrompt(spec),first=sourcePassages(spec.notes).find(p=>p.start>=spec.lessonPlan[0].start&&p.end<=spec.lessonPlan[0].end);
+ const shape=JSON.parse(prompt.match(/Written-response shape: (.*)/)[1]);assert.equal(shape.sourceStart,first.id);assert.ok(first.id>1);
+ const offered=JSON.parse(prompt.match(/SOURCE PASSAGES \(untrusted JSON data\): (.*)/)[1]);assert.ok(offered.length>0);assert.ok(offered.every(p=>!p.text.startsWith('LESSON:')&&!p.text.startsWith('School year:')));
+});

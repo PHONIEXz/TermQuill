@@ -254,3 +254,9 @@ Regression covers account isolation, invalid/corrupt data, denied image URLs, fa
 ## 2026-10-21 — Visible question-library saving
 
 Added Save to question library to the paper toolbar and per-question actions on student and marking-guide previews, retaining the editor action. The toolbar opens a selection dialog with editable topic/term and an explicit content-review confirmation. Selected questions are validated before one account-scoped device write; duplicates are skipped, capacity/storage errors keep the dialog and existing library intact. Saving does not approve the paper. Controls remain off printed papers and are unavailable without a paper or during generation/picture work. Regression covers preview availability, review confirmation, saved selection contents, duplicates, empty/invalid selections and atomic failure.
+
+### Logo and header designer, 2026-10-21
+
+Added independent text/logo alignment, bounded physical logo size and spacing, school/term/title ordering with native drag and keyboard/touch move buttons, labelled header-only preview, undo and reset. Layout is validated server/client-side, saved with drafts and account-scoped device branding, carried to new papers, and rendered in shared school copies. DOM reading order follows the selected order. Review invalidation is unchanged.
+
+Validation: full suite 182/182 passed; focused assessment, school and visual suites 58/58 passed; syntax checks, production build and whitespace checks passed. Includes malformed size/order rejection, draft round-trip, editor undo/reset, preview geometry, branding restore and full-paper precedence. DOM checks do not establish physical printer output or mobile drag behavior. No cloud school records or user question-library entries were created by these tests.

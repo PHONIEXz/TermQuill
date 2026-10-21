@@ -142,3 +142,7 @@ Retain the established palette and artwork. Use `public/polish.css` as the final
 ## Device setup and persistent branding (2026-10-21)
 
 School logo/name/heading changes save automatically through account-scoped browser storage with explicit success/failure feedback. A distinct Save setup on this device action persists the current generation settings and source text without requiring a generated paper. Restore this setup before explicit paper/sample/lesson handoffs so those retain precedence. Past-question selections are reselected after reopening. Keep paper saving and cloud lessons distinct. Forget saved setup removes only the two local setup/branding records, preserving the current paper and saved drafts. Never persist access codes, auth data or review approval in this setup.
+
+## Logo and header designer (2026-10-21)
+
+A bounded paper layout tool controls text alignment, independent logo alignment, 12–32 mm logo size, 0–12 mm header spacing and school/term/title order. Native drag rows have explicit move buttons for keyboard and touch use. Reordering also changes document reading order. A labelled header-only example updates immediately; the complete student and teacher previews share the same print geometry. Undo and reset affect layout only. Changes invalidate paper review, persist with drafts and account-scoped device branding, and carry into new papers without replacing chosen stage styles. School copies use the same header structure and validations. This milestone does not add arbitrary absolute positioning or whole-page canvas editing.

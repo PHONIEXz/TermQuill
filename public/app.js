@@ -34,11 +34,11 @@ function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
 function mountLogo(){
  const box=$('paper-logo');if(!box)return;box.replaceChildren();
  const layout=state?(state.paper.layout??={preset:state.spec.presentation||'standard',schoolName:'',term:''}):pendingLayout;
- if(!state)for(const [key,label,max] of [['schoolName','School name (optional)',100],['term','Term / exam heading (optional)',60]]){const wrap=el('label',label),input=el('input');input.type='text';input.maxLength=max;input.value=layout[key]||'';input.addEventListener('input',()=>{layout[key]=input.value;dirty=!rememberBranding(layout);});wrap.append(input);box.append(wrap);}
- logoEditor(box,layout,()=>{const saved=rememberBranding(layout);if(state){resetApproval();preview();}else dirty=!saved;},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on&&state)resetApproval();busy(Boolean(active));}});
+ if(!state)layoutEditor(box,{layout},()=>{dirty=!rememberBranding(layout);},{includeLogo:false,includeStyle:false,isBusy:()=>Boolean(active)||pendingImages>0});
+ logoEditor(box,layout,()=>{const saved=rememberBranding(layout);box.querySelector('.layout-panel')?.dispatchEvent(new Event('input'));if(state){resetApproval();preview();}else dirty=!saved;},{onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on&&state)resetApproval();busy(Boolean(active));}});
 }
 function rememberBranding(layout){if(page!=='create')return;try{saveBranding(localStorage,layout);$('setup-save-status').textContent='School branding saved on this device for your account.';return true;}catch{$('setup-save-status').textContent='Could not save branding on this device. It remains in the open paper; save or export the paper to keep it.';return false;}}
-function carrySetupLogo(paper){const layout=state?.paper.layout||pendingLayout;paper.layout??={preset:'standard',schoolName:'',term:''};for(const key of ['schoolName','term','logo'])if(layout[key])paper.layout[key]=layout[key];}
+function carrySetupLogo(paper){const layout=state?.paper.layout||pendingLayout;paper.layout??={preset:'standard',schoolName:'',term:''};for(const key of ['schoolName','term','logo','header'])if(layout[key])paper.layout[key]=structuredClone(layout[key]);}
 if(page==='create'){
  try{const saved=readSetup(localStorage);if(saved){fillForm(saved.settings);Object.assign(pendingLayout,saved.layout);$('setup-save-status').textContent='Saved setup restored from this device.'+(saved.settings.sourceMode==='references'?' Select your past questions again.':'');}}catch{$('setup-save-status').textContent='Saved setup could not be restored. Your saved copy is unchanged; you can save a replacement or forget it.';}
  try{const branding=readBranding(localStorage);if(branding){delete pendingLayout.logo;Object.assign(pendingLayout,branding);}}catch{$('setup-save-status').textContent='Saved school branding could not be restored. Upload it again to replace the saved copy.';}
@@ -87,8 +87,8 @@ function resetApproval(){if(state){state.approved=false;dirty=true;}updateReview
 function head(container) {
   if(state.sample)container.append(el('div','SAMPLE ASSESSMENT · Hand-authored example. Not generated from your current form.','sample-notice'));
   const header=el('div',undefined,'paper-head');renderLogo(header,state.paper.layout);
-  for(const value of [state.paper.layout?.schoolName,state.paper.layout?.term])if(value)header.append(el('p',value));
-  header.append(el('div',mode==='teacher'?'TEACHER COPY / MARKING GUIDE':`STUDENT COPY / ${state.spec.assessmentMode==='exam'?'EXAMINATION':state.spec.assessmentMode==='test'?'CLASS TEST':'ASSESSMENT'}`,'kicker'),el('h2',state.spec.title),el('p',`${state.spec.subject} · ${state.spec.level} · ${state.spec.minutes} minutes · ${paperTotal(state.paper)} marks`));
+  for(const key of state.paper.layout?.header?.order||['school','term','title']){if(key==='title')header.append(el('h2',state.spec.title,'header-title'));else{const value=state.paper.layout?.[key==='school'?'schoolName':'term'];if(value)header.append(el('p',value,'header-'+key));}}
+  header.append(el('div',mode==='teacher'?'TEACHER COPY / MARKING GUIDE':`STUDENT COPY / ${state.spec.assessmentMode==='exam'?'EXAMINATION':state.spec.assessmentMode==='test'?'CLASS TEST':'ASSESSMENT'}`,'kicker'),el('p',`${state.spec.subject} · ${state.spec.level} · ${state.spec.minutes} minutes · ${paperTotal(state.paper)} marks`));
   if(mode==='student'){const names=el('div',undefined,'name-line');names.append(el('span','Name: __________________________'),el('span','Date: ______________'));header.append(names);}
   container.append(header,el('p',state.paper.instructions,'instructions'));
 }

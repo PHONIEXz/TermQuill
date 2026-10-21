@@ -54,7 +54,7 @@ export function renderBlocks(target,q,{teacher=false}={}){
   target.append(block);
  }
 }
-export function applyPaperLayout(target,layout={}){target.classList.remove('paper-standard','paper-primary','paper-early');target.classList.add(`paper-${layout.preset||'standard'}`);}
+export function applyPaperLayout(target,layout={}){target.classList.remove('paper-standard','paper-primary','paper-early');target.classList.add(`paper-${layout.preset||'standard'}`);const h=layout.header||{};target.style.setProperty('--header-align',h.align||'center');target.style.setProperty('--logo-margin',h.logoAlign==='left'?'0 auto 0 0':h.logoAlign==='right'?'0 0 0 auto':'0 auto');target.style.setProperty('--logo-size',`${h.logoSize||20}mm`);target.style.setProperty('--header-gap',`${h.gap??4}mm`);for(const [i,k] of (h.order||['school','term','title']).entries())target.style.setProperty('--order-'+k,i+1);}
 export async function assertPicturesReady(target){
  const images=[...target.querySelectorAll('img.paper-image')];
  try{await Promise.all(images.map(img=>typeof img.decode==='function'?img.decode():Promise.resolve()));}catch{throw new Error('A picture could not be loaded. Replace it before printing.');}

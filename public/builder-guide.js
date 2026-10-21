@@ -32,7 +32,7 @@ export function initBuilderGuide(doc=document) {
  const sheet=make('div',null,'builder-sample-sheet'),heading=make('h3'),meta=make('p'),rows=make('div');sheet.append(make('span','STUDENT PAPER','kicker'),heading,meta,rows);sample.append(sheet,make('p','You will also receive a separate marking guide. Review both copies before printing.','micro'));$('preview').before(sample);
  const saveState=make('p',null,'builder-save-state no-print');saveState.setAttribute('role','status');doc.querySelector('.draft-actions').before(saveState);
  const saveHint=make('p','Device drafts are saved in this browser. Lesson-library saves go to your private cloud collection. Sending to a school is a separate action.','micro no-print');doc.querySelector('.draft-actions').after(saveHint);
- const branding=make('details',null,'builder-extras no-print');branding.append(make('summary','School name, logo & paper heading'));$('paper-logo').before(branding);branding.append($('paper-logo'));
+ const branding=make('details',null,'builder-extras no-print');branding.append(make('summary','School logo & header designer'));$('paper-logo').before(branding);branding.append($('paper-logo'));
  const work=doc.querySelector('#workspace');work.classList.add('guided-builder');
  const toolbar=doc.querySelector('.toolbar');$('tab-edit').textContent='Edit questions & review';$('tab-teacher').textContent='View marking guide';$('print').textContent='Print / save PDF';
  function working(){return doc.querySelector('.output').getAttribute('aria-busy')==='true';}

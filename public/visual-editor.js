@@ -2,14 +2,14 @@ import {mediaPicker} from '/media-picker.js';
 import {ICONS,PRESETS,MAX_IMAGE_LENGTH,setVisualAnswer} from '/visuals.js';
 import {iconElement} from '/paper-blocks.js';
 function node(doc,tag,text,cls){const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
-function field(box,label,value,{type='text',max=160,min,limit,options}={},change=()=>{}){
+function field(box,label,value,{type='text',max=160,min,limit,options,event='input'}={},change=()=>{}){
  const d=box.ownerDocument,wrap=node(d,'div',undefined,`visual-field${type==='checkbox'?' visual-check':''}`),l=node(d,'label',label),e=d.createElement(options?'select':type==='textarea'?'textarea':'input');e.id=`visual-${crypto.randomUUID()}`;l.htmlFor=e.id;
  if(options)for(const [v,t] of options){const o=node(d,'option',t);o.value=v;e.append(o);}
  else if(type!=='textarea')e.type=type;
  if(type==='checkbox')e.checked=Boolean(value);else e.value=value??'';
  if(!options&&['text','textarea'].includes(type))e.maxLength=max;
  if(min!==undefined)e.min=min;if(limit!==undefined)e.max=limit;
- e.addEventListener(options||type==='checkbox'||type==='file'?'change':'input',()=>change(type==='number'?Number(e.value):type==='checkbox'?e.checked:e.value,e));wrap.append(l,e);box.append(wrap);return e;
+ e.addEventListener(options||type==='checkbox'||type==='file'?'change':event,()=>change(type==='number'?Number(e.value):type==='checkbox'?e.checked:e.value,e));wrap.append(l,e);box.append(wrap);return e;
 }
 function button(box,label,fn,disabled=false){const b=node(box.ownerDocument,'button',label);b.type='button';if(label.startsWith('Remove'))b.classList.add('remove-control');b.disabled=disabled;b.addEventListener('click',fn);box.append(b);return b;}
 export function logoEditor(box,layout,onChange,{onError=()=>{},onBusy=()=>{},isBusy=()=>false}={}){
@@ -24,11 +24,29 @@ export function logoEditor(box,layout,onChange,{onError=()=>{},onBusy=()=>{},isB
  upload.addEventListener('change',async()=>{const file=upload.files?.[0];if(!file||isBusy())return;choose.disabled=true;remove.disabled=true;onBusy(true);status.textContent='Preparing school logo…';try{const image=await compressPicture(file);layout.logo=image;onChange();onError('');}catch(e){onError(e.message);}finally{refresh();onBusy(false);choose.disabled=false;upload.value='';}});
  logo.append(thumb,actions,upload,status);box.append(logo);refresh();return choose;
 }
-export function layoutEditor(box,paper,onChange,{onError=()=>{},onBusy=()=>{},isBusy=()=>false,includeLogo=true}={}){
+export function layoutEditor(box,paper,onChange,{onError=()=>{},onBusy=()=>{},isBusy=()=>false,includeLogo=true,includeStyle=true}={}){
  const d=box.ownerDocument,panel=node(d,'fieldset',undefined,'layout-panel');panel.append(node(d,'legend','Paper layout & header'));panel.append(node(d,'p','Applies to the whole paper. Set the reading size and heading here.','visual-hint'));const layout=paper.layout??={preset:'standard',schoolName:'',term:''};
- field(panel,'Paper style',layout.preset,{options:Object.entries(PRESETS)},v=>{layout.preset=v;onChange();});
+ if(includeStyle)field(panel,'Paper style',layout.preset,{options:Object.entries(PRESETS)},v=>{layout.preset=v;onChange();});
  field(panel,'School name (optional)',layout.schoolName,{max:100},v=>{layout.schoolName=v;onChange();});field(panel,'Term / exam heading (optional)',layout.term,{max:60},v=>{layout.term=v;onChange();});
- if(includeLogo)logoEditor(panel,layout,onChange,{onError,onBusy,isBusy});
+ const defaults=()=>({align:'center',logoAlign:'center',logoSize:20,gap:4,order:['school','term','title']});
+ const tools=node(d,'section',undefined,'header-tools');tools.append(node(d,'h3','Logo & header designer'),node(d,'p','Choose positions, drag heading rows or use their move buttons. This layout applies to both printed copies.','visual-hint'));panel.append(tools);
+ let dragging=null;const history=[],controls=node(d,'div',undefined,'header-controls'),sample=node(d,'div',undefined,'header-layout-sample'),status=node(d,'p',undefined,'visual-hint');status.setAttribute('role','status');sample.setAttribute('aria-label','Live header layout preview');
+ const commit=fn=>{if(isBusy())return;history.push(structuredClone(layout.header||defaults()));if(history.length>30)history.shift();fn();onChange();draw();};
+ function draw(){const focusedLabel=controls.contains(d.activeElement)?d.activeElement.labels?.[0]?.textContent:null;controls.replaceChildren();sample.replaceChildren();const h=layout.header||defaults();
+  for(const [key,label,options] of [['align','Header alignment',[['left','Left'],['center','Centre'],['right','Right']]],['logoAlign','Logo position',[['left','Left'],['center','Centre'],['right','Right']]]])field(controls,label,h[key],{options},v=>commit(()=>{(layout.header??=defaults())[key]=v;}));
+  for(const [key,label,min,max] of [['logoSize','Logo size (mm)',12,32],['gap','Header spacing (mm)',0,12]])field(controls,label,h[key],{type:'number',min,limit:max,event:'change'},(v,input)=>{if(!Number.isInteger(v)||v<min||v>max){input.setCustomValidity(`Use a whole number from ${min} to ${max}.`);input.reportValidity();return;}input.setCustomValidity('');commit(()=>{(layout.header??=defaults())[key]=v;});});
+  const rows=node(d,'div',undefined,'header-order');controls.append(rows);const labels={school:'School name',term:'Term / exam heading',title:'Assessment title'};
+  h.order.forEach((key,i)=>{const row=node(d,'div',undefined,'header-order-row');row.draggable=true;row.dataset.headerItem=key;row.addEventListener('dragstart',e=>{if(isBusy()){e.preventDefault();return;}dragging=key;e.dataTransfer?.setData('text/plain',key);});row.addEventListener('dragend',()=>{dragging=null;});row.addEventListener('dragover',e=>{if(dragging&&!isBusy())e.preventDefault();});row.addEventListener('drop',e=>{e.preventDefault();if(!dragging||isBusy()||dragging===key)return;const source=dragging;dragging=null;commit(()=>{const a=(layout.header??=defaults()).order;a.splice(a.indexOf(source),1);a.splice(i,0,source);});status.textContent=`${labels[source]} moved to row ${i+1}.`;});row.append(node(d,'span',labels[key]));for(const [delta,label] of [[-1,'up'],[1,'down']])button(row,`Move ${labels[key]} ${label}`,()=>{commit(()=>{const a=(layout.header??=defaults()).order;[a[i],a[i+delta]]=[a[i+delta],a[i]];});status.textContent=`${labels[key]} moved ${label}.`;controls.querySelectorAll('.header-order-row')[i+delta]?.querySelector('button:not(:disabled)')?.focus();},i+delta<0||i+delta>2);rows.append(row);});
+  button(controls,'Undo layout change',()=>{if(isBusy()||!history.length)return;layout.header=history.pop();onChange();draw();status.textContent='Previous layout restored.';},!history.length);
+  button(controls,'Reset header layout',()=>commit(()=>{layout.header=defaults();}));
+  sample.style.textAlign=h.align;sample.style.gap=`${h.gap}mm`;
+  if(layout.logo){const img=node(d,'img');img.src=layout.logo;img.alt='School logo layout preview';img.style.cssText=`width:${h.logoSize}mm;height:${h.logoSize}mm;object-fit:contain;margin:${h.logoAlign==='left'?'0 auto 0 0':h.logoAlign==='right'?'0 0 0 auto':'0 auto'}`;sample.append(img);}else sample.append(node(d,'p','Upload a logo to preview its position.','visual-hint'));
+  if(focusedLabel){const label=[...controls.querySelectorAll('label')].find(l=>l.textContent===focusedLabel);if(label)d.getElementById(label.htmlFor)?.focus();}
+  for(const key of h.order)sample.append(node(d,key==='title'?'strong':'p',key==='school'?(layout.schoolName||'School name'):key==='term'?(layout.term||'Term / exam heading'):'Assessment title'));
+ }
+ tools.append(controls,sample,node(d,'p','Layout example only. Open Student copy or Marking guide to see the complete paper. Changes save with your paper and device setup.','visual-hint'),status);draw();
+ panel.addEventListener('input',e=>{if(!controls.contains(e.target))draw();});
+ if(includeLogo)logoEditor(panel,layout,()=>{onChange();draw();},{onError,onBusy,isBusy});
  panel.append(node(d,'p','Early Years uses larger questions, line illustrations and generous answer spaces. Check the class, language and printed size before use.','visual-hint'));box.append(panel);
 }
 const blockLabels={picture:'Illustrations / counting',image:'Uploaded picture',table:'Table',matching:'Matching columns',tracing:'Tracing outlines',drawing:'Drawing / colouring space',lines:'Writing lines'};

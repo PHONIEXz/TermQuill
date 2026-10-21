@@ -94,7 +94,7 @@ test('school illustrated copies and editing preserve blocks and separate answer 
   return {id:'p1',author_id:'u1',department_id:'d1',status:'draft',revision:1,current_revision:1,approved_revision:null,content,versions:[{revision:1,created_at:new Date().toISOString()}],reviews:[]};
  }));
  try{
-  w.HTMLElement.prototype.scrollIntoView=()=>{};const paper=w.document.querySelector('.school-print');assert.equal(paper.firstElementChild.className,'paper-image school-logo');assert.equal(paper.querySelectorAll('.count-objects')[0].querySelectorAll('svg').length,3);assert.ok(!paper.textContent.includes('1–B: Circle'));
+  w.HTMLElement.prototype.scrollIntoView=()=>{};const paper=w.document.querySelector('.school-print');assert.equal(paper.querySelector('.paper-head').firstElementChild.className,'paper-image school-logo');assert.equal(paper.querySelectorAll('.count-objects')[0].querySelectorAll('svg').length,3);assert.ok(!paper.textContent.includes('1–B: Circle'));
   const find=t=>[...w.document.querySelectorAll('button')].find(b=>b.textContent===t);find('Marking guide').click();await new Promise(r=>setTimeout(r,10));assert.match(paper.textContent,/1–B: Circle/);assert.equal(paper.querySelector('.school-logo').src,early.paper.layout.logo);
   find('Change school logo').click();await new Promise(r=>setTimeout(r,10));
   assert.equal(w.document.activeElement.className,'outline logo-upload');const label=[...w.document.querySelectorAll('label')].find(l=>l.textContent==='Number of objects'),input=w.document.getElementById(label.htmlFor);input.value='4';input.dispatchEvent(new w.Event('input'));

@@ -6,7 +6,7 @@ import {personalContext} from '/account-session.js';
 import {emptyStorage} from '/identity.js';
 import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY} from '/lessons.js';
 import {initReferencePicker} from '/reference-picker.js';
-import {saveBankQuestion} from '/bank.js';
+import {saveBankQuestion,saveBankQuestions} from '/bank.js';
 import {assertSchoolSize,visualAnswer,hasAnswerSpace,paperTotal} from '/visuals.js';
 import {earlyYearsSample} from '/early-years.js';
 import {renderBlocks,applyPaperLayout,assertPicturesReady,renderSection,renderLogo} from '/paper-blocks.js';
@@ -76,7 +76,8 @@ function updateReview() {
   $('approved').checked=Boolean(state?.approved);
   $('approved').disabled=working||issues.length>0;
   $('print').disabled=!state||!state.approved||issues.length>0||mode==='edit'||working;
-  for(const id of ['save','download','send-school'])$(id).disabled=!state||working;
+  for(const id of ['save','download','send-school','save-library'])$(id).disabled=!state||working;
+  for(const button of document.querySelectorAll('.question-bank-actions button'))button.disabled=working;
   $('restore').disabled=!hasSaved()||working;
   $('draft-badge').textContent=state?(state.approved?'REVIEWED':state.sample?'SAMPLE DRAFT':'REVIEW NEEDED'):'NOT STARTED';
   document.dispatchEvent(new CustomEvent('termquill:paper-state',{detail:{exists:Boolean(state),dirty,saved:Boolean(state?.id)}}));
@@ -103,7 +104,7 @@ function preview() {
       const answer=el('div',undefined,'teacher-answer');answer.append(el('strong',q.kind==='mcq'?`${'ABCD'[q.correctIndex]}. ${q.answer}`:q.answer));
       const points=el('ul');q.marking.forEach(p=>points.append(el('li',`${p.point} (${p.marks} ${p.marks===1?'mark':'marks'})`)));answer.append(points,el('div',q.grounding==='topic'||state.spec.sourceMode==='topic'?`Topic-generated · Not source-verified. Answer rationale: ${q.rationale}`:`From the lesson notes: “${q.evidence}”`,'evidence'));section.append(answer);
     }else if(q.kind==='short'&&q.answerSpace!=='none'&&!hasAnswerSpace(q))section.append(el('div',undefined,'answer-lines'));
-    target.append(section);
+    const libraryActions=el('div',undefined,'question-bank-actions no-print');actionButton(libraryActions,'Save question to library',()=>openBankDialog(i));section.append(libraryActions);target.append(section);
   });
   target.append(el('p',`${state.approved?'Teacher review confirmed':'DRAFT · Awaiting teacher review'} · Prepared with TermQuill`,'print-note'));
 }
@@ -133,7 +134,7 @@ function questionControls(box,q,i){
  actionButton(tools,`Move question ${i+1} up`,()=>{[state.paper.questions[i-1],state.paper.questions[i]]=[q,state.paper.questions[i-1]];changedQuestions(i-1);},i===0);
  actionButton(tools,`Move question ${i+1} down`,()=>{[state.paper.questions[i+1],state.paper.questions[i]]=[q,state.paper.questions[i+1]];changedQuestions(i+1);},i===count-1);
  actionButton(tools,`Duplicate question ${i+1}`,()=>{state.paper.questions.splice(i+1,0,structuredClone(q));changedQuestions(i+1);message('Question duplicated. Change its wording and content before approving.');},count>=20);
- actionButton(tools,`Remove question ${i+1}`,()=>{if(confirm(`Remove question ${i+1} from this open paper? The saved copy stays unchanged until you save.`)){state.paper.questions.splice(i,1);changedQuestions(Math.min(i,count-2));}},count<=3);box.append(tools);const bankTools=el('div',undefined,'question-bank-actions');actionButton(bankTools,'Save question to bank',()=>openBankDialog(i));box.append(bankTools);
+ actionButton(tools,`Remove question ${i+1}`,()=>{if(confirm(`Remove question ${i+1} from this open paper? The saved copy stays unchanged until you save.`)){state.paper.questions.splice(i,1);changedQuestions(Math.min(i,count-2));}},count<=3);box.append(tools);const bankTools=el('div',undefined,'question-bank-actions');actionButton(bankTools,'Save question to library',()=>openBankDialog(i));box.append(bankTools);
 }
 function renderEditor(target) {
   const intro=el('div',undefined,'editor-intro');intro.append(el('strong','Make it yours, one question at a time.'),el('p','Set your paper heading, open a question to edit, then use Student paper to check the result. Every edit resets your review.'));target.append(intro);
@@ -250,11 +251,19 @@ window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();
 
 $('send-school').addEventListener('click',()=>{try{if(!state||active||pendingImages)return;const draft=validateDraft({...state,savedAt:new Date().toISOString()});assertSchoolSize({spec:draft.spec,paper:draft.paper,sample:draft.sample,model:draft.model});sessionStorage.setItem('lessonpress.school-transfer',JSON.stringify(draft));dirty=false;location.href='/school/library';}catch(e){error(e.message);}});
 
+$('save-library').addEventListener('click',()=>openBankDialog());
 function openBankDialog(index){
- const dialog=el('dialog',undefined,'bank-dialog'),f=el('form');f.method='dialog';f.append(el('h2','Save a reusable question'),el('p','Stored on this browser with its answer, visuals and source notes or topic brief. This is your personal bank, separate from school approval.'));
- function bankField(label,value,max){const l=el('label',label),input=el('input');input.id=`bank-${crypto.randomUUID()}`;l.htmlFor=input.id;input.value=value;input.maxLength=max;f.append(l,input);return input;}const topic=bankField('Topic','',80),term=bankField('Term (optional)',state.paper.layout?.term||'',60);topic.required=true;
- const label=el('label',undefined,'check-label'),check=el('input');check.type='checkbox';check.required=true;label.append(check,document.createTextNode(' I checked the question, answer and source evidence or topic rationale.'));f.append(label);
- const note=el('p');note.setAttribute('role','status');const actions=el('div',undefined,'block-controls'),save=el('button','Save to question bank','primary');save.type='submit';actions.append(save);actionButton(actions,'Cancel',()=>dialog.close());f.append(note,actions);dialog.append(f);document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove());f.addEventListener('submit',event=>{event.preventDefault();try{saveBankQuestion(localStorage,state,index,{topic:topic.value,term:term.value});dialog.close();message('Question saved to your device bank. Open Question bank to assemble another paper.');}catch(e){note.textContent=e.message;}});dialog.showModal();topic.focus();
+ if(!state||active||pendingImages||document.querySelector('.bank-dialog'))return;
+ const dialog=el('dialog',undefined,'bank-dialog'),f=el('form');f.method='dialog';const heading=el('h2',index===undefined?'Save to question library':'Save question to library');heading.id='save-library-heading';dialog.setAttribute('aria-labelledby',heading.id);
+ f.append(heading,el('p','Saved for your account on this browser, with answers, visuals and source notes or topic instructions. This does not approve the paper or share it with a school.'));
+ const choices=[];if(index===undefined){const group=el('fieldset'),legend=el('legend','Choose questions to keep');group.append(legend);state.paper.questions.forEach((q,i)=>{const label=el('label',undefined,'library-save-choice'),check=el('input');check.type='checkbox';check.checked=true;check.dataset.questionIndex=i;choices.push(check);label.append(check,document.createTextNode(`${i+1}. ${q.prompt}`));group.append(label);});f.append(group);}
+ else f.append(el('p',`${index+1}. ${state.paper.questions[index].prompt}`));
+ function bankField(label,value,max){const l=el('label',label),input=el('input');input.id=`bank-${crypto.randomUUID()}`;l.htmlFor=input.id;input.value=value;input.maxLength=max;f.append(l,input);return input;}
+ const topic=bankField('Topic',state.spec.title.slice(0,80),80),term=bankField('Term (optional)',state.paper.layout?.term||'',60);topic.required=true;
+ const label=el('label',undefined,'check-label'),check=el('input');check.type='checkbox';check.required=true;label.append(check,document.createTextNode(' I checked the selected questions, answers and source evidence or topic rationales.'));f.append(label);
+ const note=el('p');note.setAttribute('role','status');const actions=el('div',undefined,'block-controls'),save=el('button','Save to question library','primary');save.type='submit';actions.append(save);actionButton(actions,'Cancel',()=>dialog.close());f.append(note,actions);dialog.append(f);document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove());
+ f.addEventListener('submit',event=>{event.preventDefault();if(active||pendingImages)return;try{if(!check.checked)throw new Error('Confirm that you checked the selected questions and answers before saving.');if(!f.checkValidity())throw new Error('Add a topic of up to 80 characters.');if(index===undefined){const result=saveBankQuestions(localStorage,state,choices.filter(c=>c.checked).map(c=>Number(c.dataset.questionIndex)),{topic:topic.value,term:term.value});message(`${result.saved} question${result.saved===1?'':'s'} saved to your question library on this device.${result.skipped?` ${result.skipped} already saved; no duplicates added.`:''}`);}else{saveBankQuestion(localStorage,state,index,{topic:topic.value,term:term.value});message('Question saved to your question library on this device. Open Question library to reuse it.');}dialog.close();}catch(e){note.textContent=e.message;}});
+ dialog.showModal();topic.focus();
 }
 
 if(page==='create'&&new URLSearchParams(location.search).get('lessons')==='1'){

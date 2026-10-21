@@ -80,3 +80,18 @@ test('source passage fallback covers long sentences, line notes and decimals wit
  }
  assert.equal(notes.slice(previous).trim(),'');
 });
+
+test('rubric repair preserves criteria and rejects string, fractional, missing and incorrect totals',async()=>{
+ for(const marks of [1,2,5,10]){
+  const spec={...sampleSpec,format:'short',marksEach:marks},valid=copy();for(const q of valid.questions){q.kind='short';q.options=[];q.correctIndex=null;q.marks=marks;q.marking=[{point:q.answer,marks}];}
+  assert.deepEqual(auditAssessment(valid,spec),[]);
+  for(const marking of [[{point:'Criterion',marks:String(marks)}],[{point:'Criterion',marks:0.5}],[],[{point:'Criterion',marks:marks+1}]]){
+   const bad=structuredClone(valid);bad.questions[1].marking=marking;assert.throws(()=>parseModelOutput(JSON.stringify(bad),spec,{generated:true}),/Marking points/);
+  }
+  let calls=0;const result=await generateAssessment(spec,{key:'test',generate:async({prompt})=>{calls++;assert.ok(prompt.includes(`sum to exactly ${marks}`));const out=structuredClone(valid);if(calls===1)out.questions[1].marking[0].marks=marks+1;return {text:JSON.stringify(out)};}});assert.equal(calls,2);assert.equal(result.paper.questions[1].marking[0].marks,marks);
+ }
+});
+test('unrepaired marking totals stay rejected with a specific user-facing explanation',async()=>{
+ const bad=copy();bad.questions[3].marking=[{point:'Creditworthy criterion',marks:1}];let calls=0;
+ await assert.rejects(generateAssessment(sampleSpec,{key:'test',generate:async()=>{calls++;return{text:JSON.stringify(bad)};}}),e=>e.code==='ASSESSMENT_VALIDATION'&&/Marking criteria or totals need correction in Q4/.test(e.message)&&/Expected 2; found 1/.test(e.validationChecks));assert.equal(calls,2);
+});

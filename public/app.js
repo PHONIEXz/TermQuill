@@ -69,6 +69,7 @@ function updateReview() {
   for(const id of ['save','download','send-school'])$(id).disabled=!state||working;
   $('restore').disabled=!hasSaved()||working;
   $('draft-badge').textContent=state?(state.approved?'REVIEWED':state.sample?'SAMPLE DRAFT':'REVIEW NEEDED'):'NOT STARTED';
+  document.dispatchEvent(new CustomEvent('termquill:paper-state',{detail:{exists:Boolean(state),dirty,saved:Boolean(state?.id)}}));
   $('audit-status').textContent=state?(issues.length?`${issues.length} checks need attention. ${issues.slice(0,3).map(x=>`${x.index===null?'':`Q${x.index+1}: `}${x.message}`).join(' ')}`:`${state.paper.questions.length} questions · ${state.paper.questions.reduce((s,q)=>s+q.marks,0)} marks · Structural checks passed. Review accuracy and suitability before printing.`):'';
 }
 function resetApproval(){if(state){state.approved=false;dirty=true;}updateReview();}
@@ -183,7 +184,7 @@ form.addEventListener('submit',async event=>{
     const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Access-Code':$('access-code').value},body:JSON.stringify(spec),signal:controller.signal});
     const data=await response.json();if(!response.ok)throw new Error(`${data.error||'Generation failed.'}${data.code?` (${data.code})`:''}${data.requestId?` Reference: ${data.requestId}`:''}`);
     const paper=parseModelOutput(JSON.stringify(data.paper),spec);paper.layout??={preset:spec.presentation||'standard',schoolName:'',term:''};
-    carrySetupLogo(paper);state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('edit');message(spec.sourceMode==='topic'?'Your topic draft is ready. Independently verify every answer and rationale before printing.':'Your draft is ready. Review each question, expected answer and source quote.');
+    carrySetupLogo(paper);state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('student');message(spec.sourceMode==='topic'?'Your topic draft is ready. Independently verify every answer and rationale before printing.':'Your draft is ready. Review each question, expected answer and source quote.');
   }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation timed out. Try fewer questions. Your previous paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}
   finally{clearTimeout(timer);active=null;busy(false);}
 });

@@ -1,5 +1,6 @@
 import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,writeLessons,validateLesson} from '../lib/lessons.js';
 import {saveBankQuestion,readBank} from '../lib/bank.js';
+import {initBuilderGuide} from '../public/builder-guide.js';
 import {installVisuals} from './visual-helpers.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')
 async function setup(generate,route="/create",seed,lessonSeed,cloudActual) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
   Object.assign(w,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
-  installVisuals(w);
+  installVisuals(w);const guide=initBuilderGuide(w.document);guide?.show(2);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
   if(seed)w.localStorage.setItem(DRAFTS_KEY,JSON.stringify(seed));
@@ -45,13 +46,13 @@ test('sample: render, review, print views, edits invalidate approval, local save
 test('duplicate editing disables approval with a specific issue',async()=>{
   const {dom,w,$}=await setup();try{$('try-sample').click();$('tab-edit').click();const prompts=[...w.document.querySelectorAll('.editor')].map(e=>e.querySelector('textarea'));prompts[1].value=prompts[0].value;prompts[1].dispatchEvent(new w.Event('input'));assert.equal($('approved').disabled,true);assert.match($('audit-status').textContent,/Duplicate/);}finally{dom.window.close();}
 });
-test('generation submits settings and renders escaped output in edit view',async()=>{
+test('generation opens the student paper first and renders escaped output',async()=>{
   let sent;
   const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({paper:samplePaper,model:'mock-gemma'})};});
   try{
     $('sample-notes').click();$('title').value='<img src=x onerror=alert(1)>';
     $('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));
-    assert.equal(sent.count,6);assert.equal($('tab-edit').getAttribute('aria-selected'),'true');assert.match($('live-status').textContent,/draft is ready/);
+    assert.equal(sent.count,6);assert.equal($('tab-student').getAttribute('aria-selected'),'true');assert.equal($('print').disabled,true);assert.match($('live-status').textContent,/draft is ready/);
     $('tab-student').click();assert.equal($('preview').querySelector('img'),null);assert.ok($('preview').textContent.includes('<img src=x'));
   }finally{dom.window.close();}
 });
@@ -217,6 +218,7 @@ test('topic source sends no notes, restores settings, retains visual tools and k
   assert.equal($('notes').disabled,true);assert.equal($('notes').required,false);assert.equal($('topic-entry').hidden,false);assert.equal($('topicInstructions').required,true);
   $('educationStage').value='undergraduate';$('educationStage').dispatchEvent(new w.Event('change'));$('level').value='First-year chemistry';$('topicInstructions').value='Assess elements, compounds and mixtures with definitions and application questions.';
   $('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent.sourceMode,'topic');assert.equal(sent.educationStage,'undergraduate');assert.equal(sent.notes,'');assert.match(sent.topicInstructions,/elements/);
+  assert.equal($('tab-student').getAttribute('aria-selected'),'true');assert.equal($('preview').textContent.includes('Independently check the chemical'),false);$('tab-edit').click();
   assert.match($('preview').textContent,/not verified source evidence/);assert.ok([...$('preview').querySelectorAll('label')].some(x=>x.textContent==='Answer rationale / teacher verification notes'));assert.match($('preview').textContent,/Pictures, tables/);
   $('save').click();$('restore').click();assert.equal($('source-mode').value,'topic');assert.equal($('topicInstructions').disabled,false);assert.equal($('notes').disabled,true);assert.equal($('educationStage').value,'undergraduate');
   $('tab-student').click();assert.equal($('preview').textContent.includes('Independently check the chemical'),false);$('tab-teacher').click();assert.match($('preview').textContent,/Topic-generated · Not source-verified/);

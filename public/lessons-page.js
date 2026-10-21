@@ -1,3 +1,4 @@
+import {exampleLessons} from '/lesson-examples.js';
 import {personalContext} from '/account-session.js';
 import {cloudLessons} from '/cloud-lessons.js';
 import {readLessons,filterLessons,validateLesson,lessonBackup,prepareLessonCollection,LESSON_TRANSFER_KEY} from '/lessons.js';
@@ -42,4 +43,5 @@ async function importBackup(backup){const result=await cloud.import(backup);awai
 $('lesson-copy-confirm').addEventListener('change',controls);$('lesson-copy-browser').addEventListener('click',()=>{if(!$('lesson-copy-confirm').checked)return;run(()=>importBackup(lessonBackup(readLessons(context.local))));});
 $('lesson-import').addEventListener('change',()=>{const file=$('lesson-import').files?.[0];if(!file)return;run(async()=>{try{if(file.size>2000000)throw new Error('Choose a lesson-library JSON backup under 2 MB.');await importBackup(JSON.parse(await file.text()));}finally{$('lesson-import').value='';}});});
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});document.addEventListener('click',event=>{const a=event.target.closest?.('a[href]');if(a&&dirty&&new URL(a.href,location.href).pathname!==location.pathname&&!confirm('Leave without saving these editor changes?'))event.preventDefault();});
+if($('lesson-add-examples'))$('lesson-add-examples').addEventListener('click',()=>run(async()=>{const now=new Date(),year=now.getFullYear()-(now.getMonth()<8?1:0);await importBackup(lessonBackup(exampleLessons(`${year}/${year+1}`)));}));
 reset();browserNotes();render();await run(load);

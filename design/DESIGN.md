@@ -124,3 +124,9 @@ The signed-in Access & requests page remains reachable before educator approval.
 ## Education-stage defaults (2026-10-21)
 
 Changing Education stage applies an editable starting class/course, paper style, question format, thinking level, marks per question and stage-specific Exam/Test count and duration. Stock subject/title examples follow the stage while teacher-written alternatives remain. Retain notes, topic/custom instructions, logos and the current preview paper. Announce what changed and ask the teacher to check retained source suitability; these defaults are not curriculum requirements. Restoring saved papers does not reapply presets.
+
+## Stage examples and visual task selection (2026-10-21)
+
+Provide seven original lesson-note examples with complete facts and assessment-ready scenarios. Saving examples is explicit and duplicate-safe; the owner-requested seed is restricted to the named creator account. The builder can load an example for the selected stage with matching visual preferences. Do not silently replace existing source text. Selected visual task types are visible before generation; generated output must include them, while teacher editing remains free to remove tasks afterwards. Familiar-object search uses original local line drawings with exact counting quantities.
+
+The existing picture editor includes a separate external Commons search disclosure. Do not call it unlimited, child-safe, curriculum-verified or an AI image generator. Search queries alone reach the provider; image previews are explicit and selected copies are compressed/embedded with source and licence credit. Matching pictures hide their answer-key names on the student paper. No arbitrary remote image URL or SVG import. Existing size, page, count and sharing limits remain.

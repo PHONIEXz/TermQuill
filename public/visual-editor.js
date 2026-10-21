@@ -1,3 +1,4 @@
+import {mediaPicker} from '/media-picker.js';
 import {ICONS,PRESETS,MAX_IMAGE_LENGTH,setVisualAnswer} from '/visuals.js';
 import {iconElement} from '/paper-blocks.js';
 function node(doc,tag,text,cls){const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
@@ -31,6 +32,7 @@ export function layoutEditor(box,paper,onChange,{onError=()=>{},onBusy=()=>{},is
  panel.append(node(d,'p','Early Years uses larger questions, line illustrations and generous answer spaces. Check the class, language and printed size before use.','visual-hint'));box.append(panel);
 }
 const blockLabels={picture:'Illustrations / counting',image:'Uploaded picture',table:'Table',matching:'Matching columns',tracing:'Tracing outlines',drawing:'Drawing / colouring space',lines:'Writing lines'};
+function objectField(box,label,value,change,{textOnly=false}={}){const input=field(box,label,value,{options:[...(textOnly?[['','Text only']]:[]),...Object.entries(ICONS)]},change);const search=field(box,'Search '+label.toLowerCase(),'',{type:'text',max:60},query=>{for(const option of input.options)option.hidden=Boolean(query)&&!option.textContent.toLowerCase().includes(query.toLowerCase())&&option.value!==input.value;});search.placeholder='Type an object name';return input;}
 function freshBlock(type){
  if(type==='picture')return {type,icon:'apple',quantity:3,size:'medium',caption:'',task:'illustration'};
  if(type==='table')return {type,caption:'',headers:['Item','Answer'],rows:[['',''],['','']]};
@@ -56,7 +58,7 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
    const bind=(label,key,opts={})=>field(fs,label,b[key],opts,v=>{b[key]=v;changed();});
    if(b.type==='picture'){
     const thumb=node(d,'div',undefined,'count-objects size-small');thumb.append(iconElement(d,b.icon));fs.append(thumb);
-    field(fs,'Object',b.icon,{options:Object.entries(ICONS)},v=>{b.icon=v;changed();thumb.replaceChildren(iconElement(d,v));});
+    objectField(fs,'Object',b.icon,v=>{b.icon=v;changed();thumb.replaceChildren(iconElement(d,v));});
     bind('Number of objects','quantity',{type:'number',min:1,limit:20});bind('Picture size','size',{options:[['small','Small'],['medium','Medium'],['large','Large']]});
     field(fs,'Picture task',b.task,{options:[['illustration','Illustration only'],['count','Count these objects (automatic answer)']]},v=>{
      if(v==='count'&&(q.kind!=='short'||(q.blocks||[]).some(other=>other!==b&&(other.type==='matching'||other.task==='count')))){onError('Use a written-response question with one counting or matching task.');refresh();return;}
@@ -64,6 +66,8 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
     });bind('Caption (optional)','caption');
    }
    if(b.type==='image'){
+    field(fs,'Number of picture copies',b.quantity??1,{type:'number',min:1,limit:20},v=>{b.quantity=v;changed();});
+    fs.append(node(d,'p','For counting, use one isolated object per picture. The automatic key counts picture copies, not the objects inside a photograph.','visual-hint'));field(fs,'Picture task',b.task||'illustration',{options:[['illustration','Illustration only'],['count','Count picture copies (automatic answer)']]},v=>{if(v==='count'&&(q.kind!=='short'||q.blocks.some(other=>other!==b&&(other.type==='matching'||other.task==='count')))){onError('Use a written-response question with one counting or matching task.');refresh();return;}b.task=v;b.quantity??=1;changed();});
     const img=node(d,'img',undefined,'block-thumb');img.src=b.src;img.alt=b.alt;fs.append(img);
     bind('Picture description (for accessibility; do not reveal the answer)','alt');bind('Caption (optional)','caption');bind('Picture size','size',{options:[['small','Small'],['medium','Medium'],['large','Large']]});bind('Crop','crop',{options:[['fit','Show whole picture'],['square','Square centre crop']]});
     fs.append(node(d,'p','Uploaded pictures are compressed copies embedded in this paper. Use your own pictures or ones you have permission to use.','visual-hint'));
@@ -77,7 +81,7 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
     button(tools,'Add column',()=>{b.headers.push('');b.rows.forEach(r=>r.push(''));changed();refresh();},b.headers.length>=4);button(tools,'Remove last column',()=>{b.headers.pop();b.rows.forEach(r=>r.pop());changed();refresh();},b.headers.length<=1);fs.append(tools);
    }
    if(b.type==='matching'){
-    b.pairs.forEach((p,j)=>{const pair=node(d,'fieldset',undefined,'matching-pair');pair.append(node(d,'legend',`Pair ${j+1}`));field(pair,`Pair ${j+1}: left picture`,p.leftIcon||'',{options:[['','Text only'],...Object.entries(ICONS)]},v=>{if(v){p.leftIcon=v;p.left=ICONS[v];leftField.value=p.left;leftField.readOnly=true;}else{delete p.leftIcon;leftField.readOnly=false;}changed();});const leftField=field(pair,`Pair ${j+1}: left`,p.left,{max:80},v=>{p.left=v;changed();});leftField.readOnly=Boolean(p.leftIcon);field(pair,`Pair ${j+1}: correct match`,p.right,{max:80},v=>{p.right=v;changed();});fs.append(pair);});
+    b.pairs.forEach((p,j)=>{const pair=node(d,'fieldset',undefined,'matching-pair');pair.append(node(d,'legend',`Pair ${j+1}`));objectField(pair,`Pair ${j+1}: left picture`,p.leftIcon||'',v=>{delete p.leftImage;if(v){p.leftIcon=v;p.left=ICONS[v];leftField.value=p.left;leftField.readOnly=true;}else{delete p.leftIcon;leftField.readOnly=false;}changed();},{textOnly:true});const leftField=field(pair,`Pair ${j+1}: left`,p.left,{max:80},v=>{p.left=v;changed();});leftField.readOnly=Boolean(p.leftIcon);if(p.leftImage){const thumb=node(d,'img',undefined,'block-thumb');thumb.src=p.leftImage.src;thumb.alt='Selected matching picture';pair.append(thumb);button(pair,'Remove matching picture',()=>{delete p.leftImage;changed();refresh();});}pair.append(node(d,'p','The left text names this item in the answer key. A selected picture replaces that text on the student paper.','visual-hint'));mediaPicker(pair,picture=>{p.leftImage=picture;delete p.leftIcon;changed();refresh();},{compress:compressPicture,onBusy,onError,isBusy});const pairUpload=node(d,'input');pairUpload.type='file';pairUpload.accept='image/png,image/jpeg';pairUpload.setAttribute('aria-label',`Upload picture for pair ${j+1}`);pairUpload.addEventListener('change',async()=>{const file=pairUpload.files?.[0];if(!file||isBusy())return;onBusy(true);try{p.leftImage={type:'image',src:await compressPicture(file),alt:'Teacher-supplied matching illustration',size:'small',crop:'fit',caption:''};delete p.leftIcon;changed();refresh();}catch(e){onError(e.message);}finally{onBusy(false);}});pair.append(pairUpload);field(pair,`Pair ${j+1}: correct match`,p.right,{max:80},v=>{p.right=v;changed();});fs.append(pair);});
     const tools=node(d,'div',undefined,'block-controls'),reset=()=>{b.order=b.pairs.map((_,j)=>(j+1)%b.pairs.length);changed();refresh();};
     button(tools,'Add pair',()=>{b.pairs.push({left:`Item ${b.pairs.length+1}`,right:`Match ${b.pairs.length+1}`});reset();},b.pairs.length>=6);button(tools,'Remove last pair',()=>{b.pairs.pop();reset();},b.pairs.length<=2);button(tools,'Rotate right column',()=>{b.order.push(b.order.shift());changed();refresh();});fs.append(tools);
    }
@@ -100,6 +104,7 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
    if(q.blocks?.length>=6){onError('Use at most six blocks per question.');return;}
    onBusy(true);try{const src=await compressPicture(file);(q.blocks??=[]).push({type:'image',src,alt:'Teacher-supplied picture',size:'medium',crop:'fit',caption:''});section.open=true;changed();refresh();onError('');}catch(e){onError(e.message);}finally{onBusy(false);upload.value='';}
   });body.append(upload);
+  mediaPicker(body,picture=>{if(q.blocks?.length>=6)throw new Error('Use at most six blocks per question.');(q.blocks??=[]).push(picture);section.open=true;changed();refresh();},{compress:compressPicture,onBusy,onError,isBusy});
  }
  refresh();return section;
 }

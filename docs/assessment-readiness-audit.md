@@ -2,6 +2,16 @@
 
 Date: 21 October 2026. Scope: the five agreed assessment chunks. This is a code and regression-test audit, supplemented by official product documentation. It is not an assertion that every device, printer, model response, or factual answer has been independently verified. Findings distinguish confirmed defects, deliberate product limits, and verification gaps. No percentage here establishes 99.9% reliability.
 
+## Where the chunks live
+
+| Chunk | Website location | When it is used |
+| --- | --- | --- |
+| Creation | Lesson library → Use selected lessons; Assessment studio, steps 1–3 | Before a teacher clicks Create my assessment, and while its output is validated |
+| Editing | Assessment studio → Edit questions & review; school paper editor | After generation, during question, answer, rubric, visual or section changes |
+| Recovery | Save on this device, My drafts, editable JSON backup; future recovery centre | During unfinished work, refresh/crash, storage failure, device changes or competing tab edits |
+| Finished papers | Student paper / Marking guide → Print / save PDF | After review and before classroom distribution |
+| Real-use verification | The complete journey across these pages | At the release gate, using representative stages, devices, roles and printed papers |
+
 ## 1. Creation accuracy
 
 | Area / when used | Evidence and current gap | Required action / completion check |
@@ -9,6 +19,7 @@ Date: 21 October 2026. Scope: the five agreed assessment chunks. This is a code 
 | Saved lessons, before generating an exam | `prepareLessonCollection` originally concatenated all lessons with no quotas. A model could ignore a lesson. | Add visible balanced/custom allocations, preserve exact body boundaries, derive lesson assignment from matching passage ranges or a unique exact body quote, reject omitted or overrepresented lessons. A count is sampling, not proof of full curriculum coverage. |
 | Topic mode with selected visual tasks | `buildTopicPrompt` originally omitted the visual-preference text, although the output validator required those tasks. | Include tasks and preferred objects on the first attempt; test all five task types and early-years defaults. |
 | Insufficient lesson material or unseen topic context | The model can return an explicit insufficient-source response. Previously it went through the general repair path. | Stop with a useful source-specific error and no unnecessary second generation call. Preserve the previous paper. |
+| Live written-answer rubric generation | A hosted six-question Chemistry example reached source-allocation validation but failed because Q2 marking points did not sum to its assigned marks. The paper was withheld. | Improve rubric output reliability and targeted repair using a controlled live evaluation set. Keep the sum check; do not silently invent or discard marking criteria to force success. |
 | MCQ answer and marking guide | Selected option and answer are structurally checked, but model-authored marking text can contradict them. | Construct generated MCQ marking labels from the chosen answer. Independently review whether the chosen answer is actually correct. |
 | Layout-only preview before generation | MCQ-only choice previously still showed an illustrative written-response row. | Match the illustrative format to the actual choice, retaining the non-generated label. |
 | Stage, class and source suitability | Stage presets are editable and preserve custom source text. They cannot establish that retained material suits the new stage. | Stage-by-stage educator checks; keep the retained-source warning. Do not reject custom class names using a brittle school-name list. |
@@ -79,3 +90,7 @@ Finish the creation controls and source-allocation checks first. Then build the 
 ## First creation batch implemented
 
 The selected-lesson allocation/source-boundary checks, topic visual preferences, explicit insufficient-source handling, generated MCQ marking-label consistency and MCQ-only illustrative preview are implemented in this batch. Tests: 189 passed. The remaining semantic-quality, objective-level coverage, large-exam, editing, recovery, PDF and real-user items above remain open.
+
+## Live verification outcome
+
+The coverage planner was verified in the signed-in hosted flow using the existing hand-authored SS1 Chemistry example. The first hosted run failed the model-label/source gate. The source-derived fix was deployed, then a second run reached the rubric checks and failed because marking points did not sum to the question marks. Neither invalid paper was accepted or saved. The full suite passes 189 tests, but these live results leave creation robustness open. The next creation priority is rubric consistency and answer-quality evaluation, followed by objective-level coverage and batching. No classroom correctness or 99.9% reliability claim is justified by these results.

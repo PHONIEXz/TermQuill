@@ -200,3 +200,9 @@ All 154 tests, syntax checks, build and diff checks pass. Added coverage verifie
 ## Educator form submission feedback, 20 October 2026
 
 The reported owner submission had no saved application record. A production database request/status smoke test using a temporary synthetic identity returned pending; all records were rolled back. The precise input that blocked the user's original browser submission was not observable. Replaced silent browser-only constraint handling with explicit validated submission feedback adjacent to the submit controls, focused correction/service errors, a Saving request busy state and clear saved/manual-review receipt. Failed submissions preserve entered details. Pending requests use Update educator request. RPC failures log only action and error code, never profile fields. No access/verification grant is included. Added a UI regression test covering validation, busy state, failed retry and success acknowledgement.
+
+## 2026-10-21 — TermQuill infrastructure and reference-field feedback
+
+Renamed GitHub repository to PHONIEXz/TermQuill, Vercel project to termquill and the existing Supabase project display name to TermQuill. Attached verified termquill.vercel.app; retained the old hostname for browser-local backup export. Updated Auth Site URL and exact confirmation destinations, preserving the old destination for existing confirmation links. Stable resource IDs, database schema, stored records and backup identifiers remain unchanged.
+
+Educator validation identifies its failing field, focuses/highlights it, preserves input, and explains that the optional public reference accepts a complete HTTPS link or blank. API returns safe field metadata. Added regression coverage for invalid/blank links and field focus. All 156 tests, syntax checks and build passed before publication; no educator approval or operator privilege was granted.

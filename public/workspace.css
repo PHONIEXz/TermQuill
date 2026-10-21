@@ -571,3 +571,6 @@ strong, b, .topbar nav a[aria-current=page], .school-nav a[aria-current=page],
 @media print {body {font-weight:400;} .paper-head h2 {font-weight:650;}}
 
 .topic-entry{margin-block:1rem;padding:1.2rem;border:1px solid #a8c5d4;border-radius:16px;background:#edf4f8}.topic-entry>strong{display:block;color:#214b5d}.topic-entry textarea{background:#fff}.topic-entry p{line-height:1.55}
+
+.brand-move-notice{padding:20px 24px;margin:16px auto;max-width:1100px;background:#edf4e9;border:1px solid #365b45;border-radius:16px;color:#183b2b}.brand-move-notice p{margin:0 0 12px}.brand-move-notice a{font-weight:650;text-decoration:underline}.field-error{color:#8b2525;font-weight:600}#educator-panel [aria-invalid="true"]{border:2px solid #8b2525}
+@media print{.brand-move-notice{display:none!important}}

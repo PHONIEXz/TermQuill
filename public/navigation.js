@@ -39,3 +39,10 @@ if (navigation) {
 
 const accountLink=document.querySelector('[data-nav="login"]');
 if(accountLink){const updateAccount=async(refresh=false)=>{try{const user=await getAccount(refresh);accountLink.textContent=user?'My account':'Sign in';accountLink.href=user?'/workspace':'/login';accountLink.setAttribute('aria-label',user?'Open your account workspace':'Sign in to TermQuill');}catch{accountLink.textContent='Sign in';accountLink.href='/login';}};updateAccount();window.addEventListener('storage',e=>{if(e.key==='lessonpress.active-account')updateAccount(true);});}
+
+// Keep the old origin accessible for explicit export of browser-local work.
+if(location.hostname==='lessonpress-pi.vercel.app'){
+ const banner=document.createElement('aside');banner.className='brand-move-notice';banner.setAttribute('aria-label','TermQuill address update');
+ const text=document.createElement('p');text.textContent='TermQuill has a new address. Before moving, export your personal drafts and question-bank backups from this address. Browser-only work does not move automatically; cloud lessons are available after signing in again.';
+ const link=document.createElement('a');link.href='https://termquill.vercel.app/';link.textContent='Open TermQuill';banner.append(text,link);document.querySelector('main')?.before(banner);
+}

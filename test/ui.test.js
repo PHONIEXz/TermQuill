@@ -294,3 +294,24 @@ test('quality review stays outside student papers, remains advisory and opens th
   $('tab-student').click();assert.equal($('preview').textContent.includes('Question quality review'),false);
  }finally{dom.window.close();}
 });
+
+test('objective blueprint allocates source-backed slots, blocks stale notes, and persists with device setup',async()=>{
+ let sent,calls=0;const {dom,w,$}=await setup(async(url,options)=>{calls++;sent=JSON.parse(options.body);return{ok:true,json:async()=>({paper:parseModelOutput(JSON.stringify(samplePaper),sent,{generated:true}),model:'mock-gemma'})};});try{
+  $('sample-notes').click();const blueprint=$('objective-plan'),button=text=>[...blueprint.querySelectorAll('button')].find(b=>b.textContent===text);button('Add learning objective').click();
+  const edit=(row,label,value)=>{const l=[...row.querySelectorAll('label')].find(e=>e.textContent===label),field=w.document.getElementById(l.htmlFor);field.value=value;field.dispatchEvent(new w.Event(field.tagName==='SELECT'?'change':'input',{bubbles:true}));};
+  let row=blueprint.querySelector('.objective-row');edit(row,'Taught idea / learning objective','Recognise examples and definitions');edit(row,'Questions for this objective','3');let end=row.querySelectorAll('select')[1];edit(row,'Source ends at',end.options[end.options.length-1].value);
+  button('Add learning objective').click();row=blueprint.querySelectorAll('.objective-row')[1];edit(row,'Taught idea / learning objective','Explain separation choices');edit(row,'Questions for this objective','3');end=row.querySelectorAll('select')[1];edit(row,'Source ends at',end.options[end.options.length-1].value);
+  $('save-setup').click();assert.equal(deviceSetup.readSetup(w.localStorage).settings.objectivePlan.length,2);
+  $('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent.objectivePlan.length,2);assert.deepEqual(sent.objectivePlan.map(o=>o.questions),[3,3]);assert.match($('preview').textContent,/Objective allocations match/);assert.equal($('preview').querySelector('.objective-coverage').classList.contains('no-print'),true);
+  $('notes').value+=' Changed source.';$('notes').dispatchEvent(new w.Event('input',{bubbles:true}));$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(calls,1);assert.match($('error').textContent,/no longer matches/);assert.equal($('preview').querySelectorAll('.question').length,6);
+  button('Remove objective plan').click();assert.equal(blueprint.querySelectorAll('.objective-row').length,0);
+ }finally{dom.window.close();}
+});
+
+test('two-batch failure preserves the current paper and opens an explicitly incomplete first batch only on request',async()=>{
+ const partial=validateDraft({spec:{...sampleSpec,title:'Recovered first batch',generationMode:'single'},paper:{...samplePaper,instructions:'Incomplete first batch only.'}});let sent;const{dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return{ok:false,json:async()=>({error:'Second batch quota exhausted.',code:'PROVIDER_QUOTA',partialDraft:partial})};});try{
+  $('try-sample').click();$('count').value='12';$('count').dispatchEvent(new w.Event('input',{bubbles:true}));$('generationMode').value='batches';$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));
+  assert.equal(sent.generationMode,'batches');assert.equal($('batch-recovery').hidden,false);assert.match($('batch-recovery-status').textContent,/6 of 12/);assert.match($('preview').textContent,new RegExp(sampleSpec.title.replace('&','&')));assert.doesNotMatch($('preview').textContent,/Recovered first batch/);
+  assert.equal($('approved').checked,false);$('open-completed-batch').click();assert.equal($('title').value,'Recovered first batch');assert.match($('live-status').textContent,/Incomplete paper: 6 of 12/);assert.equal($('approved').checked,false);assert.equal($('print').disabled,true);assert.equal($('generationMode').value,'single');assert.equal($('preview').querySelectorAll('.question-editor').length,6);
+ }finally{dom.window.close();}
+});

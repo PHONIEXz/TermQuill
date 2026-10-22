@@ -1,4 +1,6 @@
 import {personalContext,accountRequest} from '/account-session.js';
+import {renderObjectiveCoverage} from '/objective-plan.js';
+import {renderCoverage} from '/creation-plan.js';
 import {mountSchoolBank} from '/school-bank-view.js';
 import {mountSchoolReview} from '/school-review.js';
 import {renderBlocks,applyPaperLayout,assertPicturesReady,renderSection,renderLogo} from '/paper-blocks.js';
@@ -150,6 +152,7 @@ async function paperView(box){
  toolbar.append(button('Make my own editable copy',async()=>{const out=await rpc('save_paper',{department_id:p.department_id,content:p.content});location.href=route('/school/paper',{paper:out.id});}));
  box.append(toolbar);if(p.approved_revision===p.revision)box.append(el('p',`Approved copy · Version ${p.revision}${!current?' · A newer draft exists':''}`,'approved-copy-banner no-print'));box.append(el('p',p.approved_revision===p.revision?'This version was approved. Editing creates a new version and leaves this approved copy intact.':'This is a draft or historical version. Teacher review is required before classroom use.','school-muted no-print'));
  if(p.approved_revision&&p.approved_revision!==p.revision)box.append(link(`Open approved Version ${p.approved_revision} →`,route('/school/paper',{paper:p.id,revision:p.approved_revision}),'approved-copy-link no-print'));
+ renderCoverage(box,p.content.paper,p.content.spec);renderObjectiveCoverage(box,p.content.paper,p.content.spec);
  let syncDecision=()=>{},feedbackQuestion=null,feedbackComment=null;const canReview=current&&p.status==='submitted'&&!owner&&['principal','hod'].includes(school.role);const reviewUI=mountSchoolReview(box,p,{school,userId:user.id,run,canReview,onProgress:()=>syncDecision(),loadRevision:async revision=>{const previous=await rpc('paper',{paper_id:p.id,revision});const content=validateDraft({...previous.content,id:previous.id});return {...previous,content};}});
  const printTools=el('div',undefined,'school-toolbar no-print');let teacher=false;
  const paper=el('article',undefined,'school-print');

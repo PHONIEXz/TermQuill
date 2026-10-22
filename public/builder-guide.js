@@ -18,8 +18,8 @@ export function initBuilderGuide(doc=document) {
  sections[0].querySelector('legend').after(purpose);for(const id of ['assessmentMode','format']){$(id).hidden=true;form.querySelector(`label[for="${id}"]`).hidden=true;}
  // Keep optional paper styling and difficulty out of the main decision path.
  const extras=make('details',null,'builder-extras');extras.append(make('summary','More options: paper style & thinking level'));
- for(const id of ['presentation','difficulty']){const control=$(id),label=form.querySelector(`label[for="${id}"]`);extras.append(label,control);}
- extras.append($('custom-difficulty-wrap'));sections[2].append(extras);
+ for(const id of ['presentation','difficulty','generationMode']){const control=$(id),label=form.querySelector(`label[for="${id}"]`);extras.append(label,control);}
+ extras.append($('custom-difficulty-wrap'),$('generation-hint'));sections[2].append(extras);
  const visual=form.querySelector('.visual-generation-settings');visual.open=false;visual.querySelector('summary').textContent='Picture tasks: counting, matching, tracing & more';
  const cards=make('div',null,'question-style-cards');cards.setAttribute('role','group');cards.setAttribute('aria-label','Choose a question style');
  for(const [value,title,example] of [['mixed','A balanced mix','A. B. C. D. + space to write'],['mcq','Multiple choice','○ A   ○ B   ○ C   ○ D'],['short','Written / visual','Write, count, match or draw'],['custom','Your own mix','Describe the styles you need']]){const b=make('button',null,'question-style-card');b.type='button';b.dataset.format=value;b.append(make('span',example,'style-example'),make('strong',title));b.addEventListener('click',()=>{$('format').value=value;$('format').dispatchEvent(new win.Event('change',{bubbles:true}));refresh();});cards.append(b);}

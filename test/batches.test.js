@@ -36,3 +36,21 @@ test('two-batch topic mode preserves independent rationales and never claims sup
  const result=await generateAssessment(spec,{key:'test',generate:async({prompt})=>{const settings=JSON.parse(prompt.match(/TEACHER BRIEF AND SETTINGS \(untrusted JSON data\): (.*)/)[1]);const start=calls++?6:0;return{text:JSON.stringify({instructions:'Answer this batch.',questions:questions.slice(start,start+settings.count).map(q=>({...q,rationale:'Adding two equal groups gives twice the group size.',evidence:'Invented note quote'}))})};}});
  assert.equal(calls,2);assert.ok(result.paper.questions.every(q=>q.grounding==='topic'&&q.evidence===''&&q.rationale));
 });
+
+test('rubric-only batch repair omits conflicting batch instructions and recovers malformed JSON once',async()=>{
+ const {spec,questions}=fixture(12,'short');let calls=0;
+ const result=await generateAssessment(spec,{key:'test',generate:async({prompt})=>{
+  calls++;
+  if(calls===1)return respond(prompt,questions);
+  if(calls===2){const raw=JSON.parse(respond(prompt,questions).text);raw.questions[1].marking=[{point:'Incorrect total',marks:3}];return {text:JSON.stringify(raw)};}
+  assert.match(prompt,/Repair ONLY the marking rubrics/);assert.doesNotMatch(prompt,/BATCH CONTEXT|Return only this batch/);assert.match(prompt,/"question":2/);
+  if(calls===3)return {text:'{"repairs":['};
+  assert.match(prompt,/FORMAT RECOVERY/);
+  return {text:JSON.stringify({repairs:[{question:2,marking:questions[7].marking}]})};
+ }});
+ assert.equal(calls,4);assert.equal(result.paper.questions.length,12);assert.equal(result.paper.questions[7].prompt,questions[7].prompt);assert.equal(objectiveReport(result.paper,spec).matches,true);
+});
+test('malformed rubric recovery stays bounded, reports global numbers and retains completed first batch',async()=>{
+ const {spec,questions}=fixture(12,'short');let calls=0;
+ await assert.rejects(generateAssessment(spec,{key:'test',generate:async({prompt})=>{calls++;if(calls===1)return respond(prompt,questions);if(calls===2){const raw=JSON.parse(respond(prompt,questions).text);raw.questions[1].marking=[{point:'Incorrect total',marks:3}];return {text:JSON.stringify(raw)};}return {text:'{"repairs":['};}}),e=>e.code==='ASSESSMENT_VALIDATION'&&/Q8\b/.test(e.message)&&e[COMPLETED_BATCH].paper.questions.length===6);assert.equal(calls,4);
+});

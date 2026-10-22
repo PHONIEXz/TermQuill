@@ -22,6 +22,7 @@ import {sampleSpec,samplePaper} from '/sample.js';
 import {readDrafts,saveDraft,deleteDraft,validateDraft} from '/drafts.js';
 const $ = id => document.getElementById(id);
 const form = $('assessment-form');
+let exporting = false;
 let state = null, mode = 'student', active = null, config = {configured:false,accessRequired:false};
 const route=location.pathname.replace(/\/$/,'')||'/';
 const page=['/create','/drafts','/guide','/question-bank'].includes(route)?route.slice(1):'home';
@@ -77,12 +78,13 @@ for(const id of ['early-sample','try-sample','sample-notes','empty-sample','rest
 }
 function hasSaved(){try{return readDrafts(localStorage).length>0;}catch{return false;}}
 function updateReview() {
-  const working=Boolean(active)||pendingImages>0;
+  const working=Boolean(active)||pendingImages>0||exporting;
   const issues=state?auditAssessment(state.paper,state.spec):[];
   $('review-bar').hidden=!state;
   $('approved').checked=Boolean(state?.approved);
   $('approved').disabled=working||issues.length>0;
   $('print').disabled=!state||!state.approved||issues.length>0||mode==='edit'||working;
+  for(const format of ['pdf','pptx']){const b=$('export-'+format);b.disabled=$('print').disabled;b.textContent=`Download ${format==='pdf'?'PDF':'PowerPoint'}${state&&mode!=='edit'?' · '+(mode==='teacher'?'Marking guide':'Student'):''}`;}
   for(const id of ['open-completed-batch','download-completed-batch'])$(id).disabled=working||!completedBatch;
   for(const id of ['save','download','send-school','save-library'])$(id).disabled=!state||working;
   for(const button of document.querySelectorAll('.question-bank-actions button'))button.disabled=working;
@@ -225,6 +227,18 @@ $('download-completed-batch').addEventListener('click',()=>{if(completedBatch&&!
 $('open-completed-batch').addEventListener('click',()=>{if(!completedBatch||active||pendingImages)return;if(state&&!confirm('Open the incomplete first batch instead of the current paper? Save your current draft first if you want to keep it.'))return;const recovered=structuredClone(completedBatch.draft);carrySetupLogo(recovered.paper);state=recovered;delete state.id;state.approved=false;dirty=true;fillForm(state.spec);setMode('edit');message(`Incomplete paper: ${state.paper.questions.length} of ${completedBatch.requested} questions. Check the original blueprint for missing coverage before completing and reviewing it.`);});
 $('approved').addEventListener('change',()=>{if(!state)return;state.approved=$('approved').checked;updateReview();if(mode!=='edit')preview();});
 $('print').addEventListener('click',async()=>{if(!state?.approved||auditAssessment(state.paper,state.spec).length||mode==='edit')return;try{await assertPicturesReady($('preview'));if(state?.approved&&mode!=='edit')window.print();}catch(e){error(e.message);}});
+for(const format of ['pdf','pptx'])$('export-'+format).addEventListener('click',async()=>{
+ if(exporting||active||pendingImages||!state?.approved||mode==='edit'||auditAssessment(state.paper,state.spec).length)return;
+ const copy=mode,draft=structuredClone(state);exporting=true;updateReview();error();message(`Preparing ${copy==='teacher'?'marking guide':'student copy'} ${format==='pdf'?'PDF':'PowerPoint'}…`);
+ try{
+  await assertPicturesReady($('preview'));
+  const r=await fetch('/api/export',{method:'POST',headers:{'Content-Type':'application/json','X-Personal-Account':personal.user.id},body:JSON.stringify({draft,format,copy,reviewed:true}),signal:AbortSignal.timeout(90000)});
+  if(!r.ok){const out=await r.json();throw new Error(out.error||'Could not create the download.');}
+  if(!r.headers.get('content-type')?.includes(format==='pdf'?'application/pdf':'application/vnd.openxmlformats-officedocument.presentationml.presentation'))throw new Error('The server did not return a valid download. Reload and try again.');
+  const blob=await r.blob();if(!blob.size)throw new Error('The download was empty. Try again.');const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download=/filename="([^"]+)"/.exec(r.headers.get('content-disposition')||'')?.[1]||`termquill-${copy}.${format}`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);message(`${copy==='teacher'?'Marking guide':'Student copy'} ${format==='pdf'?'PDF':'PowerPoint'} download requested. Check your browser downloads. Keep editable JSON for reopening a paper in TermQuill.`);
+ }catch(e){error(e.name==='TimeoutError'?'File creation timed out. Try again or use Print / PDF. Your draft is unchanged.':e.message);message('');}
+ finally{exporting=false;updateReview();}
+});
 $('save').addEventListener('click',()=>{if(!state)return;try{state={...saveDraft(localStorage,state),approved:state.approved};dirty=false;updateReview();if(mode!=='edit')preview();message('Draft saved to My drafts on this device. You can reopen it from the navigation above.');}catch(e){error(`Could not save: ${e.message} Export a JSON backup if device storage is unavailable.`);}});
 $('restore').addEventListener('click',()=>{
   if(state&&!confirm('Replace this paper with the most recently saved draft?'))return;

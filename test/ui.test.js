@@ -315,3 +315,15 @@ test('two-batch failure preserves the current paper and opens an explicitly inco
   assert.equal($('approved').checked,false);$('open-completed-batch').click();assert.equal($('title').value,'Recovered first batch');assert.match($('live-status').textContent,/Incomplete paper: 6 of 12/);assert.equal($('approved').checked,false);assert.equal($('print').disabled,true);assert.equal($('generationMode').value,'single');assert.equal($('preview').querySelectorAll('.question-editor').length,6);
  }finally{dom.window.close();}
 });
+
+test('editing history restores actual question order/count and resets approval after undo/redo',async()=>{
+ const {dom,w,$}=await setup();try{
+  $('try-sample').click();$('tab-edit').click();const button=text=>[...w.document.querySelectorAll('button')].find(b=>b.textContent===text);
+  assert.equal($('edit-undo').disabled,true);button('Duplicate question 1').click();assert.equal($('count').value,'7');$('edit-undo').click();assert.equal($('count').value,'6');assert.equal($('approved').checked,false);$('edit-redo').click();assert.equal($('count').value,'7');$('edit-undo').click();button('Move question 2 up').click();assert.equal($('edit-redo').disabled,true);$('tab-student').click();assert.match($('preview').querySelector('.question-title').textContent,/Which of these is a compound/);
+ }finally{dom.window.close();}
+});
+test('written marking criteria can be added, removed and undone without silently changing the mark budget',async()=>{
+ const {dom,w,$}=await setup();try{
+  $('try-sample').click();$('tab-edit').click();let box=w.document.querySelectorAll('.question-editor')[3];const oldCount=box.querySelectorAll('.marking-fields textarea').length;[...box.querySelectorAll('button')].find(b=>b.textContent==='Add marking point').click();assert.equal(box.querySelectorAll('.marking-fields textarea').length,oldCount+1);assert.match($('audit-status').textContent,/Marking points/);$('edit-undo').click();box=w.document.querySelectorAll('.question-editor')[3];assert.equal(box.querySelectorAll('.marking-fields textarea').length,oldCount);assert.equal(w.document.querySelector('.question-editor .marking-fields textarea').readOnly,true);
+ }finally{dom.window.close();}
+});

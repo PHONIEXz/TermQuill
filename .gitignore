@@ -41,3 +41,6 @@ public/coverage.js
 public/quality.js
 
 public/objectives.js
+
+public/diagrams.js
+public/edit-history.js

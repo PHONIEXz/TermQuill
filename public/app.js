@@ -1,3 +1,4 @@
+import {EditHistory} from '/edit-history.js';
 import {initCreationPlan,renderCoverage} from '/creation-plan.js';
 import {balanceLessons} from '/coverage.js';
 import {initObjectivePlan,renderObjectiveCoverage} from '/objective-plan.js';
@@ -31,6 +32,7 @@ for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
 const pendingLayout={preset:'standard',schoolName:'',term:''};
+const editHistory=new EditHistory();let editOwner=null;
 let dirty=false,pendingImages=0,completedBatch=null;const referencePicker=initReferencePicker(form,localStorage);const creationPlan=initCreationPlan(form);const objectivePlan=initObjectivePlan(form,{getLessons:()=>creationPlan.plan?.()});
 function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function message(text) {$('live-status').textContent=text;}
@@ -84,12 +86,15 @@ function updateReview() {
   for(const id of ['save','download','send-school','save-library'])$(id).disabled=!state||working;
   for(const button of document.querySelectorAll('.question-bank-actions button'))button.disabled=working;
   $('restore').disabled=!hasSaved()||working;
+  for(const direction of ['undo','redo']){const b=$('edit-'+direction);if(b)b.disabled=working||!(direction==='undo'?editHistory.past:editHistory.future).length;}
   $('draft-badge').textContent=state?(state.approved?'REVIEWED':state.sample?'SAMPLE DRAFT':'REVIEW NEEDED'):'NOT STARTED';
   document.dispatchEvent(new CustomEvent('termquill:paper-state',{detail:{exists:Boolean(state),dirty,saved:Boolean(state?.id)}}));
   $('audit-status').textContent=state?(issues.length?`${issues.length} checks need attention. ${issues.slice(0,3).map(x=>`${x.index===null?'':`Q${x.index+1}: `}${x.message}`).join(' ')}`:`${state.paper.questions.length} questions · ${state.paper.questions.reduce((s,q)=>s+q.marks,0)} marks · Structural checks passed. Review accuracy and suitability before printing.`):'';
   renderQualityReview($('quality-review'),state?.paper,state?.spec,{isBusy:working,onEdit:index=>{if(working)return;setMode('edit');const question=$('preview').querySelectorAll('.question-editor')[index];if(question){question.open=true;question.tabIndex=-1;question.focus();question.scrollIntoView({block:'start'});}}});
 }
-function resetApproval(){if(state){state.approved=false;dirty=true;}updateReview();}
+function resetApproval(){if(state){state.approved=false;dirty=true;if(editOwner===state){const a=document.activeElement;editHistory.record({paper:state.paper,spec:state.spec},a&&['INPUT','TEXTAREA'].includes(a.tagName)?a.id:null);}}updateReview();}
+function historyMove(direction){if(active||pendingImages)return;const restored=editHistory[direction]();if(!restored)return;state.paper=restored.paper;state.spec=restored.spec;state.approved=false;dirty=true;rememberBranding(state.paper.layout||{});fillForm(state.spec);preview();updateReview();message(direction==='undo'?'Last edit undone. Review the restored paper.':'Edit restored. Review the paper.');}
+
 function head(container) {
   if(state.sample)container.append(el('div','SAMPLE ASSESSMENT · Hand-authored example. Not generated from your current form.','sample-notice'));
   const header=el('div',undefined,'paper-head');renderLogo(header,state.paper.layout);
@@ -125,13 +130,16 @@ function syncDerivedAnswer(box,q){
  const answer=box.querySelector('[data-visual-answer]');if(answer){answer.value=q.answer;try{answer.readOnly=visualAnswer(q.blocks)!==null;}catch{answer.readOnly=false;}}
  const fields=box.querySelector('.editor-fields');if(fields){fields.querySelector('.marking-fields')?.remove();renderMarkingFields(fields,q);}
 }
-function renderMarkingFields(fields,q){const group=el('div',undefined,'marking-fields'),automatic=visualAnswer(q.blocks)!==null;
+function renderMarkingFields(fields,q){const group=el('div',undefined,'marking-fields'),automatic=q.kind==='mcq'||visualAnswer(q.blocks)!==null;
+  const total=el('p',undefined,'visual-hint');total.setAttribute('role','status');const tally=()=>{total.textContent=`Allocated ${q.marking.reduce((n,p)=>n+(Number(p.marks)||0),0)} / ${q.marks} marks. ${automatic?'Answer key is derived from this question.':'Marking criteria must add up to the question total.'}`;};
   q.marking.forEach((p,j)=>{
       const point=editable(group,`Marking point ${j+1}`,p.point,v=>p.point=v,{max:600});point.readOnly=automatic;
       const l=el('label',`Marks for point ${j+1}`),n=el('input');n.type='number';n.readOnly=automatic;n.min=1;n.max=100;n.value=p.marks;n.id=`marks-${crypto.randomUUID()}`;l.htmlFor=n.id;
-      n.addEventListener('input',()=>{p.marks=Number(n.value);resetApproval();});group.append(l,n);
+      n.addEventListener('input',()=>{p.marks=Number(n.value);resetApproval();tally();});group.append(l,n);
+      if(!automatic)actionButton(group,`Remove marking point ${j+1}`,()=>{q.marking.splice(j,1);resetApproval();group.remove();renderMarkingFields(fields,q);},q.marking.length<=1);
     });
-  fields.append(group);
+  if(!automatic)actionButton(group,'Add marking point',()=>{q.marking.push({point:'',marks:1});resetApproval();group.remove();renderMarkingFields(fields,q);},q.marking.length>=10);
+  tally();group.append(total);fields.append(group);
 }
 function questionControls(box,q,i){
  const tools=el('div',undefined,'question-controls'),count=state.paper.questions.length;
@@ -143,18 +151,24 @@ function questionControls(box,q,i){
  actionButton(tools,`Remove question ${i+1}`,()=>{if(confirm(`Remove question ${i+1} from this open paper? The saved copy stays unchanged until you save.`)){state.paper.questions.splice(i,1);changedQuestions(Math.min(i,count-2));}},count<=3);box.append(tools);const bankTools=el('div',undefined,'question-bank-actions');actionButton(bankTools,'Save question to library',()=>openBankDialog(i));box.append(bankTools);
 }
 function renderEditor(target) {
+  if(editOwner!==state){editOwner=state;editHistory.reset({paper:state.paper,spec:state.spec});}
+  const historyTools=el('div',undefined,'question-controls');for(const direction of ['undo','redo']){const b=actionButton(historyTools,direction==='undo'?'Undo edit':'Redo edit',()=>historyMove(direction),!(direction==='undo'?editHistory.past:editHistory.future).length);b.id='edit-'+direction;}historyTools.append(el('p','Undo history stays in this tab. Save your paper separately.','visual-hint'));target.append(historyTools);
+
   const intro=el('div',undefined,'editor-intro');intro.append(el('strong','Make it yours, one question at a time.'),el('p','Set your paper heading, open a question to edit, then use Student paper to check the result. Every edit resets your review.'));target.append(intro);
   layoutEditor(target,state.paper,()=>{rememberBranding(state.paper.layout);resetApproval();},{includeLogo:false,onError:error,isBusy:()=>Boolean(active)||pendingImages>0,onBusy:on=>{pendingImages+=on?1:-1;if(on)resetApproval();busy(Boolean(active));}});
   const modeLabel=el('label','Paper assessment mode'),modeSelect=el('select');modeSelect.id='paper-assessment-mode';modeLabel.htmlFor=modeSelect.id;for(const [value,text] of [['test','Test'],['exam','Exam']]){const option=el('option',text);option.value=value;modeSelect.append(option);}modeSelect.value=state.spec.assessmentMode||'test';modeSelect.addEventListener('change',()=>{state.spec.assessmentMode=modeSelect.value;resetApproval();});target.append(modeLabel,modeSelect);
+  editable(target,'Paper title',state.spec.title,v=>state.spec.title=v,{multiline:false,max:120});
   editable(target,'Student instructions',state.paper.instructions,v=>state.paper.instructions=v);
   state.paper.questions.forEach((q,i)=>{
     const box=el('details',undefined,'editor question-editor');box.name='assessment-question';box.open=i===0;box.dataset.questionIndex=i;const heading=el('summary',undefined,'question-summary');heading.append(el('h3',`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`),el('span',q.prompt,'question-peek'));box.append(heading);heading.addEventListener('click',()=>requestAnimationFrame(()=>{if(box.open)box.scrollIntoView({block:'start'});}));
-    questionControls(box,q,i);questionDocumentEditor(box,q,state.paper,()=>{resetApproval();syncDerivedAnswer(box,q);heading.querySelector('h3').textContent=`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`;});
+    questionControls(box,q,i);
+    if(state.spec.objectivePlan?.length){const l=el('label','Learning objective'),select=el('select');select.id=`objective-edit-${i}`;l.htmlFor=select.id;const blank=el('option','Unassigned · review coverage');blank.value='';select.append(blank);for(const o of state.spec.objectivePlan){const opt=el('option',o.label);opt.value=o.id;select.append(opt);}select.value=q.objectiveId||'';select.addEventListener('change',()=>{const objective=state.spec.objectivePlan.find(o=>o.id===select.value);if(objective){q.objectiveId=objective.id;if(objective.lessonId)q.lessonId=objective.lessonId;}else delete q.objectiveId;resetApproval();});box.append(l,select,el('p','Assigning an objective does not verify it. Its quote must lie inside the objective source range; check the coverage report.','visual-hint'));}
+    questionDocumentEditor(box,q,state.paper,()=>{resetApproval();syncDerivedAnswer(box,q);heading.querySelector('h3').textContent=`Question ${i+1} · ${q.kind==='mcq'?'Multiple choice':'Short answer'} · ${q.marks} ${q.marks===1?'mark':'marks'}`;});
     const grid=el('div',undefined,'editor-grid'),fields=el('div',undefined,'editor-fields'),evidence=el('aside',undefined,'editor-evidence');
     evidence.setAttribute('aria-label',`Supporting evidence for question ${i+1}`);const topic=q.grounding==='topic'||state.spec.sourceMode==='topic';evidence.append(el('strong',topic?'Independent teacher check':'Teacher check'),el('p',topic?'Generated from a topic brief. This rationale is AI-generated, not verified source evidence. Check facts, calculations and suitability independently.':'This source evidence stays off the student copy.','visual-hint'));
     editable(fields,'Question',q.prompt,v=>{q.prompt=v;heading.querySelector('.question-peek').textContent=v;});
     if(q.kind==='mcq'){
-      q.options.forEach((option,j)=>editable(fields,`Option ${'ABCD'[j]}`,option,v=>{q.options[j]=v;if(q.correctIndex===j){q.answer=v;q.marking=[{point:`Select ${'ABCD'[j]}: ${v}`,marks:q.marks}];}},{multiline:false,max:400}));
+      q.options.forEach((option,j)=>editable(fields,`Option ${'ABCD'[j]}`,option,v=>{q.options[j]=v;if(q.correctIndex===j){q.answer=v;q.marking=[{point:`Select ${'ABCD'[j]}: ${v}`,marks:q.marks}];syncDerivedAnswer(box,q);}},{multiline:false,max:400}));
       const label=el('label','Correct option'),select=el('select');select.id=`correct-${i}`;label.htmlFor=select.id;
       q.options.forEach((_,j)=>{const o=el('option',`Option ${'ABCD'[j]}`);o.value=j;select.append(o);});select.value=q.correctIndex;
       select.addEventListener('change',()=>{q.correctIndex=Number(select.value);q.answer=q.options[q.correctIndex];q.marking=[{point:`Select ${'ABCD'[q.correctIndex]}: ${q.answer}`,marks:q.marks}];resetApproval();preview();});fields.append(label,select);

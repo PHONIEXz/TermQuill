@@ -1,3 +1,4 @@
+import {freshDiagram,renderDiagram} from '/diagrams.js';
 import {mediaPicker} from '/media-picker.js';
 import {ICONS,PRESETS,MAX_IMAGE_LENGTH,setVisualAnswer} from '/visuals.js';
 import {iconElement} from '/paper-blocks.js';
@@ -50,9 +51,10 @@ export function layoutEditor(box,paper,onChange,{onError=()=>{},onBusy=()=>{},is
  if(includeLogo)logoEditor(panel,layout,()=>{onChange();draw();},{onError,onBusy,isBusy});
  panel.append(node(d,'p','Early Years uses larger questions, line illustrations and generous answer spaces. Check the class, language and printed size before use.','visual-hint'));box.append(panel);
 }
-const blockLabels={picture:'Illustrations / counting',image:'Uploaded picture',table:'Table',matching:'Matching columns',tracing:'Tracing outlines',drawing:'Drawing / colouring space',lines:'Writing lines'};
+const blockLabels={graph:'Scaled graph / plotting grid',diagram:'Labelled diagram / arrows & shapes',picture:'Illustrations / counting',image:'Uploaded picture',table:'Table',matching:'Matching columns',tracing:'Tracing outlines',drawing:'Drawing / colouring space',lines:'Writing lines'};
 function objectField(box,label,value,change,{textOnly=false}={}){const input=field(box,label,value,{options:[...(textOnly?[['','Text only']]:[]),...Object.entries(ICONS)]},change);const search=field(box,'Search '+label.toLowerCase(),'',{type:'text',max:60},query=>{for(const option of input.options)option.hidden=Boolean(query)&&!option.textContent.toLowerCase().includes(query.toLowerCase())&&option.value!==input.value;});search.placeholder='Type an object name';return input;}
 function freshBlock(type){
+ if(type==='graph'||type==='diagram')return freshDiagram(type);
  if(type==='picture')return {type,icon:'apple',quantity:3,size:'medium',caption:'',task:'illustration'};
  if(type==='table')return {type,caption:'',headers:['Item','Answer'],rows:[['',''],['','']]};
  if(type==='matching')return {type,pairs:[{left:'Circle',right:'Round'},{left:'Square',right:'Four equal sides'}],order:[1,0]};
@@ -61,7 +63,7 @@ function freshBlock(type){
  return {type:'lines',count:3};
 }
 export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>false,onBusy=()=>{}}={}){
- const d=box.ownerDocument,section=node(d,'details',undefined,'visual-editor');section.open=Boolean(q.blocks?.length);const summary=node(d,'summary','Pictures, tables & answer spaces');summary.append(node(d,'span',`${q.blocks?.length||0} added`,'visual-count'));section.append(summary);box.append(section);
+ const d=box.ownerDocument,section=node(d,'details',undefined,'visual-editor');section.open=Boolean(q.blocks?.length);const summary=node(d,'summary','Pictures, tables, graphs & answer spaces');summary.append(node(d,'span',`${q.blocks?.length||0} added`,'visual-count'));section.append(summary);box.append(section);
  const body=node(d,'div');section.append(body);
  function changed(){try{setVisualAnswer(q);}catch(e){onError(e.message);}onChange();}
  function refresh(){
@@ -91,6 +93,7 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
     bind('Picture description (for accessibility; do not reveal the answer)','alt');bind('Caption (optional)','caption');bind('Picture size','size',{options:[['small','Small'],['medium','Medium'],['large','Large']]});bind('Crop','crop',{options:[['fit','Show whole picture'],['square','Square centre crop']]});
     fs.append(node(d,'p','Uploaded pictures are compressed copies embedded in this paper. Use your own pictures or ones you have permission to use.','visual-hint'));
    }
+   if(b.type==='graph'||b.type==='diagram')diagramFields(fs,b,changed,isBusy);
    if(b.type==='table'){
     bind('Table caption (optional)','caption');
     const cells=(values,label)=>{const row=node(d,'div',undefined,`table-edit-row table-edit-cols-${values.length}`);values.forEach((v,j)=>field(row,`${label}, column ${j+1}`,v,{max:label==='Heading'?80:160},value=>{values[j]=value;onChange();}));fs.append(row);};
@@ -126,6 +129,22 @@ export function blockEditor(box,q,{onChange=()=>{},onError=()=>{},isBusy=()=>fal
   mediaPicker(body,picture=>{if(q.blocks?.length>=6)throw new Error('Use at most six blocks per question.');(q.blocks??=[]).push(picture);section.open=true;changed();refresh();},{compress:compressPicture,onBusy,onError,isBusy});
  }
  refresh();return section;
+}
+function diagramFields(fs,b,onChange,isBusy){
+ const d=fs.ownerDocument,preview=node(d,'div',undefined,'diagram-live-preview'),status=node(d,'p',undefined,'visual-hint');status.setAttribute('role','status');
+ fs.append(node(d,'p','Teacher-authored visual · available for any subject or stage. Coordinates and values are checked; scientific meaning and answer correctness need your review. Labels and captions print on both copies, so keep answers out.','visual-hint'),preview,status);
+ const draw=()=>{preview.replaceChildren();try{preview.append(renderDiagram(d,b));status.textContent='Live preview · shared by student paper and marking guide.';}catch(e){status.textContent=e.message;}};
+ const change=fn=>v=>{if(isBusy())return;fn(v);onChange();draw();};
+ field(fs,'Visual caption (optional)',b.caption,{},change(v=>b.caption=v));field(fs,'Accessible visual description',b.description,{max:300,type:'textarea'},change(v=>b.description=v));
+ if(b.type==='graph'){
+  for(const key of ['x','y']){const group=node(d,'fieldset');group.append(node(d,'legend',key.toUpperCase()+' axis'));field(group,'Axis label including units',b[key].label,{max:60},change(v=>b[key].label=v));for(const prop of ['min','max','step']){const input=field(group,prop==='step'?'Grid interval':prop==='min'?'Minimum value':'Maximum value',b[key][prop],{type:'number'},change(v=>b[key][prop]=v));input.step='any';}fs.append(group);}
+  field(fs,'Graph display',b.style,{options:[['blank','Blank plotting grid'],['points','Data points'],['line','Join points in entered order']]},change(v=>b.style=v));
+  fs.append(node(d,'p','Blank grids hide stored points. Joined lines follow the entered point order; this does not calculate a best-fit line.','visual-hint'));
+  const rows=node(d,'div');fs.append(rows);const drawRows=()=>{rows.replaceChildren();b.points.forEach((p,i)=>{const row=node(d,'fieldset');row.append(node(d,'legend','Point '+(i+1)));for(const [j,key] of ['X','Y'].entries()){const input=field(row,key+' value',p[j],{type:'number'},change(v=>p[j]=v));input.step='any';}button(row,'Remove point '+(i+1),()=>{if(isBusy())return;b.points.splice(i,1);onChange();drawRows();draw();});rows.append(row);});button(rows,'Add data point',()=>{if(isBusy())return;b.points.push([b.x.min,b.y.min]);onChange();drawRows();draw();},b.points.length>=30);};drawRows();
+ }else{
+  fs.append(node(d,'p','Positions use a 0–100 canvas. Shapes use their top-left position and width/height. Arrows use start and end positions. Add labels for diagrams, geometry, maps, timelines or scientific sketches.','visual-hint'));
+  const rows=node(d,'div');fs.append(rows);const drawRows=()=>{rows.replaceChildren();b.parts.forEach((p,i)=>{const row=node(d,'fieldset');row.append(node(d,'legend','Element '+(i+1)));field(row,'Element type',p.kind,{options:[['line','Line'],['arrow','Arrow'],['rectangle','Rectangle'],['circle','Ellipse / circle'],['text','Label']]},v=>{if(isBusy())return;p.kind=v;if(['line','arrow'].includes(v)){p.x2??=80;p.y2??=50;}if(['rectangle','circle'].includes(v)){p.width??=20;p.height??=20;}onChange();drawRows();draw();});field(row,'Element label',p.label,{max:60},change(v=>p.label=v));for(const key of ['x','y',...(['line','arrow'].includes(p.kind)?['x2','y2']:['rectangle','circle'].includes(p.kind)?['width','height']:[])]){const input=field(row,key.toUpperCase(),p[key],{type:'number',min:0,limit:100},change(v=>p[key]=v));input.step='any';}button(row,'Remove element '+(i+1),()=>{if(isBusy())return;b.parts.splice(i,1);onChange();drawRows();draw();},b.parts.length<=1);rows.append(row);});button(rows,'Add diagram element',()=>{if(isBusy())return;b.parts.push({kind:'text',x:50,y:20,label:'Label'});onChange();drawRows();draw();},b.parts.length>=24);};drawRows();
+ }draw();
 }
 function imageDimensions(bytes){
  const a=new Uint8Array(bytes),v=new DataView(bytes);

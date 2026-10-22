@@ -5,7 +5,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "public",
   "functions": {
-    "api/media.js": {"maxDuration": 60},
+    "api/media.js": {
+      "maxDuration": 60
+    },
     "api/generate.js": {
       "maxDuration": 300
     },
@@ -17,6 +19,10 @@
     },
     "api/places.js": {
       "maxDuration": 30
+    },
+    "api/export.js": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans*.ttf"
     }
   },
   "headers": [

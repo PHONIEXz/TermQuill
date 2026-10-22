@@ -1,3 +1,4 @@
+import {shapes} from '../lib/paper-icons.js';
 import * as timing from '../lib/generation-timing.js';
 import * as diagrams from '../lib/diagrams.js';
 import {EditHistory} from '../lib/edit-history.js';
@@ -15,4 +16,4 @@ import * as visuals from '../lib/visuals.js';
 import {earlyYearsSample} from '../lib/early-years.js';
 const modules=[['objective-plan',['initObjectivePlan','renderObjectiveCoverage']],['quality-review',['renderQualityReview']],['creation-plan',['initCreationPlan','renderCoverage']],['media-picker',['mediaPicker']],['school-review',['mountSchoolReview']],['school-bank-view',['mountSchoolBank']],['reference-picker',['initReferencePicker']],['paper-blocks',['renderBlocks','applyPaperLayout','iconElement','assertPicturesReady','renderSection','renderLogo']],['visual-editor',['blockEditor','layoutEditor','logoEditor','compressPicture','questionDocumentEditor']]];
 const sources=await Promise.all(modules.map(async([name,exports])=>[(await readFile(new URL(`../public/${name}.js`,import.meta.url),'utf8')).replace(/^import .*;\n/gm,'').replace(/export (function|async function) /g,'$1 '),exports]));
-export function installVisuals(w){Object.assign(w,timing,{EditHistory},diagrams,objectives,{sourcePassages},coverage,visuals,referenceHelpers,reviewHelpers,{qualityReview,LESSON_EXAMPLES,exampleLessons,exampleVisualTasks},{earlyYearsSample,readBank,readDrafts});for(const [source,exports] of sources)w.eval(`(()=>{${source}\nObject.assign(window,{${exports.join(',')}});})()`);}
+export function installVisuals(w){Object.assign(w,{shapes},timing,{EditHistory},diagrams,objectives,{sourcePassages},coverage,visuals,referenceHelpers,reviewHelpers,{qualityReview,LESSON_EXAMPLES,exampleLessons,exampleVisualTasks},{earlyYearsSample,readBank,readDrafts});for(const [source,exports] of sources)w.eval(`(()=>{${source}\nObject.assign(window,{${exports.join(',')}});})()`);}

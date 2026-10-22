@@ -1,0 +1,47 @@
+[
+  {
+    "id":"early-derived-count", "stage":"early", "spec":{},
+    "questions":[{"prompt":"How many apples can you see?","answer":"3","evidence":"We practise counting apples.","marks":1,"blocks":[{"type":"picture","icon":"apple","quantity":3,"task":"count"}]}],
+    "expectedCodes":[], "review":"Count the rendered objects; automated visual-answer validation is separate. A value derived from visible geometry is not a missing-source-value signal."
+  },
+  {
+    "id":"primary-wrong-sum", "stage":"primary", "spec":{},
+    "questions":[{"prompt":"Add 2 and 3.","answer":"6","evidence":"Two plus three is 5.","marks":1}],
+    "expectedCodes":["check-values"], "review":"The correct answer is 5. The value signal points to a discrepancy but does not itself solve arithmetic."
+  },
+  {
+    "id":"secondary-unflagged-factual-error", "stage":"secondary", "spec":{},
+    "questions":[{"prompt":"What types of atoms make up an element?","answer":"Different types of atoms.","evidence":"An element contains only one type of atom.","marks":2}],
+    "expectedCodes":[], "review":"Deliberately incorrect answer. A teacher must reject it. Absence of signals must never be presented as factual correctness."
+  },
+  {
+    "id":"vocational-table-budget", "stage":"vocational", "spec":{},
+    "questions":[{"prompt":"Name each measuring tool.","answer":"Tape; ruler; caliper.","evidence":"A tape, ruler and caliper are measuring tools.","marks":2,"blocks":[{"type":"table","rows":[["Tool A",""],["Tool B",""],["Tool C",""]]}]}],
+    "expectedCodes":["check-partial-credit"], "review":"Three required responses need explicit credit. New generated over-budget tables are separately rejected by the creation validator."
+  },
+  {
+    "id":"undergraduate-valid-derived-value", "stage":"undergraduate", "spec":{},
+    "questions":[{"prompt":"Find the speed for 100 m travelled in 20 s.","answer":"5 m/s","evidence":"Speed is distance divided by time. A body travels 100 m in 20 s.","marks":2}],
+    "expectedCodes":["check-values"], "review":"Valid calculation: 100/20 = 5 m/s. This signal must remain advisory and must not reject a correct derived answer."
+  },
+  {
+    "id":"postgraduate-unflagged-causal-error", "stage":"postgraduate", "spec":{"sourceMode":"topic"},
+    "questions":[{"prompt":"Does an observational association establish causation?","answer":"Yes, association always proves causation.","rationale":"The two variables move together.","marks":2}],
+    "expectedCodes":[], "topicCount":1, "review":"Deliberately unsound causal claim. Requires independent subject review; a generated rationale is not proof."
+  },
+  {
+    "id":"adult-valid-percentage", "stage":"adult", "spec":{},
+    "questions":[{"prompt":"Increase a price of 100 by 10 percent.","answer":"110","evidence":"The starting price is 100 and it rises by 10 percent.","marks":2}],
+    "expectedCodes":["check-values"], "review":"Valid result: 100 + 10 = 110. Teacher checks the working and currency if relevant."
+  },
+  {
+    "id":"similar-task-different-wording", "stage":"secondary", "spec":{},
+    "questions":[{"prompt":"Define the term chemical element.","answer":"A substance containing one type of atom.","evidence":"An element contains one type of atom.","marks":2},{"prompt":"What is a chemical element?","answer":"A substance containing one type of atom.","evidence":"An element contains one type of atom.","marks":2}],
+    "expectedCodes":["possible-repeat"], "review":"Same answer and core wording suggest duplicated coverage. This is lexical similarity, not universal paraphrase detection."
+  },
+  {
+    "id":"rich-passage-reuse", "stage":"primary", "spec":{},
+    "questions":[{"prompt":"What absorbs water?","answer":"Roots.","evidence":"Roots absorb water. Leaves use light. Stems support plants.","marks":1},{"prompt":"What uses light?","answer":"Leaves.","evidence":"Roots absorb water. Leaves use light. Stems support plants.","marks":1},{"prompt":"What supports the plant?","answer":"Stems.","evidence":"Roots absorb water. Leaves use light. Stems support plants.","marks":1}],
+    "expectedCodes":["reused-passage"], "review":"Legitimate three-idea coverage from one rich passage. A reuse signal must not imply duplication or block acceptance."
+  }
+]

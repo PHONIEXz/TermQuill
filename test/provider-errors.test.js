@@ -47,3 +47,13 @@ test('validation repair stays on the successful fallback model',async()=>{
     models.push(options.model.modelId);if(models.length<3)throw Object.assign(new Error('internal'),{statusCode:500});return {text:models.length===3?'{}':JSON.stringify(samplePaper)};
   }});assert.deepEqual(models,['gemma-4-26b-a4b-it','gemma-4-26b-a4b-it','gemma-4-31b-it','gemma-4-31b-it']);assert.equal(result.attempts,2);assert.equal(result.providerCalls,4);
 });
+
+test('a stalled model call is cancelled and reaches the existing bounded fallback',async()=>{
+ let calls=0;const events=[];
+ const result=await generateAssessment(sampleSpec,{key:'test',attemptTimeoutMs:5,sleep:async()=>{},onProgress:event=>events.push(event),generate:async({abortSignal})=>{calls++;if(calls<3)return new Promise((resolve,reject)=>abortSignal.addEventListener('abort',()=>reject(abortSignal.reason),{once:true}));return {text:JSON.stringify(samplePaper)};}});
+ assert.equal(calls,3);assert.equal(result.fallbackUsed,true);assert.equal(events.filter(e=>e.event==='provider_call').length,3);
+});
+test('cancelling during a stalled call stops immediately without retry or fallback',async()=>{
+ const controller=new AbortController();let calls=0;
+ await assert.rejects(()=>generateAssessment(sampleSpec,{key:'test',signal:controller.signal,attemptTimeoutMs:1000,generate:async({abortSignal})=>{calls++;queueMicrotask(()=>controller.abort());return new Promise((resolve,reject)=>abortSignal.addEventListener('abort',()=>reject(abortSignal.reason),{once:true}));}}));assert.equal(calls,1);
+});

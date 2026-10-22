@@ -7,7 +7,7 @@
   "functions": {
     "api/media.js": {"maxDuration": 60},
     "api/generate.js": {
-      "maxDuration": 120
+      "maxDuration": 300
     },
     "api/account.js": {
       "maxDuration": 60

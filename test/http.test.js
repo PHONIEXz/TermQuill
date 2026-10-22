@@ -50,3 +50,8 @@ test('provider-supplied partialDraft fields are never forwarded as recovery data
 test('trusted completed-batch recovery reaches the client without exposing provider error text',async()=>{
  const partial=validateDraft({spec:sampleSpec,paper:samplePaper});await fixture(async base=>{const response=await post(base,sampleSpec),data=await response.json();assert.equal(response.status,429);assert.equal(data.partialDraft.paper.questions.length,6);assert.equal(data.partialDraft.approved,false);assert.ok(!JSON.stringify(data).includes('SECRET'));},createHandler({limiter:()=>true,generate:async()=>{throw Object.assign(new Error('SECRET provider'),{statusCode:429,[COMPLETED_BATCH]:partial});}}));
 });
+
+test('overall deadline still returns checked first-batch recovery and a safe timeout response',async()=>{
+ const partial=validateDraft({spec:sampleSpec,paper:samplePaper});
+ await fixture(async base=>{const response=await post(base,sampleSpec),data=await response.json();assert.equal(response.status,504);assert.equal(data.code,'GENERATION_TIMEOUT');assert.equal(data.partialDraft.paper.questions.length,6);assert.equal(data.partialDraft.approved,false);assert.ok(data.requestId);assert.ok(!JSON.stringify(data).includes('SECRET'));},createHandler({limiter:()=>true,timeoutMs:10,generate:async(spec,{signal,onProgress})=>{onProgress({event:'provider_call',model:'gemma-test'});onProgress({event:'batch_completed'});return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Object.assign(new Error('SECRET'),{[COMPLETED_BATCH]:partial})),{once:true}));}}));
+});

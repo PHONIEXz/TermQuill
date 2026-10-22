@@ -44,3 +44,5 @@ public/objectives.js
 
 public/diagrams.js
 public/edit-history.js
+
+public/generation-timing.js

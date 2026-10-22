@@ -1,3 +1,4 @@
+import {GENERATION_BROWSER_MS} from '/generation-timing.js';
 import {EditHistory} from '/edit-history.js';
 import {initCreationPlan,renderCoverage} from '/creation-plan.js';
 import {balanceLessons} from '/coverage.js';
@@ -209,14 +210,14 @@ form.addEventListener('submit',async event=>{
   event.preventDefault();if(active||pendingImages)return;error();let spec;
   try{spec=validateRequest(referencePicker.request(fieldValues()),{forGeneration:true});}catch(e){error(e.message);return;}
   if(state&&!confirm('Generate a new paper? This replaces the current paper only if generation succeeds.'))return;
-  const controller=new AbortController();active=controller;busy(true);message(spec.generationMode==='batches'?'Building two checked batches, then checking the combined paper…':spec.sourceMode==='topic'?'Drafting from your topic, then checking structure and marks. Answer accuracy needs your review…':'Drafting your assessment, then checking questions, quotes and marks…');
-  const timer=setTimeout(()=>controller.abort('timeout'),115000);
+  const controller=new AbortController();active=controller;busy(true);message(spec.generationMode==='batches'?'Building two checked batches, then checking the combined paper. Allow up to 4½ minutes; you can cancel…':spec.sourceMode==='topic'?'Drafting from your topic, then checking structure and marks. Answer accuracy needs your review…':'Drafting your assessment, then checking questions, quotes and marks…');
+  const timer=setTimeout(()=>controller.abort('timeout'),GENERATION_BROWSER_MS);
   try{
     const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Access-Code':$('access-code').value},body:JSON.stringify(spec),signal:controller.signal});
     const data=await response.json();if(!response.ok){if(data.partialDraft){try{completedBatch={draft:validateDraft(data.partialDraft),requested:spec.count};$('batch-recovery').hidden=false;$('batch-recovery-status').textContent=`${completedBatch.draft.paper.questions.length} of ${spec.count} requested questions are available. This is an incomplete paper. Open it for review or download a backup. It has not been saved automatically.`;}catch{error('A completed batch could not be restored. Your open paper is unchanged.');}}throw new Error(`${data.error||'Generation failed.'}${data.code?` (${data.code})`:''}${data.requestId?` Reference: ${data.requestId}`:''}`);}
     const paper=parseModelOutput(JSON.stringify(data.paper),spec);paper.layout??={preset:spec.presentation||'standard',schoolName:'',term:''};
     completedBatch=null;$('batch-recovery').hidden=true;carrySetupLogo(paper);state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('student');message(spec.generationMode==='batches'?'Both batches are ready. Review the combined paper, answers and coverage before printing.':spec.sourceMode==='topic'?'Your topic draft is ready. Independently verify every answer and rationale before printing.':'Your draft is ready. Review each question, expected answer and source quote.');
-  }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation timed out. Try fewer questions. Your previous paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}
+  }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation reached its time limit. Save your setup before retrying. Any open paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}
   finally{clearTimeout(timer);active=null;busy(false);}
 });
 $('cancel').addEventListener('click',()=>active?.abort());

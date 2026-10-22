@@ -66,3 +66,12 @@ test('header designer moves rows, previews changes, undoes and resets without re
  const reset=[...w.document.querySelectorAll('button')].find(b=>b.textContent==='Reset header layout');reset.focus();reset.click();assert.equal(w.document.activeElement.textContent,'Reset header layout');assert.equal(paper.layout.header.align,'center');assert.equal(paper.questions.length,samplePaper.questions.length);assert.equal(changes,4);
  w.applyPaperLayout(w.document.querySelector('#paper'),{header:{align:'right',logoAlign:'left',logoSize:30,gap:8,order:['title','term','school']}});assert.equal(w.document.querySelector('#paper').style.getPropertyValue('--logo-size'),'30mm');assert.equal(w.document.querySelector('#paper').style.getPropertyValue('--order-title'),'1');dom.window.close();
 });
+
+test('generated matching prompts must request the displayed task; legacy teacher edits remain readable',()=>{
+ const early=earlyYearsSample();early.paper.questions[1].prompt='Which shape is round?';assert.throws(()=>parseModelOutput(JSON.stringify(early.paper),early.spec,{generated:true}),/matching block needs a prompt/);assert.doesNotThrow(()=>parseModelOutput(JSON.stringify(early.paper),early.spec));
+ for(const prompt of ['Match each shape to its description.','Connect each shape to its correct description.','Draw lines between the matching items.']){early.paper.questions[1].prompt=prompt;assert.doesNotThrow(()=>parseModelOutput(JSON.stringify(early.paper),early.spec,{generated:true}));}
+});
+
+test('new generation respects explicitly selected visual task types without restricting legacy teacher layouts',()=>{
+ const raw=structuredClone(samplePaper);raw.questions[3].blocks=[{type:'table',headers:['Item','Answer'],rows:[['Iron','']]}];assert.throws(()=>parseModelOutput(JSON.stringify(raw),{...sampleSpec,visualTasks:[]},{generated:true}),/unselected table/);assert.doesNotThrow(()=>parseModelOutput(JSON.stringify(raw),{...sampleSpec,visualTasks:[]}));assert.doesNotThrow(()=>parseModelOutput(JSON.stringify(raw),{...sampleSpec,format:'custom',formatInstructions:'Use the existing question kinds.',visualTasks:['table']},{generated:true}));
+});

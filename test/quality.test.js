@@ -32,3 +32,11 @@ test('review panel is advisory, safely renders text, links to exact questions an
 test('both generation source modes include answer, units, MCQ ambiguity and repeated-task guidance',()=>{
  for(const spec of [sampleSpec,{...sampleSpec,sourceMode:'topic',topicInstructions:'Generate questions on chemical elements.'}]){const prompt=buildPrompt(spec);assert.match(prompt,/Solve each question/);assert.match(prompt,/units and rounding/);assert.match(prompt,/exactly one must be defensible/);assert.match(prompt,/Do not rephrase the same task/);}
 });
+
+test('counted item names prompt a partial-credit review without flagging physical measurement units',()=>{
+ const question={kind:'short',prompt:'How many sweets does each child receive?',answer:'4 sweets',marks:2,evidence:'Each child receives 4 sweets.',marking:[{point:'Correct count (4)',marks:1},{point:'Correct unit (sweets)',marks:1}]};assert.equal(qualityReview({questions:[question]}).findings[0].code,'count-unit-credit');const measurement={...question,prompt:'How many centimetres is the perimeter?',answer:'14 cm',evidence:'The perimeter is 14 cm.',marking:[{point:'Correct perimeter (14)',marks:1},{point:'Correct unit (cm)',marks:1}]};assert.deepEqual(qualityReview({questions:[measurement]}).findings,[]);
+});
+
+test('matching review identifies prompt mismatch and a quote missing one of the displayed pairs',()=>{
+ const q={kind:'short',prompt:'Which shape is round?',answer:'Circle; Triangle',marks:2,evidence:'A circle is round.',blocks:[{type:'matching',pairs:[{left:'Circle',right:'Round'},{left:'Triangle',right:'Three sides'}]}]};const result=qualityReview({questions:[q]});assert.deepEqual(result.findings.map(f=>f.code),['matching-prompt','matching-support']);q.prompt='Match each shape to its description.';q.evidence='A circle is round. A triangle has three sides.';assert.deepEqual(qualityReview({questions:[q]}).findings,[]);
+});

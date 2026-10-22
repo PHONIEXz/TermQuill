@@ -190,3 +190,10 @@ body[data-page=question-bank] [data-for=question-bank]{display:block}.question-b
 @media screen{.header-tools{grid-column:1/-1;min-width:0;padding:16px;background:#f4f0fa;border:1px solid #d7cbe6;border-radius:12px}.header-controls{display:grid;gap:14px}.header-order{display:grid;gap:8px}.header-order-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px;background:white;border-radius:8px}.header-order-row>span{flex:1 1 100%;font-size:16px}.header-order-row button{font-size:16px;min-height:44px}.header-layout-sample{display:flex;flex-direction:column;background:white;color:#172f2b;border:1px solid #ccc;box-shadow:0 4px 12px #172f2b12;margin-top:20px;padding:20px;overflow-wrap:anywhere}.header-layout-sample p{margin:0}.header-layout-sample img{max-width:100%}}
 
 @media screen{.header-layout-sample{margin:12px 0 20px}.header-controls{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.header-order{grid-column:1/-1}.header-order-row{flex-wrap:nowrap}.header-order-row>span{flex:1;min-width:0}.header-order-row button{flex:0 0 44px;padding:8px!important;font-size:20px}.header-controls>.visual-field{min-width:0}.header-controls input,.header-controls select{width:100%}.header-controls>button{height:100%}@media(max-width:400px){.header-controls{grid-template-columns:1fr}}}
+
+/* Structured scientific and cross-subject visuals share print geometry. */
+.assessment-diagram{display:block;width:100%;max-width:640px;height:auto;color:#111;background:#fff;break-inside:avoid}
+.diagram-live-preview{padding:12px;border:1px solid #bac6c0;border-radius:12px;background:#fff}
+.block-graph,.block-diagram{break-inside:avoid;margin:16px 0}
+.diagram-error{color:#8b2020;font-weight:600}
+@media print{.assessment-diagram{max-width:155mm;print-color-adjust:exact}.block-graph,.block-diagram{break-inside:avoid}}

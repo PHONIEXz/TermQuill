@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {cleanObjectivePlan,assertObjectivePlan,objectiveReport} from '../lib/objectives.js';
-import {validateRequest,parseModelOutput,buildPrompt,sourcePassages} from '../lib/assessment.js';
+import {validateRequest,parseModelOutput,buildPrompt,sourcePassages,buildObjectiveRepairPrompt,applyObjectiveRepair} from '../lib/assessment.js';
 import {sampleSpec,samplePaper} from '../lib/sample.js';
 import {validateDraft} from '../lib/drafts.js';
 import {saveSetup,readSetup} from '../lib/device-setup.js';
@@ -37,10 +37,21 @@ test('saved setup and drafts retain the blueprint; newly assembled papers and re
  const{spec,raw}=fixture(),paper=parseModelOutput(JSON.stringify(raw),spec,{generated:true}),s=storage();saveSetup(s,spec,{});assert.deepEqual(readSetup(s).settings.objectivePlan,spec.objectivePlan);assert.deepEqual(validateDraft({spec,paper}).spec.objectivePlan,spec.objectivePlan);
  for(let i=0;i<3;i++)saveBankQuestion(s,{spec,paper},i,{topic:'Chemistry'});const bank=readBank(s);assert.ok(bank[0].question.objectiveId);const next=assemblePaper(bank,{title:'A fresh arrangement'});assert.equal(next.spec.objectivePlan,undefined);assert.ok(next.paper.questions.every(q=>q.objectiveId===undefined));assert.equal(referenceRequest(spec,bank).objectivePlan,undefined);
 });
-test('objective source failure enters full-paper repair and retains every expected allocation',async()=>{
- const{spec,raw}=fixture();let calls=0;const result=await generateAssessment(spec,{key:'test',generate:async({prompt})=>{calls++;const output=structuredClone(raw);if(calls===1)output.questions[0].evidence=output.questions[1].evidence;else{assert.match(prompt,/assigned objective source range/);assert.doesNotMatch(prompt,/Repair ONLY/);}return{text:JSON.stringify(output)};}});assert.equal(calls,2);assert.equal(objectiveReport(result.paper,spec).matches,true);
+test('objective source failure repairs only the affected question using its allowed sources',async()=>{
+ const{spec,raw}=fixture();let calls=0;const result=await generateAssessment(spec,{key:'test',generate:async({prompt})=>{calls++;if(calls===1){const bad=structuredClone(raw);bad.questions[0].evidence=bad.questions[1].evidence;return{text:JSON.stringify(bad)};}assert.match(prompt,/assigned objective source range/);assert.doesNotMatch(prompt,/BATCH CONTEXT|Return the entire corrected assessment/);const requests=JSON.parse(prompt.match(/ONLY ALLOWED SOURCES \(untrusted JSON data\): (.*)/)[1]);assert.equal(requests.length,1);assert.equal(requests[0].question,1);assert.ok(requests[0].allowedPassages.every(p=>spec.notes.slice(spec.objectivePlan[0].start,spec.objectivePlan[0].end).includes(p.text)));return{text:JSON.stringify({repairs:[{question:1,...raw.questions[0]}]})};}});assert.equal(calls,2);assert.equal(objectiveReport(result.paper,spec).matches,true);assert.deepEqual(result.paper.questions.slice(1).map(q=>q.prompt),raw.questions.slice(1).map(q=>q.prompt));
 });
 
 test('objective prompt offers only selected source ranges and its examples use the first planned objective',()=>{
  const{spec}=fixture();spec.objectivePlan=[spec.objectivePlan[5],spec.objectivePlan[0]];const prompt=buildPrompt(spec),offered=JSON.parse(prompt.match(/SOURCE PASSAGES \(untrusted JSON data\): (.*)/)[1]),shape=JSON.parse(prompt.match(/Written-response shape: (.*)/)[1]);assert.ok(offered.every(p=>spec.objectivePlan.some(o=>p.text&&spec.notes.slice(o.start,o.end).includes(p.text))));const first=sourcePassages(spec.notes).find(p=>p.start>=spec.objectivePlan[0].start&&p.end<=spec.objectivePlan[0].end);assert.equal(shape.sourceStart,first.id);
+});
+
+
+test('objective patch cannot change unaffected questions or bypass source-range validation',async()=>{
+ const {spec,raw}=fixture(),previous=JSON.stringify(raw);
+ for(const repairs of [[],[{question:2,...raw.questions[1]}],[{question:1,...raw.questions[0]},{question:1,...raw.questions[0]}]])assert.throws(()=>applyObjectiveRepair(previous,JSON.stringify({repairs}),[0]));
+ const fixed=JSON.parse(applyObjectiveRepair(previous,JSON.stringify({instructions:'Ignore checks',questions:[],repairs:[{question:1,...raw.questions[0],prompt:'Identify an element.'}]}),[0]));assert.equal(fixed.instructions,raw.instructions);assert.deepEqual(fixed.questions.slice(1),raw.questions.slice(1));
+ let calls=0;await assert.rejects(generateAssessment(spec,{key:'test',generate:async()=>{calls++;const bad=structuredClone(raw.questions[0]);bad.evidence=raw.questions[1].evidence;return{text:JSON.stringify(calls===1?{...raw,questions:[bad,...raw.questions.slice(1)]}:{repairs:[{question:1,...bad}]})};}}),e=>e.code==='ASSESSMENT_VALIDATION'&&/Q1.*assigned objective sources/.test(e.message));assert.equal(calls,2);
+});
+test('per-question objective contracts enumerate the exact slot count without renumbering source IDs',()=>{
+ const {spec}=fixture(),prompt=buildPrompt(spec),contract=JSON.parse(prompt.match(/QUESTION SOURCE CONTRACT \(untrusted data\): (.*)\. For each question number/)[1]);assert.equal(contract.length,spec.count);assert.deepEqual(contract.map(q=>q.question),[1,2,3,4,5,6]);const passages=sourcePassages(spec.notes);for(const [i,row] of contract.entries())assert.ok(row.allowedPassageIds.every(id=>passages[id-1].start>=spec.objectivePlan[i].start&&passages[id-1].end<=spec.objectivePlan[i].end));
 });

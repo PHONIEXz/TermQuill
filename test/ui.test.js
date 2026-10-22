@@ -281,3 +281,16 @@ test('lesson coverage exposes editable allocations, blocks changed sources and p
  const {dom,w,$}=await setup(async()=>{calls++;return {ok:false,json:async()=>({error:'Expected test response'})};},'/create?lessons=1',undefined,notes);
  try{assert.equal($('creation-plan').hidden,false);let inputs=[...$('creation-plan').querySelectorAll('input')];assert.deepEqual(inputs.map(x=>x.value),['3','3']);inputs[0].value='4';inputs[0].dispatchEvent(new w.Event('input',{bubbles:true}));$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(calls,0);assert.match($('error').textContent,/add up/);inputs[1].value='2';inputs[1].dispatchEvent(new w.Event('input',{bubbles:true}));$('save-setup').click();assert.deepEqual([...deviceSetup.readSetup(w.localStorage).settings.lessonPlan].map(l=>l.questions),[4,2]);$('notes').value+=' Changed.';$('notes').dispatchEvent(new w.Event('input',{bubbles:true}));$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(calls,0);assert.match($('error').textContent,/no longer matches/);[...$('creation-plan').querySelectorAll('button')].find(b=>b.textContent==='Remove lesson plan').click();$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,0));assert.equal(calls,1);}finally{dom.window.close();}
 });
+
+test('quality review stays outside student papers, remains advisory and opens the exact editable question',async()=>{
+ const paper=structuredClone(samplePaper);for(const i of [3,4]){paper.questions[i].prompt=i===3?'Define a chemical element.':'What is a chemical element?';paper.questions[i].answer='A substance containing one type of atom.';}
+ const {dom,w,$}=await setup(async()=>({ok:true,json:async()=>({paper,model:'mock-gemma'})}));try{
+  $('sample-notes').click();$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));
+  assert.match($('quality-review').textContent,/Q4, Q5/);assert.equal($('preview').querySelector('.quality-review'),null);assert.equal($('approved').disabled,false);
+  $('approved').checked=true;$('approved').dispatchEvent(new w.Event('change'));assert.equal($('print').disabled,false);
+  [...$('quality-review').querySelectorAll('button')].find(b=>b.textContent==='Review Q5').click();assert.equal($('tab-edit').getAttribute('aria-selected'),'true');const editor=$('preview').querySelectorAll('.question-editor')[4];assert.equal(editor.open,true);assert.equal(w.document.activeElement,editor);
+  const answerLabel=[...editor.querySelectorAll('label')].find(e=>e.textContent==='Expected answer'),answer=w.document.getElementById(answerLabel.htmlFor);answer.value='A different response';answer.dispatchEvent(new w.Event('input'));
+  assert.equal($('approved').checked,false);assert.doesNotMatch($('quality-review').textContent,/Q4, Q5/);
+  $('tab-student').click();assert.equal($('preview').textContent.includes('Question quality review'),false);
+ }finally{dom.window.close();}
+});

@@ -1,5 +1,6 @@
 import {initCreationPlan,renderCoverage} from '/creation-plan.js';
 import {balanceLessons} from '/coverage.js';
+import {renderQualityReview} from '/quality-review.js';
 import {saveSetup,readSetup,saveBranding,readBranding,forgetSetup} from '/device-setup.js';
 import {LESSON_EXAMPLES,exampleVisualTasks} from '/lesson-examples.js';
 import {stagePreset} from '/references.js';
@@ -84,6 +85,7 @@ function updateReview() {
   $('draft-badge').textContent=state?(state.approved?'REVIEWED':state.sample?'SAMPLE DRAFT':'REVIEW NEEDED'):'NOT STARTED';
   document.dispatchEvent(new CustomEvent('termquill:paper-state',{detail:{exists:Boolean(state),dirty,saved:Boolean(state?.id)}}));
   $('audit-status').textContent=state?(issues.length?`${issues.length} checks need attention. ${issues.slice(0,3).map(x=>`${x.index===null?'':`Q${x.index+1}: `}${x.message}`).join(' ')}`:`${state.paper.questions.length} questions · ${state.paper.questions.reduce((s,q)=>s+q.marks,0)} marks · Structural checks passed. Review accuracy and suitability before printing.`):'';
+  renderQualityReview($('quality-review'),state?.paper,state?.spec,{isBusy:working,onEdit:index=>{if(working)return;setMode('edit');const question=$('preview').querySelectorAll('.question-editor')[index];if(question){question.open=true;question.tabIndex=-1;question.focus();question.scrollIntoView({block:'start'});}}});
 }
 function resetApproval(){if(state){state.approved=false;dirty=true;}updateReview();}
 function head(container) {

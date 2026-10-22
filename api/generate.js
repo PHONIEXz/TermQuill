@@ -4,6 +4,7 @@ import { generateAssessment } from '../lib/generator.js';
 import { authorized, json, makeLimiter, readBody } from '../lib/http.js';
 import { publicFailure,providerStatus } from '../lib/errors.js';
 import { randomUUID } from 'node:crypto';
+import {COMPLETED_BATCH} from '../lib/batches.js';
 export const maxDuration = 120;
 const allow = makeLimiter();
 export function createHandler({generate = generateAssessment, limiter = allow, authenticate = requireEducator} = {}) {
@@ -26,7 +27,7 @@ export function createHandler({generate = generateAssessment, limiter = allow, a
     res.on('close',disconnect);
     try {
       const result = await generate(spec,{signal:controller.signal});
-      console.info(JSON.stringify({event:'generation_completed',model:result.model,fallbackUsed:result.fallbackUsed===true,providerCalls:result.providerCalls}));
+      console.info(JSON.stringify({event:'generation_completed',model:result.model,fallbackUsed:result.fallbackUsed===true,providerCalls:result.providerCalls,batches:result.batches||1}));
       if (!res.destroyed) json(res,200,{...result,spec,generatedAt:new Date().toISOString()});
     } catch (error) {
       const failure=publicFailure(error,controller.signal.aborted),requestId=randomUUID();
@@ -34,7 +35,7 @@ export function createHandler({generate = generateAssessment, limiter = allow, a
       // response body, request headers, lesson notes, or API key.
       console.warn(JSON.stringify({event:'generation_failed',requestId,code:failure.code,providerStatus:providerStatus(error),...(failure.code==='ASSESSMENT_VALIDATION'&&typeof error.validationChecks==='string'?{validationChecks:error.validationChecks.slice(0,1200)}:{})}));
       if(failure.code==='PROVIDER_QUOTA')res.setHeader('Retry-After','60');
-      if (!res.destroyed) json(res,failure.status,{error:failure.error,code:failure.code,requestId});
+      if (!res.destroyed) json(res,failure.status,{error:failure.error,code:failure.code,requestId,...(error[COMPLETED_BATCH]?{partialDraft:error[COMPLETED_BATCH]}:{})});
     } finally {clearTimeout(timer);res.off('close',disconnect);}
   };
 }

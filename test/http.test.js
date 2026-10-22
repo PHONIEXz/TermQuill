@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { once } from 'node:events';
+import {COMPLETED_BATCH} from '../lib/batches.js';
+import {validateDraft} from '../lib/drafts.js';
 import { createHandler as handlerFactory } from '../api/generate.js';
 import { server } from '../server.js';
 import { sampleSpec,samplePaper } from '../lib/sample.js';
@@ -41,4 +43,10 @@ test('optional pilot code gates generation',async()=>{
 test('topic generation endpoint accepts a bounded brief without notes and preserves source mode',async()=>{
  let captured;const body={...sampleSpec,sourceMode:'topic',educationStage:'undergraduate',level:'First-year chemistry',notes:'inactive private notes',topicInstructions:'Assess elements, compounds and mixtures using established chemistry knowledge.'};
  await fixture(async base=>{const response=await post(base,body);assert.equal(response.status,200);const result=await response.json();assert.equal(result.spec.sourceMode,'topic');assert.equal(result.spec.notes,'');assert.equal(captured.notes,'');assert.equal(captured.educationStage,'undergraduate');assert.equal((await post(base,{...body,topicInstructions:'short'})).status,400);},createHandler({limiter:()=>true,generate:async spec=>{captured=spec;return {paper:{instructions:'Answer all questions.',questions:[]},model:'mock-gemma'};}}));
+});
+
+test('provider-supplied partialDraft fields are never forwarded as recovery data',async()=>fixture(async base=>{const response=await post(base,sampleSpec),data=await response.json();assert.equal(data.partialDraft,undefined);assert.ok(!JSON.stringify(data).includes('SECRET'));},createHandler({limiter:()=>true,generate:async()=>{throw Object.assign(new Error('SECRET upstream'),{partialDraft:{secret:'SECRET'}});}})));
+
+test('trusted completed-batch recovery reaches the client without exposing provider error text',async()=>{
+ const partial=validateDraft({spec:sampleSpec,paper:samplePaper});await fixture(async base=>{const response=await post(base,sampleSpec),data=await response.json();assert.equal(response.status,429);assert.equal(data.partialDraft.paper.questions.length,6);assert.equal(data.partialDraft.approved,false);assert.ok(!JSON.stringify(data).includes('SECRET'));},createHandler({limiter:()=>true,generate:async()=>{throw Object.assign(new Error('SECRET provider'),{statusCode:429,[COMPLETED_BATCH]:partial});}}));
 });

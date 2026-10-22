@@ -1,5 +1,6 @@
 import {initCreationPlan,renderCoverage} from '/creation-plan.js';
 import {balanceLessons} from '/coverage.js';
+import {initObjectivePlan,renderObjectiveCoverage} from '/objective-plan.js';
 import {renderQualityReview} from '/quality-review.js';
 import {saveSetup,readSetup,saveBranding,readBranding,forgetSetup} from '/device-setup.js';
 import {LESSON_EXAMPLES,exampleVisualTasks} from '/lesson-examples.js';
@@ -30,7 +31,7 @@ for(const link of document.querySelectorAll('[data-nav]'))if(link.dataset.nav===
 document.querySelector('.skip').href='#main-content';
 document.querySelector('.skip').textContent='Skip to main content';
 const pendingLayout={preset:'standard',schoolName:'',term:''};
-let dirty=false,pendingImages=0;const referencePicker=initReferencePicker(form,localStorage);const creationPlan=initCreationPlan(form);
+let dirty=false,pendingImages=0,completedBatch=null;const referencePicker=initReferencePicker(form,localStorage);const creationPlan=initCreationPlan(form);const objectivePlan=initObjectivePlan(form,{getLessons:()=>creationPlan.plan?.()});
 function el(tag, text, cls) {const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function message(text) {$('live-status').textContent=text;}
 function error(text='') {$('error').textContent=text;$('error').hidden=!text;}
@@ -55,12 +56,12 @@ function fieldValues() {
   values.visualTasks=[...form.querySelectorAll('[name="visualTask"]:checked')].map(e=>e.value);
   values.visualObjects=[...form.querySelectorAll('[name="visualObject"]:checked')].map(e=>e.value);
   delete values.visualTask;delete values.visualObject;
-  return creationPlan.values(values);
+  return objectivePlan.values(creationPlan.values(values));
 }
-function fillForm(spec) {referencePicker.reset();for(const input of form.querySelectorAll('[name="visualTask"]'))input.checked=(spec.visualTasks||[]).includes(input.value);for(const input of form.querySelectorAll('[name="visualObject"]'))input.checked=(spec.visualObjects||[]).includes(input.value);$('assessmentMode').value=spec.assessmentMode||'test';$('presentation').value=spec.presentation||'standard';$('educationStage').value=spec.educationStage||(spec.presentation==='early'?'early':spec.presentation==='primary'?'primary':'secondary');for(const name of ['formatInstructions','difficultyInstructions','topicInstructions'])form.elements[name].value=spec[name]||'';for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;referencePicker.sync();creationPlan.restore(spec);syncCustomSettings();updateCount();}
+function fillForm(spec) {referencePicker.reset();for(const input of form.querySelectorAll('[name="visualTask"]'))input.checked=(spec.visualTasks||[]).includes(input.value);for(const input of form.querySelectorAll('[name="visualObject"]'))input.checked=(spec.visualObjects||[]).includes(input.value);$('generationMode').value=spec.generationMode||'single';$('assessmentMode').value=spec.assessmentMode||'test';$('presentation').value=spec.presentation||'standard';$('educationStage').value=spec.educationStage||(spec.presentation==='early'?'early':spec.presentation==='primary'?'primary':'secondary');for(const name of ['formatInstructions','difficultyInstructions','topicInstructions'])form.elements[name].value=spec[name]||'';for(const [key,value] of Object.entries(spec))if(form.elements[key])form.elements[key].value=value;referencePicker.sync();creationPlan.restore(spec);objectivePlan.restore(spec);syncCustomSettings();updateCount();}
 function syncCustomSettings(){for(const [select,name,wrap] of [['format','formatInstructions','custom-format-wrap'],['difficulty','difficultyInstructions','custom-difficulty-wrap']]){const custom=$(select).value==='custom';$(wrap).hidden=!custom;$(name).disabled=!custom||Boolean(active)||pendingImages>0;$(name).required=custom;}}
 for(const id of ['format','difficulty'])$(id).addEventListener('change',syncCustomSettings);
-function updateCount() {$('notes-count').textContent=`${$('notes').value.length.toLocaleString()} / 18,000`;$('total-marks').textContent=`${Number($('count').value)*Number($('marksEach').value)} marks`;}
+function updateCount() {const batchOption=$('generationMode').querySelector('[value="batches"]');batchOption.disabled=Number($('count').value)<9;if(batchOption.disabled&&$('generationMode').value==='batches'){$('generationMode').value='single';$('generation-hint').textContent='Switched to one request: two batches require at least nine questions.';}$('notes-count').textContent=`${$('notes').value.length.toLocaleString()} / 18,000`;$('total-marks').textContent=`${Number($('count').value)*Number($('marksEach').value)} marks`;}
 function busy(on) {on=on||pendingImages>0;
   for(const item of form.elements)item.disabled=on;
   $('generate').disabled=on||!config.configured;
@@ -69,7 +70,7 @@ for(const id of ['early-sample','try-sample','sample-notes','empty-sample','rest
   for(const id of ['save-setup','forget-setup'])if($(id))$(id).disabled=on;
   $('cancel').disabled=false;$('cancel').hidden=!active;
   document.querySelector('.output').setAttribute('aria-busy',String(on));
-  syncCustomSettings();referencePicker.sync(on);updateReview();
+  syncCustomSettings();referencePicker.sync(on);if(!on)objectivePlan.sync();updateReview();
 }
 function hasSaved(){try{return readDrafts(localStorage).length>0;}catch{return false;}}
 function updateReview() {
@@ -79,6 +80,7 @@ function updateReview() {
   $('approved').checked=Boolean(state?.approved);
   $('approved').disabled=working||issues.length>0;
   $('print').disabled=!state||!state.approved||issues.length>0||mode==='edit'||working;
+  for(const id of ['open-completed-batch','download-completed-batch'])$(id).disabled=working||!completedBatch;
   for(const id of ['save','download','send-school','save-library'])$(id).disabled=!state||working;
   for(const button of document.querySelectorAll('.question-bank-actions button'))button.disabled=working;
   $('restore').disabled=!hasSaved()||working;
@@ -98,8 +100,8 @@ function head(container) {
 }
 function preview() {
   const target=$('preview');target.replaceChildren();if(!state)return;applyPaperLayout(target,state.paper.layout||{preset:state.spec.presentation});
-  if(mode==='edit'){renderCoverage(target,state.paper,state.spec);renderEditor(target);return;}
-  renderCoverage(target,state.paper,state.spec);head(target);
+  if(mode==='edit'){renderCoverage(target,state.paper,state.spec);renderObjectiveCoverage(target,state.paper,state.spec);renderEditor(target);return;}
+  renderCoverage(target,state.paper,state.spec);renderObjectiveCoverage(target,state.paper,state.spec);head(target);
   state.paper.questions.forEach((q,i)=>{
     const section=el('section',undefined,`question${q.pageBreakBefore?' question-page-break':''}`),title=el('div',undefined,'question-title');
     title.append(el('span',String(i+1).padStart(2,'0'),'number'),el('p',q.prompt),el('span',`[${q.marks} ${q.marks===1?'mark':'marks'}]`,'marks'));renderSection(section,q);section.append(title);renderBlocks(section,q,{teacher:mode==='teacher'});
@@ -193,17 +195,19 @@ form.addEventListener('submit',async event=>{
   event.preventDefault();if(active||pendingImages)return;error();let spec;
   try{spec=validateRequest(referencePicker.request(fieldValues()),{forGeneration:true});}catch(e){error(e.message);return;}
   if(state&&!confirm('Generate a new paper? This replaces the current paper only if generation succeeds.'))return;
-  const controller=new AbortController();active=controller;busy(true);message(spec.sourceMode==='topic'?'Drafting from your topic, then checking structure and marks. Answer accuracy needs your review…':'Drafting your assessment, then checking questions, quotes and marks…');
+  const controller=new AbortController();active=controller;busy(true);message(spec.generationMode==='batches'?'Building two checked batches, then checking the combined paper…':spec.sourceMode==='topic'?'Drafting from your topic, then checking structure and marks. Answer accuracy needs your review…':'Drafting your assessment, then checking questions, quotes and marks…');
   const timer=setTimeout(()=>controller.abort('timeout'),115000);
   try{
     const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','X-Access-Code':$('access-code').value},body:JSON.stringify(spec),signal:controller.signal});
-    const data=await response.json();if(!response.ok)throw new Error(`${data.error||'Generation failed.'}${data.code?` (${data.code})`:''}${data.requestId?` Reference: ${data.requestId}`:''}`);
+    const data=await response.json();if(!response.ok){if(data.partialDraft){try{completedBatch={draft:validateDraft(data.partialDraft),requested:spec.count};$('batch-recovery').hidden=false;$('batch-recovery-status').textContent=`${completedBatch.draft.paper.questions.length} of ${spec.count} requested questions are available. This is an incomplete paper. Open it for review or download a backup. It has not been saved automatically.`;}catch{error('A completed batch could not be restored. Your open paper is unchanged.');}}throw new Error(`${data.error||'Generation failed.'}${data.code?` (${data.code})`:''}${data.requestId?` Reference: ${data.requestId}`:''}`);}
     const paper=parseModelOutput(JSON.stringify(data.paper),spec);paper.layout??={preset:spec.presentation||'standard',schoolName:'',term:''};
-    carrySetupLogo(paper);state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('student');message(spec.sourceMode==='topic'?'Your topic draft is ready. Independently verify every answer and rationale before printing.':'Your draft is ready. Review each question, expected answer and source quote.');
+    completedBatch=null;$('batch-recovery').hidden=true;carrySetupLogo(paper);state={spec,paper,sample:false,approved:false,model:data.model,generatedAt:data.generatedAt};dirty=true;setMode('student');message(spec.generationMode==='batches'?'Both batches are ready. Review the combined paper, answers and coverage before printing.':spec.sourceMode==='topic'?'Your topic draft is ready. Independently verify every answer and rationale before printing.':'Your draft is ready. Review each question, expected answer and source quote.');
   }catch(e){if(e.name==='AbortError'||controller.signal.aborted)error(controller.signal.reason==='timeout'?'Generation timed out. Try fewer questions. Your previous paper is unchanged.':'Generation cancelled. Your previous paper is unchanged.');else error(e.message);message('');}
   finally{clearTimeout(timer);active=null;busy(false);}
 });
 $('cancel').addEventListener('click',()=>active?.abort());
+$('download-completed-batch').addEventListener('click',()=>{if(completedBatch&&!active)downloadDraft(completedBatch.draft);});
+$('open-completed-batch').addEventListener('click',()=>{if(!completedBatch||active||pendingImages)return;if(state&&!confirm('Open the incomplete first batch instead of the current paper? Save your current draft first if you want to keep it.'))return;const recovered=structuredClone(completedBatch.draft);carrySetupLogo(recovered.paper);state=recovered;delete state.id;state.approved=false;dirty=true;fillForm(state.spec);setMode('edit');message(`Incomplete paper: ${state.paper.questions.length} of ${completedBatch.requested} questions. Check the original blueprint for missing coverage before completing and reviewing it.`);});
 $('approved').addEventListener('change',()=>{if(!state)return;state.approved=$('approved').checked;updateReview();if(mode!=='edit')preview();});
 $('print').addEventListener('click',async()=>{if(!state?.approved||auditAssessment(state.paper,state.spec).length||mode==='edit')return;try{await assertPicturesReady($('preview'));if(state?.approved&&mode!=='edit')window.print();}catch(e){error(e.message);}});
 $('save').addEventListener('click',()=>{if(!state)return;try{state={...saveDraft(localStorage,state),approved:state.approved};dirty=false;updateReview();if(mode!=='edit')preview();message('Draft saved to My drafts on this device. You can reopen it from the navigation above.');}catch(e){error(`Could not save: ${e.message} Export a JSON backup if device storage is unavailable.`);}});

@@ -283,7 +283,7 @@ if(page==='create'){
   if(id){try{const saved=readDrafts(localStorage).find(d=>d.id===id);if(!saved)throw new Error();state=validateDraft(saved);fillForm(state.spec);dirty=false;setMode('edit');message('Saved paper opened. Review it again before printing.');}catch{error('This draft could not be opened on this browser. Open My drafts or import its JSON backup.');}}
   else if(params.get('sample')==='1')loadSample();
 }
-document.addEventListener('click',event=>{const a=event.target.closest?.('a[href]');if(!a||!dirty||page!=='create')return;const target=new URL(a.href,location.href);if(target.pathname!==location.pathname&&!confirm('Leave without saving this paper? Choose Cancel, then Save on this device to keep it.'))event.preventDefault();});
+document.addEventListener('click',event=>{const a=event.target.closest?.('a[href]');if(!a||a.hasAttribute('download')||!dirty||page!=='create')return;const target=new URL(a.href,location.href);if(target.pathname!==location.pathname&&!confirm('Leave without saving this paper? Choose Cancel, then Save on this device to keep it.'))event.preventDefault();});
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 
 $('send-school').addEventListener('click',()=>{try{if(!state||active||pendingImages)return;const draft=validateDraft({...state,savedAt:new Date().toISOString()});assertSchoolSize({spec:draft.spec,paper:draft.paper,sample:draft.sample,model:draft.model});sessionStorage.setItem('lessonpress.school-transfer',JSON.stringify(draft));dirty=false;location.href='/school/library';}catch(e){error(e.message);}});

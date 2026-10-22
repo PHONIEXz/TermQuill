@@ -233,7 +233,7 @@ for(const format of ['pdf','pptx'])$('export-'+format).addEventListener('click',
  try{
   await assertPicturesReady($('preview'));
   const r=await fetch('/api/export',{method:'POST',headers:{'Content-Type':'application/json','X-Personal-Account':personal.user.id},body:JSON.stringify({draft,format,copy,reviewed:true}),signal:AbortSignal.timeout(90000)});
-  if(!r.ok){const out=await r.json();throw new Error(out.error||'Could not create the download.');}
+  if(!r.ok){const out=await r.json().catch(()=>({}));throw new Error(out.error||'The file service is temporarily unavailable. Try again or use Print / PDF. Your draft is unchanged.');}
   if(!r.headers.get('content-type')?.includes(format==='pdf'?'application/pdf':'application/vnd.openxmlformats-officedocument.presentationml.presentation'))throw new Error('The server did not return a valid download. Reload and try again.');
   const blob=await r.blob();if(!blob.size)throw new Error('The download was empty. Try again.');const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download=/filename="([^"]+)"/.exec(r.headers.get('content-disposition')||'')?.[1]||`termquill-${copy}.${format}`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);message(`${copy==='teacher'?'Marking guide':'Student copy'} ${format==='pdf'?'PDF':'PowerPoint'} download requested. Check your browser downloads. Keep editable JSON for reopening a paper in TermQuill.`);
  }catch(e){error(e.name==='TimeoutError'?'File creation timed out. Try again or use Print / PDF. Your draft is unchanged.':e.message);message('');}

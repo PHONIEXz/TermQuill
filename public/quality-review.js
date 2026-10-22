@@ -6,7 +6,7 @@ export function renderQualityReview(container,paper,spec,{onEdit,isBusy=false}={
  if(container.dataset.signature===signature)return;
  const wasOpen=container.querySelector('details')?.open;container.dataset.signature=signature;container.replaceChildren();
  const document=container.ownerDocument,el=(tag,value)=>{const node=document.createElement(tag);if(value!==undefined)node.textContent=value;return node;};
- const details=el('details'),summary=el('summary',`Question quality review${report.findings.length?' · '+report.findings.length+' things to check':''}`);details.open=wasOpen??report.findings.length>0;
+ const details=el('details'),summary=el('summary',`Question quality review${report.findings.length?' · '+report.findings.length+(report.findings.length===1?' thing to check':' things to check'):''}`);details.open=wasOpen??report.findings.length>0;
  details.append(summary,el('p','These are review prompts, not a correctness score. Check every answer, its support and the suitability for your class before confirming your review.'));
  if(report.topicCount)details.append(el('p',`${report.topicCount} ${report.topicCount===1?'question uses':'questions use'} a topic-generated rationale. Check facts and calculations independently; these rationales are not source evidence.`));
  if(!report.findings.length)details.append(el('p','No repetition, reused-passage or response-budget signals were found by these limited checks. Factual accuracy still needs teacher review.'));

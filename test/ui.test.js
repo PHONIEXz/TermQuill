@@ -15,6 +15,7 @@ const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')
 async function setup(generate,route="/create",seed,lessonSeed,cloudActual,setupSeed,brandingSeed) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
   Object.assign(w,deviceSetup,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,saveBankQuestions,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
+  w.document.getElementById('provider-consent').checked=true; // Existing generation scenarios explicitly consent.
   installVisuals(w);const guide=initBuilderGuide(w.document);guide?.show(2);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
   w.fetch=async (url,options)=>url==='/api/config'?{ok:true,json:async()=>({configured:Boolean(generate),accessRequired:false})}:generate(url,options);
@@ -327,3 +328,5 @@ test('written marking criteria can be added, removed and undone without silently
   $('try-sample').click();$('tab-edit').click();let box=w.document.querySelectorAll('.question-editor')[3];const oldCount=box.querySelectorAll('.marking-fields textarea').length;[...box.querySelectorAll('button')].find(b=>b.textContent==='Add marking point').click();assert.equal(box.querySelectorAll('.marking-fields textarea').length,oldCount+1);assert.match($('audit-status').textContent,/Marking points/);$('edit-undo').click();box=w.document.querySelectorAll('.question-editor')[3];assert.equal(box.querySelectorAll('.marking-fields textarea').length,oldCount);assert.equal(w.document.querySelector('.question-editor .marking-fields textarea').readOnly,true);
  }finally{dom.window.close();}
 });
+
+test('generation requires consent and transmits the selected provider',async()=>{let sent;const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({paper:samplePaper,model:'groq:test'})};});try{$('sample-notes').click();$('provider-consent').checked=false;$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent,undefined);$('provider-consent').checked=true;$('ai-provider').value='groq';$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,20));assert.equal(sent.provider,'groq');assert.equal(sent.providerConsent,true);}finally{dom.window.close();}});

@@ -19,8 +19,8 @@ export function createHandler({generate = generateAssessment, limiter = allow, a
     // Vercel sets x-vercel-forwarded-for. Locally use the actual socket address.
     const address = process.env.VERCEL ? String(req.headers['x-vercel-forwarded-for'] || 'unknown').split(',')[0] : req.socket.remoteAddress;
     if (!limiter(account.user.id+':'+address)) { res.setHeader('Retry-After','3600'); return json(res,429,{error:'Generation limit reached. Try again in an hour; you can still edit and print your draft.'}); }
-    let spec;
-    try { spec = validateRequest(await readBody(req),{forGeneration:true}); }
+    let spec,provider;
+    try { const body=await readBody(req);provider=body.provider??'google';if(!['google','groq','automatic'].includes(provider))throw new Error('Choose a supported AI provider.');if(provider!=='google'&&body.providerConsent!==true)throw new Error('Confirm permission to send this request to the selected provider.');spec = validateRequest(body,{forGeneration:true}); }
     catch (error) { return json(res,error.status || 400,{error:error.message}); }
     const startedAt=Date.now();let providerCalls=0,completedBatches=0,lastModel=null;
     const onProgress=event=>{if(event.event==='provider_call'){providerCalls++;lastModel=event.model;}if(event.event==='batch_completed')completedBatches++;};
@@ -29,7 +29,7 @@ export function createHandler({generate = generateAssessment, limiter = allow, a
     const disconnect = () => { if (!res.writableEnded) controller.abort(); };
     res.on('close',disconnect);
     try {
-      const result = await generate(spec,{signal:controller.signal,onProgress});
+      const result = await generate(spec,{signal:controller.signal,onProgress,provider});
       console.info(JSON.stringify({event:'generation_completed',model:result.model,fallbackUsed:result.fallbackUsed===true,providerCalls:result.providerCalls,batches:result.batches||1}));
       if (!res.destroyed) json(res,200,{...result,spec,generatedAt:new Date().toISOString()});
     } catch (error) {

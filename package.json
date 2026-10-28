@@ -22,6 +22,7 @@
   "type": "module",
   "dependencies": {
     "@ai-sdk/google": "^4.0.98",
+    "@ai-sdk/groq": "^4.0.72",
     "@resvg/resvg-js": "^2.6.2",
     "@supabase/supabase-js": "^2.118.0",
     "ai": "^7.0.142",

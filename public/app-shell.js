@@ -26,18 +26,22 @@ if(['access','workspace','lessons','create','drafts','question-bank','school','g
   if(output){const focus=make('button','Expand paper view','paper-view-toggle');focus.type='button';focus.setAttribute('aria-expanded','false');focus.setAttribute('aria-controls','preview');
    const restore=()=>{workspace.classList.remove('paper-focus');focus.textContent='Expand paper view';focus.setAttribute('aria-expanded','false');};
    focus.addEventListener('click',()=>{if(workspace.classList.contains('paper-focus'))restore();else{workspace.classList.add('paper-focus');focus.textContent='Show setup beside paper';focus.setAttribute('aria-expanded','true');}focus.focus();});
-   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&workspace.classList.contains('paper-focus')){restore();focus.focus();}});
+   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&workspace.classList.contains('paper-focus')){event.preventDefault();event.stopImmediatePropagation();restore();focus.focus();}});
    output.prepend(focus);
    // Returning to setup or generating a paper must reveal the form again.
    workspace.querySelector('form')?.addEventListener('submit',restore);
   }
  }
- document.body.prepend(rail,bar);document.body.classList.add('application-shell');
+ // Navigation lives above the workspace on every screen, never in a side rail.
+ bar.prepend(brand);rail.classList.add('top-navigation-panel');
+ document.body.prepend(bar,rail);document.body.classList.add('application-shell');
  const media=globalThis.matchMedia?.('(max-width: 980px)');
- const close=(restore=false)=>{document.body.classList.remove('shell-menu-open');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open workspace navigation');rail.inert=Boolean(media?.matches);if(restore)toggle.focus();};
- toggle.addEventListener('click',()=>{if(document.body.classList.contains('shell-menu-open'))close();else{document.body.classList.add('shell-menu-open');toggle.setAttribute('aria-expanded','true');toggle.setAttribute('aria-label','Close workspace navigation');rail.inert=false;rail.querySelector('a')?.focus();}});
- document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.body.classList.contains('shell-menu-open'))close(true);});rail.addEventListener('click',event=>{if(event.target.closest('a'))close();});
- document.addEventListener('click',event=>{if(document.body.classList.contains('shell-menu-open')&&!rail.contains(event.target)&&!toggle.contains(event.target))close();});
- media?.addEventListener('change',()=>{const restore=Boolean(media.matches)&&rail.contains(document.activeElement);close(restore);});close();
+ let navigationOpen=!media?.matches;
+ function setNavigation(open,restore=false){navigationOpen=open;rail.hidden=!open;rail.inert=!open;toggle.textContent=open?'Hide navigation ↑':'Show navigation ↓';toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Hide workspace navigation':'Show workspace navigation');document.body.classList.toggle('navigation-hidden',!open);if(restore)toggle.focus();}
+ toggle.addEventListener('click',()=>setNavigation(!navigationOpen));
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.defaultPrevented&&navigationOpen){setNavigation(false,true);}});
+ rail.addEventListener('click',event=>{if(media?.matches&&event.target.closest('a'))setNavigation(false);});
+ media?.addEventListener('change',()=>setNavigation(!media.matches,rail.contains(document.activeElement)));
+ setNavigation(navigationOpen);
  if(schoolNav){const panel=document.getElementById('workspace-panel');const sync=()=>{document.body.classList.toggle('shell-school-ready',!panel.hidden);};new MutationObserver(sync).observe(panel,{attributes:true,attributeFilter:['hidden']});sync();}
 }

@@ -175,3 +175,7 @@ School paper downloads fetch the exact revision again through the caller's acces
 ## Room-inspired organisation (October 28)
 
 User requests The Unfinished Room’s spacious, grouped presentation without copying its colours. Keep TermQuill forest/sage/cream with blue generation panels. Give setup and output separate bounded surfaces, wider reading space, consistent panel/action spacing and clear selected tabs. Expand paper view hides setup reversibly; the same button restores it and Escape returns focus. Narrow screens stack naturally. Existing page navigation, roles, consent, saved work and print geometry remain intact. Marketing retains its educational artwork.
+
+## Top navigation correction (October 28)
+
+Explicit user correction: remove the fixed sidebar entirely. Brand, current-page breadcrumb and a labelled Hide/Show navigation control live at the top. Navigation opens in normal document flow beneath the header as wrapping links; school-specific links remain permission-scoped. Desktop starts open, small screens start closed, and Escape closes with focus restored. Main content uses the recovered width. This supersedes the permanent Class Panel rail direction.

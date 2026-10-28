@@ -174,3 +174,30 @@ html[data-motion=reduced] .workspace-tools>a:hover{transform:none}
  @media(max-width:600px){.application-shell .page-intro{padding-block:26px 22px}.application-shell .workspace{gap:18px}.application-shell .workspace>.setup,.application-shell .workspace>.output{padding:18px;border-radius:16px}.application-shell .setup-section,.application-shell .builder-final{padding:16px}.application-shell #preview{padding:18px}.application-shell .editor{padding:16px}.paper-view-toggle{width:100%;margin:12px 0}.application-shell .page-intro h1{letter-spacing:-1px}}
 }
 @media print{.paper-view-toggle{display:none!important}.workspace.paper-focus>.setup{display:none!important}}
+
+/* Explicit top navigation: supersedes every previous fixed-side-rail layout. */
+@media screen {
+ body.application-shell{padding-left:0!important}
+ body.application-shell .app-shellbar{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;height:auto;min-height:80px;gap:18px;padding:16px max(24px,calc((100vw - 1440px)/2));background:#fafbf6;border-bottom:1px solid #d1ddcd}
+ body.application-shell .app-shellbar .shell-brand{margin:0 auto 0 0;padding:0;display:flex;align-items:center;gap:10px;font-size:24px}
+ body.application-shell .shell-menu{display:inline-flex;align-items:center;justify-content:center;min-width:170px;min-height:46px;padding:10px 16px;border:1px solid #bacdb7;border-radius:10px;background:#eaf1e4;color:#244638;font-size:16px;font-weight:650;cursor:pointer}
+ body.application-shell .shell-breadcrumb{margin:0;flex:0 1 auto;gap:8px}
+ body.application-shell .shell-top-actions{margin-left:0}
+ body.application-shell .app-rail.top-navigation-panel{position:static;inset:auto;width:auto;height:auto;max-height:none;overflow:visible;transform:none;visibility:visible;box-shadow:none;display:flex;flex-direction:column;gap:16px;padding:24px max(24px,calc((100vw - 1440px)/2));background:#edf2e7;border:0;border-bottom:1px solid #d1ddcd;z-index:auto}
+ body.application-shell .app-rail.top-navigation-panel[hidden]{display:none!important}
+ body.application-shell .top-navigation-panel .shell-workspace{display:none}
+ body.application-shell .top-navigation-panel .shell-studio-nav{display:flex;flex-wrap:wrap;gap:10px;padding:0;margin:0}
+ body.application-shell .top-navigation-panel .shell-nav-label{flex-basis:100%;margin:0 0 4px;font-size:13px;letter-spacing:.1em}
+ body.application-shell .top-navigation-panel .shell-studio-nav a,body.application-shell .top-navigation-panel .shell-rail-footer a{display:inline-flex;align-items:center;gap:9px;min-height:46px;padding:11px 16px;border:1px solid #d1ddc8;border-radius:10px;background:#fafbf6;font-size:16px;line-height:1.4;text-decoration:none;color:#294836;margin:0}
+ body.application-shell .top-navigation-panel .shell-studio-nav a[aria-current=page]{background:#244e40;color:white;border-color:#244e40}
+ body.application-shell .top-navigation-panel .shell-school-entry{border-top:1px solid #d1ddc8!important;margin:0!important}
+ body.application-shell .top-navigation-panel .shell-rail-footer{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0;padding:0;border:0}
+ body.application-shell .top-navigation-panel .shell-rail-footer>.shell-kicker{display:none}
+ body.application-shell .top-navigation-panel .school-nav{position:static;display:flex;flex-wrap:wrap;width:auto;gap:10px;padding:16px 0 0;margin:0;border-top:1px solid #cbd9c3}
+ body.application-shell .top-navigation-panel .school-nav a{width:auto;margin:0;padding:10px 14px;min-height:44px}
+ body.application-shell>main,body.application-shell #school-main,body.application-shell #places-main{max-width:1440px;margin-inline:auto;padding:32px 24px 48px;width:100%;box-sizing:border-box}
+ body.application-shell .workspace{max-width:none;margin-inline:0}
+ body.application-shell .workspace>.setup{position:static;max-height:none;overflow:visible}
+ body.application-shell>footer{margin-left:0!important}
+ @media(max-width:700px){body.application-shell .app-shellbar{padding:14px 18px;gap:12px}body.application-shell .shell-breadcrumb{order:4;flex-basis:100%;font-size:16px}body.application-shell .shell-breadcrumb>span:first-child{display:inline}body.application-shell .shell-top-actions{display:none}body.application-shell .shell-menu{min-width:0;font-size:15px}body.application-shell .app-rail.top-navigation-panel{padding:20px 18px}body.application-shell .top-navigation-panel .shell-studio-nav a{flex:1 1 155px}body.application-shell>main,body.application-shell #school-main,body.application-shell #places-main{padding:22px 16px 36px}}
+}

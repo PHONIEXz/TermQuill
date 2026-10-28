@@ -131,3 +131,46 @@ html[data-motion=reduced] .workspace-tools>a:hover{transform:none}
 
 @media screen{.creation-coverage{padding:18px;background:#eef3fb;border:1px solid #c6d5e6;border-radius:12px;margin:16px 0}.creation-coverage p{font-size:16px;line-height:1.6}.coverage-rows{display:grid;gap:12px;margin:16px 0}.coverage-rows label{display:grid;grid-template-columns:minmax(0,1fr) 80px;gap:12px;align-items:center}.creation-coverage button{margin:4px 8px 4px 0}.creation-coverage summary{font-weight:650;cursor:pointer}}
 @media print{.creation-coverage{display:none!important}}
+
+/* Room-inspired workspace: quiet surfaces, generous spacing, tools beside the work.
+   TermQuill keeps its own forest, sage, cream and blue identity. */
+@media screen {
+ .application-shell{background:#f3f4ed;color:#203b32}
+ .application-shell .app-rail{background:#fafbf6;border-right:1px solid #d8e1d6}
+ .application-shell .shell-workspace{background:#eaf0e4;border:1px solid #d7e2cf;border-radius:16px;padding:20px}
+ .application-shell .app-shellbar{background:#fafbf6;border-bottom:1px solid #d8e1d6;min-height:78px}
+ .application-shell .shell-context{background:#e6efe0;color:#244638}
+ .application-shell .page-intro{padding-block:40px 32px}
+ .application-shell .page-intro h1{font-size:clamp(34px,4vw,56px);line-height:1.12;max-width:22ch;letter-spacing:-1.8px}
+ .application-shell .page-intro .lede{max-width:65ch;line-height:1.7}
+ .application-shell .workspace{gap:24px;background:transparent;border:0;box-shadow:none;align-items:start;grid-template-columns:minmax(300px,.85fr) minmax(0,1.35fr)}
+ .application-shell .workspace>.setup,.application-shell .workspace>.output{border:1px solid #d8e1d6;border-radius:20px;padding:28px;background:#fcfcf7;min-width:0;box-shadow:0 8px 28px #203b3205}
+ .application-shell .workspace>.setup{background:#eaf0e4}
+ .application-shell .setup-section{background:#fcfcf7;border:1px solid #d4dfcd;border-radius:14px;padding:20px;margin-block:20px}
+ .application-shell .setup-section legend{padding:0 8px;color:#244638}
+ .application-shell .builder-final{margin-top:24px;padding:20px;background:#e5edf1;border:1px solid #cadce3;border-radius:14px}
+ .application-shell .builder-final fieldset{margin:20px 0;padding:18px;border:1px solid #bacfd4;border-radius:12px;min-width:0}
+ .application-shell .builder-final fieldset legend{font-size:16px;font-weight:700}
+ .application-shell .builder-final label{display:block;line-height:1.65}
+ .application-shell :where(.device-setup,.quality-review,.coverage-report,.objective-report){margin-block:20px;padding:20px;border-radius:14px;border:1px solid #cbdcd5;background:#edf4ed}
+ .application-shell :where(.draft-library,.guide-grid article,.path-card,.bank-panel,.lesson-editor,.lesson-catalogue){border-radius:20px;border:1px solid #d8e1d6;box-shadow:0 8px 28px #203b3205}
+ .application-shell :where(.card-actions,.page-actions,.export-actions){gap:12px;align-items:center}
+ .application-shell :where(button,.primary,.outline){min-height:46px;line-height:1.45}
+ .application-shell :where(summary){padding-block:14px;line-height:1.5}
+ .application-shell .tabs{display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:#eaf0e4;border:1px solid #d2dfcd;border-radius:14px;margin-block:20px}
+ .application-shell .tabs button{flex:1 1 150px;padding:12px;border-radius:9px}
+ .application-shell .tabs [aria-selected=true]{background:#244e40;color:#fff;box-shadow:0 3px 8px #203b3210}
+ .application-shell #preview{background:#fff;border:1px solid #d9dfd5;border-radius:12px;margin-block:24px;padding:clamp(20px,3vw,42px);box-shadow:0 8px 30px #203b3208}
+ .application-shell .review-bar{background:#eaf0e4;border:1px solid #ceddc8;border-radius:14px;padding:20px;margin-block:24px;gap:16px}
+ .paper-view-toggle{display:block;margin:12px 0 20px auto;background:#fff;color:#244638;border:1px solid #b7caba;border-radius:10px;padding:12px 18px;font-weight:650}
+ .application-shell .workspace.paper-focus,.application-shell .workspace.editing-paper{grid-template-columns:minmax(0,1fr)}
+ .workspace.paper-focus>.setup{display:none}
+ .workspace.paper-focus>.output{width:100%;max-width:1120px;justify-self:center}
+ .workspace.paper-focus #preview{max-width:940px;margin-inline:auto}
+ .application-shell .editor{margin-block:20px;border-radius:14px;padding:24px;border:1px solid #cddbd0;background:#f9fbf6}
+ .application-shell .editor label{margin-top:18px}
+ @media(min-width:1450px){.application-shell .workspace:not(.editing-paper):not(.paper-focus)>.setup{position:sticky;top:96px;max-height:calc(100dvh - 120px);overflow:auto;scrollbar-gutter:stable}}
+ @media(max-width:1150px){.application-shell .workspace{grid-template-columns:1fr}.application-shell .workspace>.setup,.application-shell .workspace>.output{padding:24px}}
+ @media(max-width:600px){.application-shell .page-intro{padding-block:26px 22px}.application-shell .workspace{gap:18px}.application-shell .workspace>.setup,.application-shell .workspace>.output{padding:18px;border-radius:16px}.application-shell .setup-section,.application-shell .builder-final{padding:16px}.application-shell #preview{padding:18px}.application-shell .editor{padding:16px}.paper-view-toggle{width:100%;margin:12px 0}.application-shell .page-intro h1{letter-spacing:-1px}}
+}
+@media print{.paper-view-toggle{display:none!important}.workspace.paper-focus>.setup{display:none!important}}

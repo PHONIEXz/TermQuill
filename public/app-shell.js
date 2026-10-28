@@ -21,6 +21,17 @@ if(['access','workspace','lessons','create','drafts','question-bank','school','g
  const section=({access:'Access & requests',workspace:'My workspace',lessons:'Lesson library',create:'Assessment studio',drafts:'My drafts','question-bank':'Question library',school:'School workspace',guide:'Help & walkthrough','find-schools':'School directory'})[page];
  const sub=page==='school'?({library:'School papers',bank:'Question bank',reviews:'Review & feedback',team:'Departments & people',paper:'Paper workspace',trust:'Trust & activity',location:'School location'})[path.split('/')[2]]||'Overview':'Your workspace';
  const bar=make('header',undefined,'app-shellbar');const toggle=make('button','☰','shell-menu');toggle.type='button';toggle.setAttribute('aria-label','Open workspace navigation');toggle.setAttribute('aria-controls',rail.id);toggle.setAttribute('aria-expanded','false');const breadcrumb=make('div',undefined,'shell-breadcrumb');breadcrumb.append(make('span',section),make('span',' / ','shell-separator'),make('strong',sub));const actions=make('div',undefined,'shell-top-actions');const help=make('a','Quick help');help.href='/guide';const tag=make('span',page==='school'?'School Review Pilot':'Personal studio','shell-context');actions.append(help,tag);bar.append(toggle,breadcrumb,actions);
+ if(page==='create'){
+  const workspace=document.getElementById('workspace'),output=workspace?.querySelector('.output');
+  if(output){const focus=make('button','Expand paper view','paper-view-toggle');focus.type='button';focus.setAttribute('aria-expanded','false');focus.setAttribute('aria-controls','preview');
+   const restore=()=>{workspace.classList.remove('paper-focus');focus.textContent='Expand paper view';focus.setAttribute('aria-expanded','false');};
+   focus.addEventListener('click',()=>{if(workspace.classList.contains('paper-focus'))restore();else{workspace.classList.add('paper-focus');focus.textContent='Show setup beside paper';focus.setAttribute('aria-expanded','true');}focus.focus();});
+   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&workspace.classList.contains('paper-focus')){restore();focus.focus();}});
+   output.prepend(focus);
+   // Returning to setup or generating a paper must reveal the form again.
+   workspace.querySelector('form')?.addEventListener('submit',restore);
+  }
+ }
  document.body.prepend(rail,bar);document.body.classList.add('application-shell');
  const media=globalThis.matchMedia?.('(max-width: 980px)');
  const close=(restore=false)=>{document.body.classList.remove('shell-menu-open');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open workspace navigation');rail.inert=Boolean(media?.matches);if(restore)toggle.focus();};

@@ -187,3 +187,7 @@ Create and Question bank recover horizontal working space up to 1680 px. The clo
 ## Navy workspace palette (October 29)
 
 User rejected the washed-out sage workspace palette. Internal application pages now use deep navy ink (#202d49), cobalt primary actions (#2949a3), white paper and surfaces, soft blue generation panels and restrained violet editing/evidence tools. Teal remains only for review/approval context. Keep the existing typography, compact footer, top navigation, spacing, focus treatment and white exported papers. This supersedes the forest/sage internal colour direction; the established landing artwork remains separate.
+
+## Book and quill identity (October 29)
+
+Replace the old green T tile with the navy open-book and rising quill mark. Cobalt page edges and a violet tip connect it to the workspace palette. Use the same SVG in navigation, public headers and browser favicons, with a versioned URL to refresh cached icons. Keep the TermQuill wordmark as selectable accessible text. The production SVG is a compact adaptation of an original generated concept and is independent of school logos printed on assessments.

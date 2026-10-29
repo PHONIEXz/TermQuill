@@ -183,3 +183,7 @@ Explicit user correction: remove the fixed sidebar entirely. Brand, current-page
 ## Paper workspace space allocation (October 29)
 
 Create and Question bank recover horizontal working space up to 1680 px. The closing accountability notice remains readable at 16 px but uses compact padding and no paragraph margins. Reduce main bottom padding and footer padding so support copy does not consume the editing area. Keep natural document scrolling, responsive stacking and print rules.
+
+## Navy workspace palette (October 29)
+
+User rejected the washed-out sage workspace palette. Internal application pages now use deep navy ink (#202d49), cobalt primary actions (#2949a3), white paper and surfaces, soft blue generation panels and restrained violet editing/evidence tools. Teal remains only for review/approval context. Keep the existing typography, compact footer, top navigation, spacing, focus treatment and white exported papers. This supersedes the forest/sage internal colour direction; the established landing artwork remains separate.

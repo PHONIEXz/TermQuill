@@ -224,3 +224,62 @@ html[data-motion=reduced] .workspace-tools>a:hover{transform:none}
  body.application-shell:is([data-page=create],[data-page=question-bank])>footer{padding:12px 24px;gap:8px 20px}
  @media(max-width:700px){body.application-shell:is([data-page=create],[data-page=question-bank])>footer{padding:12px 16px}}
 }
+
+/* October 29 workspace palette: navy ink, blue tools, violet editing accents. */
+@media screen {
+ body.application-shell{
+  --ink:#202d49;--green:#2949a3;--muted:#53617a;--line:#d4ddea;--paper:#fff;--cream:#f3f5fa;--lime:#e4eaff;
+  --app-bg:#f3f5fa;--app-surface:#fff;--app-line:#d4ddea;--app-ink:#202d49;--app-muted:#53617a;--app-green:#2949a3;--app-sage:#e9eefb;
+  --finish-line:#d4ddea;--finish-shadow:0 2px 4px #192c5404,0 12px 32px -20px #192c5430;
+  background:var(--app-bg);color:var(--ink)
+ }
+ body.application-shell :is(h1,h2,h3,legend,strong){color:var(--ink)}
+ body.application-shell :is(.lede,.micro,.muted,.privacy,.field-help,.notes-footer,.shell-breadcrumb,.workspace-tools p,.workspace-section p,.lesson-heading p,.lesson-card-meta,.lesson-excerpt,.lesson-empty p){color:var(--muted)}
+ body.application-shell :is(.eyebrow,.shell-kicker,.shell-nav-label,.school-nav-label,.workspace-tools>a>span){color:#485b83}
+ body.application-shell :is(.app-shellbar,.app-rail.top-navigation-panel){background:#fff;border-color:var(--line)}
+ body.application-shell :is(.shell-brand,.shell-breadcrumb strong,.shell-top-actions>a){color:#202d49}
+ body.application-shell .shell-menu{background:#edf1ff;color:#293f83;border-color:#bfccec}
+ body.application-shell .shell-context{background:#e9eefb;color:#354d84;border-color:#cbd6ef}
+ body.application-shell .top-navigation-panel :is(.shell-studio-nav a,.shell-rail-footer a,.school-nav a){background:#f6f8fc;color:#344565;border-color:var(--line)}
+ body.application-shell .top-navigation-panel :is(.shell-studio-nav a,.shell-rail-footer a,.school-nav a):hover{background:#e9efff;color:#233d88}
+ body.application-shell .top-navigation-panel :is(.shell-studio-nav a,.shell-rail-footer a,.school-nav a)[aria-current=page]{background:#243c78;color:white;border-color:#243c78}
+ body.application-shell .workspace>.setup{background:#eaf0fc;border-color:#cbd7ed}
+ body.application-shell .workspace>.output{background:#fff;border-color:var(--line)}
+ body.application-shell :is(.setup-section,.workspace-section,.lesson-catalogue,.lesson-writing,.lesson-editor,.school-panel,.school-card,.school-form,.school-stat,.access-card,.draft-library,.draft-card,.question-bank-page,.bank-question,.bank-panel,.guide-grid article,.path-card,.lesson-card){background:#fff;border-color:var(--line)}
+ body.application-shell :is(.builder-final,.builder-extras,.builder-recommended,.creation-coverage,.lesson-selection,.bank-assemble,.school-explainer,.school-switch,.workspace-boundary,.lesson-storage,details.workspace-section){background:#edf2ff;border-color:#cbd7ed;color:#263a63}
+ body.application-shell :is(.builder-final fieldset,.setup-section){border-color:#cbd7ed}
+ body.application-shell :is(.setup-section legend,.guided-builder .setup-section legend,.lesson-storage strong,.workspace-boundary strong,details.workspace-section>summary,.school-explainer summary){color:#263f82}
+ body.application-shell :is(.device-setup,.quality-review,.coverage-report,.objective-report,.editor-evidence){background:#f0edfa;border-color:#d7cfeb;color:#3d345c}
+ body.application-shell :is(.editor,.question-editor){background:#f7f8fc;border-color:var(--line)}
+ body.application-shell .question-summary{background:#edf1fa;color:#263a63}
+ body.application-shell .builder-paper-sample{background:#edf1fb;border-color:#d0daee;box-shadow:inset 0 1px #fff}
+ body.application-shell :is(#preview,.builder-sample-sheet,.lesson-paper){background:#fff;color:#202d49;border-color:var(--line);box-shadow:0 8px 24px #253e7009}
+ body.application-shell :is(.builder-steps,.tabs,.lesson-view-controls){background:#e5ebfa;border-color:#ccd7ee}
+ body.application-shell :is(.tabs button,.builder-steps button,.lesson-view-controls button){color:#3c507a}
+ body.application-shell :is(.tabs button[aria-selected=true],.builder-steps button[aria-current],.lesson-view-controls button[aria-pressed=true]){background:#2949a3;color:white;border-color:#2949a3}
+ body.application-shell :is(.builder-purpose button[aria-pressed=true],.question-style-card[aria-pressed=true]){background:#eee9fb;color:#503b85;border-color:#7961b0}
+ body.application-shell .question-style-card{background:white;border-color:#cbd5ea;color:#202d49}
+ body.application-shell :is(.builder-purpose a,.text-button,.quiet){color:#304b94}
+ body.application-shell :is(.primary,.builder-controls .primary){background:#2949a3;background-image:none;border-color:#2949a3;color:white;box-shadow:0 3px 8px #2949a320}
+ body.application-shell .primary:hover:not(:disabled){background:#203a86;border-color:#203a86}
+ body.application-shell :is(.outline,.paper-view-toggle,.draft-actions .quiet){background:#fff;color:#2c4585;border-color:#b9c8e4}
+ body.application-shell :is(.outline,.paper-view-toggle,.draft-actions .quiet):hover:not(:disabled){background:#edf2ff;border-color:#819aca}
+ body.application-shell :is(input,textarea,select):not([type=checkbox]):not([type=radio]):not([type=file]){background:#fff;color:#202d49;border-color:#bfcce1;box-shadow:inset 0 1px 2px #192c5404}
+ body.application-shell :is(input,textarea)::placeholder{color:#65728a}
+ body.application-shell :is(input[type=checkbox],input[type=radio]){accent-color:#2949a3}
+ body.application-shell :is(button,a,input,textarea,select,summary):focus-visible{outline-color:#7050b2}
+ body.application-shell :is(input,textarea,select):focus{box-shadow:0 0 0 4px #526dc51a}
+ body.application-shell :is(.pill,.step,.school-tag,.summary-line){background:#edf2ff;color:#3c507a;border-color:#cbd7ed}
+ body.application-shell :is(.review-bar,.school-approved-banner){background:#e9f3f1;color:#234c49;border-color:#bbd8d2}
+ body.application-shell .workspace-tools>a{background:#edf2ff;border-color:#d0dbef}
+ body.application-shell .workspace-tools>a:nth-child(2){background:#f0ecfb}
+ body.application-shell .workspace-tools>a:nth-child(3){background:#e9f3f5}
+ body.application-shell .workspace-tools>a:nth-child(4){background:#fbf0e8}
+ body.application-shell .workspace-tools p{color:#53617a}
+ body.application-shell .footnote{background:#e9eef8;border-color:#cbd7ed}
+ body.application-shell .footnote p{color:#465674}
+ body.application-shell .footnote>span{color:#6077af}
+ body.application-shell>footer{background:#fff;color:#53617a;border-color:var(--line)}
+ body.application-shell .school-table th{background:#eaf0fc;color:#344a77}
+ body.application-shell :is(input,textarea,select)[aria-invalid=true]{border-color:#9b342a}
+}

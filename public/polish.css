@@ -341,3 +341,7 @@ html[data-motion=reduced] .workspace-tools>a:hover{transform:none}
  body.application-shell .lesson-focus-layout .lesson-selection>p:last-child{margin-bottom:0}
  body.application-shell .lesson-panel-heading>span{color:#53617a}
 }
+@media screen {
+ body.application-shell :is(.lesson-taskbar,.studio-taskbar){position:sticky;top:var(--workspace-header-height,80px);z-index:25;box-shadow:0 8px 18px #243c7810}
+ body.application-shell :is(#lesson-editor-heading,#lesson-list-heading,.focused-studio>.setup,.focused-studio>.output){scroll-margin-top:calc(var(--workspace-header-height,80px) + 130px)}
+}

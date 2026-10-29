@@ -35,6 +35,7 @@ if(['access','workspace','lessons','create','drafts','question-bank','school','g
  // Navigation lives above the workspace on every screen, never in a side rail.
  bar.prepend(brand);rail.classList.add('top-navigation-panel');
  document.body.prepend(bar,rail);document.body.classList.add('application-shell');
+ const measureHeader=()=>document.body.style.setProperty('--workspace-header-height',`${Math.max(78,bar.getBoundingClientRect().height)}px`);measureHeader();if(globalThis.ResizeObserver)new ResizeObserver(measureHeader).observe(bar);
  const media=globalThis.matchMedia?.('(max-width: 980px)');
  let navigationOpen=false;
  function setNavigation(open,restore=false){navigationOpen=open;rail.hidden=!open;rail.inert=!open;toggle.textContent=open?'Hide navigation ↑':'Show navigation ↓';toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Hide workspace navigation':'Show workspace navigation');document.body.classList.toggle('navigation-hidden',!open);if(restore)toggle.focus();}

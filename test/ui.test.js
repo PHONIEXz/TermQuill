@@ -1,3 +1,4 @@
+import {showcaseDraft} from '../lib/showcases.js';
 import * as deviceSetup from '../lib/device-setup.js';
 import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,writeLessons,validateLesson} from '../lib/lessons.js';
 import {saveBankQuestion,saveBankQuestions,readBank} from '../lib/bank.js';
@@ -14,7 +15,7 @@ const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8'
 const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
 async function setup(generate,route="/create",seed,lessonSeed,cloudActual,setupSeed,brandingSeed) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
-  Object.assign(w,deviceSetup,{readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,saveBankQuestions,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
+  Object.assign(w,deviceSetup,{showcaseDraft,readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,saveBankQuestions,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
   w.document.getElementById('provider-consent').checked=true; // Existing generation scenarios explicitly consent.
   installVisuals(w);const guide=initBuilderGuide(w.document);guide?.show(2);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;
@@ -330,3 +331,5 @@ test('written marking criteria can be added, removed and undone without silently
 });
 
 test('generation requires consent and transmits the selected provider',async()=>{let sent;const {dom,w,$}=await setup(async(url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({paper:samplePaper,model:'groq:test'})};});try{$('sample-notes').click();$('provider-consent').checked=false;$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,10));assert.equal(sent,undefined);$('provider-consent').checked=true;$('ai-provider').value='groq';$('assessment-form').dispatchEvent(new w.Event('submit',{cancelable:true}));await new Promise(r=>setTimeout(r,20));assert.equal(sent.provider,'groq');assert.equal(sent.providerConsent,true);}finally{dom.window.close();}});
+
+test('opening a showcase creates an unapproved editable copy without saving',async()=>{const {dom,w,$}=await setup(undefined,'/create?example=primary');try{assert.equal(w.document.querySelectorAll('.editor').length,6);assert.equal($('approved').checked,false);assert.equal(readDrafts(w.localStorage).length,0);assert.equal($('title').value,'The school garden investigation');}finally{dom.window.close();}});

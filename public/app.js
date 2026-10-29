@@ -1,3 +1,4 @@
+import {showcaseDraft} from '/showcases.js';
 import {GENERATION_BROWSER_MS} from '/generation-timing.js';
 import {EditHistory} from '/edit-history.js';
 import {initCreationPlan,renderCoverage} from '/creation-plan.js';
@@ -281,6 +282,7 @@ if(page==='drafts')renderLibrary();
 if(page==='create'){
   const params=new URLSearchParams(location.search),id=params.get('draft');
   if(id){try{const saved=readDrafts(localStorage).find(d=>d.id===id);if(!saved)throw new Error();state=validateDraft(saved);fillForm(state.spec);dirty=false;setMode('edit');message('Saved paper opened. Review it again before printing.');}catch{error('This draft could not be opened on this browser. Open My drafts or import its JSON backup.');}}
+  else if(params.has('example')){try{state=showcaseDraft(params.get('example'));carrySetupLogo(state.paper);fillForm(state.spec);dirty=true;setMode('edit');message('Hand-authored stage example opened as an unsaved copy. Your saved papers are unchanged. Review before use.');}catch{error('Choose an available example from the public showcase.');}}
   else if(params.get('sample')==='1')loadSample();
 }
 document.addEventListener('click',event=>{const a=event.target.closest?.('a[href]');if(!a||a.hasAttribute('download')||!dirty||page!=='create')return;const target=new URL(a.href,location.href);if(target.pathname!==location.pathname&&!confirm('Leave without saving this paper? Choose Cancel, then Save on this device to keep it.'))event.preventDefault();});

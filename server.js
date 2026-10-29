@@ -15,11 +15,12 @@ import school from './api/school.js';
 import { securityHeaders, json } from './lib/http.js';
 const routes = new Map([
  ...['login','signup','workspace','demo','access'].flatMap(name=>[[`/${name}`,`public/${name}.html`],[`/${name}.html`,`public/${name}.html`]]),...['account-session.js','account-page.js','workspace-page.js','demo-page.js','account.css'].map(name=>['/'+name,'public/'+name]),
+ ...['early','primary','secondary','vocational','undergraduate','postgraduate','adult'].flatMap(id=>['pdf','pptx'].flatMap(ext=>['student','teacher'].map(copy=>[`/examples/${id}-${copy}.${ext}`,`public/examples/${id}-${copy}.${ext}`]))),
  ['/media-picker.js','public/media-picker.js'],['/access-page.js','public/access-page.js'],['/access.css','public/access.css'],['/educator-panel.js','public/educator-panel.js'],['/cloud-lessons.js','public/cloud-lessons.js'],['/lessons','public/lessons.html'],['/lessons-page.js','public/lessons-page.js'],['/lessons.css','public/lessons.css'],['/app-shell.js','public/app-shell.js'],['/app-shell.css','public/app-shell.css'],['/verdant.css','public/verdant.css'],
   ...['/school','/school/bank','/school/library','/school/reviews','/school/team','/school/paper','/school/trust','/school/location'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
   ['/find-schools','public/find-schools.html'],['/places.js','public/places.js'],['/places.css','public/places.css'],['/location.js','lib/location.js'],
   ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/question-bank','public/index.html'],['/bank-page.js','public/bank-page.js'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],['/workspace.css','public/workspace.css'],['/navigation.js','public/navigation.js'],['/experience.js','public/experience.js'],['/fonts/InterVariable-5a8d3e72.woff2','public/fonts/InterVariable-5a8d3e72.woff2'],['/fonts/Inter-OFL.txt','public/fonts/Inter-OFL.txt'],
-  ...['paper-icons','generation-timing','diagrams','edit-history','objectives','quality','coverage','device-setup','lesson-examples','educator','identity','personal-import','visuals','early-years','bank','references','review','lessons'].map(name=>[`/${name}.js`,`lib/${name}.js`]),...['objective-plan.js','quality-review.js','creation-plan.js','builder-guide.js','paper-blocks.js','paper-blocks.css','visual-editor.js','reference-picker.js','school-review.js','school-bank-view.js'].map(name=>[`/${name}`,`public/${name}`]),
+  ...['showcases','paper-icons','generation-timing','diagrams','edit-history','objectives','quality','coverage','device-setup','lesson-examples','educator','identity','personal-import','visuals','early-years','bank','references','review','lessons'].map(name=>[`/${name}.js`,`lib/${name}.js`]),...['objective-plan.js','quality-review.js','creation-plan.js','builder-guide.js','paper-blocks.js','paper-blocks.css','visual-editor.js','reference-picker.js','school-review.js','school-bank-view.js'].map(name=>[`/${name}`,`public/${name}`]),
   ['/assessment.js','lib/assessment.js'],['/drafts.js','lib/drafts.js'],['/sample.js','lib/sample.js'],['/favicon.svg','public/favicon.svg']
 ]);
 export const server = http.createServer(async (req,res) => {
@@ -42,7 +43,7 @@ export const server = http.createServer(async (req,res) => {
     let body = await readFile(new URL(file,import.meta.url));
     if(file==='public/index.html')body=Buffer.from(body.toString().replace('data-page="home"',`data-page="${path==='/'?'home':path.slice(1)}"${['/create','/drafts','/question-bank'].includes(path)?' class="account-pending"':''}`));
     const ext = file.split('.').pop();
-    res.writeHead(200,{...securityHeaders,'Content-Type':{html:'text/html; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',woff2:'font/woff2',txt:'text/plain; charset=utf-8'}[ext]});
+    res.writeHead(200,{...securityHeaders,'Content-Type':{html:'text/html; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',woff2:'font/woff2',txt:'text/plain; charset=utf-8',pdf:'application/pdf',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation'}[ext]});
     res.end(req.method === 'HEAD' ? undefined : body);
   } catch {json(res,500,{error:'Could not load this page.'});}
 });

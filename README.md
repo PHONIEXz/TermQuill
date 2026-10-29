@@ -240,3 +240,7 @@ The editor’s Wikimedia Commons search requires educator access, uses no provid
 ## Google and Groq provider choice (October 28)
 
 The builder offers Google Gemma, Groq GPT-OSS and Automatic. Set server-only `GROQ_API_KEY` and optionally `GROQ_MODEL` (default `openai/gpt-oss-20b`) in Vercel and redeploy. Never paste credentials into the app or repository. Google remains the default. Automatic switches once to configured Groq on Google 429 or transient 500/502/503/504; it does not switch on authentication/access errors. Explicit consent describes both destinations. Existing validation, bounded repairs, cancellation, partial-batch handling and teacher review apply to both providers. Actual model identity is shown with the result. Groq was introduced to reduce dependence on one hosted provider, not to guarantee free quota or uptime. Live Groq verification requires the owner's configured key.
+
+## Seven-level public showcase
+
+`/demo` contains seven hand-authored example papers, six questions per level, for Early Years, Primary, Secondary, vocational, undergraduate, postgraduate and adult education. Student, marking-guide and source views use the actual structured visual renderer. Each offers PDF and PowerPoint downloads for both copies, generated at build time without provider requests or user data. Sign-in remains required to open an editable unsaved copy. No sample overwrites saved drafts or grants school approval. Examples demonstrate tools, not universal curriculum suitability. Early Years matching awards one mark per pair.

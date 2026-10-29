@@ -338,3 +338,7 @@ Prompts now enumerate every application-owned question slot and its permitted pa
 ## Groq integration, October 28
 
 Provider selector, explicit consent, Google-only/Groq-only isolation and consented automatic fallback are implemented. Simulated regressions cover successful Groq adapter use, quota/server fallback, no fallback on denied access, invalid-paper refusal and UI consent enforcement. Provider credentials remain server-only. Real Groq inference and hosted UI/export checks remain pending deployment and key configuration. Seven polished stage showcase papers and their export review are the next authorised chunk, not claimed complete by this change.
+
+## Stage showcases, October 29
+
+Seven original hand-authored six-question papers, public source/student/marking views, and explicit editable-copy handoff. Build generates 28 public PDF/PowerPoint files from the same validated draft data. Sample exports say hand-authored example rather than falsely asserting teacher review. These are demonstration files, not real school papers or live model outputs. Automated checks cover exact evidence, mark totals, copy isolation, level switching and no implicit persistence. Hosted gallery verification is recorded after deployment.

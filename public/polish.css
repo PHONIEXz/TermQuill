@@ -214,3 +214,13 @@ html[data-motion=reduced] .workspace-tools>a:hover{transform:none}
  #demo-paper .evidence{font-size:16px;line-height:1.7}.example-answer p{overflow-wrap:anywhere}
  @media(max-width:600px){#example-tools{padding:18px}#example-tools .page-actions>*{width:100%;box-sizing:border-box}#demo-paper{padding:20px}}
 }
+
+/* Keep screen space for creating and editing papers, not the closing notice. */
+@media screen {
+ body.application-shell:is([data-page=create],[data-page=question-bank])>main{max-width:1680px;padding-bottom:16px}
+ body.application-shell:is([data-page=create],[data-page=question-bank]) .footnote{max-width:none;margin:16px 0 0;padding:10px 16px;gap:12px;align-items:flex-start}
+ body.application-shell:is([data-page=create],[data-page=question-bank]) .footnote>span{font-size:22px;line-height:1.5}
+ body.application-shell:is([data-page=create],[data-page=question-bank]) .footnote p{margin:0;font-size:16px;line-height:1.6}
+ body.application-shell:is([data-page=create],[data-page=question-bank])>footer{padding:12px 24px;gap:8px 20px}
+ @media(max-width:700px){body.application-shell:is([data-page=create],[data-page=question-bank])>footer{padding:12px 16px}}
+}

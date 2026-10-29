@@ -179,3 +179,7 @@ User requests The Unfinished Room’s spacious, grouped presentation without cop
 ## Top navigation correction (October 28)
 
 Explicit user correction: remove the fixed sidebar entirely. Brand, current-page breadcrumb and a labelled Hide/Show navigation control live at the top. Navigation opens in normal document flow beneath the header as wrapping links; school-specific links remain permission-scoped. Desktop starts open, small screens start closed, and Escape closes with focus restored. Main content uses the recovered width. This supersedes the permanent Class Panel rail direction.
+
+## Paper workspace space allocation (October 29)
+
+Create and Question bank recover horizontal working space up to 1680 px. The closing accountability notice remains readable at 16 px but uses compact padding and no paragraph margins. Reduce main bottom padding and footer padding so support copy does not consume the editing area. Keep natural document scrolling, responsive stacking and print rules.

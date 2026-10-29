@@ -1,3 +1,6 @@
+import scanNotes from '../lib/note-scan-handler.js';
+import termWorkspace from '../lib/term-workspace-handler.js';
+export const maxDuration=120;
 import {requireEducator,sameOrigin} from '../lib/school-auth.js';
 import {json,readBody,makeLimiter} from '../lib/http.js';
 import {validateLesson,validateLessons} from '../lib/lessons.js';
@@ -20,4 +23,5 @@ export function createLessonsHandler({authenticate=requireEducator,limiter=allow
  if(error){const denied=['28000','42501'].includes(error.code),conflict=error.code==='40001',missing=['PGRST202','42883'].includes(error.code);return json(res,denied?403:conflict?409:missing?503:400,{error:denied?'You do not have access to this personal library.':conflict?'This lesson changed or was removed on another device. Reload the library; your editor text has been kept.':missing?'Cloud lessons are not ready yet. Your browser notes remain untouched.':error.message?.startsWith('Personal library limit:')?error.message:'Could not save this library change. Existing cloud notes were kept.'});}
  return json(res,200,{...data,ownerId:user.id});
  }catch(e){return json(res,e.status||400,{error:e.status?e.message:e.message?.startsWith('Choose a TermQuill')||e.message?.startsWith('Lesson library')?e.message:'Could not complete this request. Your notes were kept.'});}};}
-export default createLessonsHandler();
+const lessonsHandler=createLessonsHandler();
+export default function handler(req,res){const task=new URL(req.url||'/api/lessons','https://termquill.local').searchParams.get('task');return task==='scan'?scanNotes(req,res):task==='terms'?termWorkspace(req,res):lessonsHandler(req,res);}

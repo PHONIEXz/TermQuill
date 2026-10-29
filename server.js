@@ -1,5 +1,3 @@
-import noteScan from './api/note-scan.js';
-import termWorkspace from './api/term-workspace.js';
 import exportPaper from './api/export.js';
 import media from './api/media.js';
 import access from './api/access.js';
@@ -27,8 +25,6 @@ const routes = new Map([
 ]);
 export const server = http.createServer(async (req,res) => {
   const path = new URL(req.url,'http://localhost').pathname.replace(/\/$/,'')||'/';
-  if (path === '/api/note-scan') return noteScan(req,res);
-  if (path === '/api/term-workspace') return termWorkspace(req,res);
   if (path === '/api/export') return exportPaper(req,res);
   if (path === '/api/media') return media(req,res);
   if (path === '/api/access') return access(req,res);

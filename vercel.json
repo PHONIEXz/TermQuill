@@ -24,7 +24,7 @@
       "maxDuration": 60,
       "includeFiles": "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans*.ttf"
     },
-    "api/note-scan.js": {
+    "api/lessons.js": {
       "maxDuration": 120
     }
   },

@@ -354,3 +354,5 @@ Seven original hand-authored six-question papers, public source/student/marking 
 - Email delivery is not configured and is not represented as active. Account preferences, return-to-app nudges and a recurring-calendar download are implemented; calendar events cannot conditionally suppress themselves after upload. Actual phone-calendar import/delivery is not verified here.
 
 - Release verification: 279 tests passed; syntax checks and production build passed. Live photo reading and browser layout are checked separately after deployment.
+
+- Live checks: Gemma successfully transcribed a generated, clearly printed Chemistry page, with all source lines checked against the fixture. Groq vision returned a quota error; no fake output was supplied. Term switching, private-settings save, calendar download and the real 12-question weekly source handoff were verified in the browser. The test lesson/transcription was not saved to the cloud library. Handwritten-photo accuracy and actual phone-calendar notification delivery remain unverified.

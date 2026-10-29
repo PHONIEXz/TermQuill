@@ -34,3 +34,4 @@
  .term-mobile-view{display:none}
  @media(max-width:700px){.term-fields,.photo-pickers{grid-template-columns:1fr}.term-week-grid{grid-template-columns:repeat(3,minmax(0,1fr))}body.application-shell[data-page=lessons] .lesson-taskbar>button{display:none}body.application-shell[data-page=lessons] .term-mobile-view{display:block;width:100%;margin:0;padding:4px 8px;font-size:16px;color:#344565}.term-mobile-view select{margin-top:5px}body.application-shell[data-page=lessons] :is(.lesson-catalogue,.lesson-writing,.term-panel){padding:20px}.term-context{gap:14px!important}.term-context>label{min-width:0;flex-basis:100%}}
 }
+@media screen{.term-panel progress{appearance:none;border:0;border-radius:999px;background:#eaf0fc;height:8px;overflow:hidden}.term-panel progress::-webkit-progress-bar{background:#eaf0fc}.term-panel progress::-webkit-progress-value{background:#2949a3;border-radius:999px}.term-panel progress::-moz-progress-bar{background:#2949a3;border-radius:999px}}

@@ -283,3 +283,61 @@ html[data-motion=reduced] .workspace-tools>a:hover{transform:none}
  body.application-shell .school-table th{background:#eaf0fc;color:#344a77}
  body.application-shell :is(input,textarea,select)[aria-invalid=true]{border-color:#9b342a}
 }
+
+/* Focused tasks: a work surface first, supporting tools on demand. */
+@media screen {
+ body.application-shell :is(.lesson-focus-layout,.workspace.focused-studio){display:block;max-width:1240px;margin-inline:auto;overflow:visible}
+ body.application-shell .focused-studio>.setup,body.application-shell .focused-studio>.output{width:100%;max-width:none;position:static;max-height:none;overflow:visible}
+ body.application-shell .focused-studio>.setup{background:#fff}
+ body.application-shell .focused-studio .paper-view-toggle{display:none}
+ body.application-shell .focused-studio .setup-section{background:#f7f9ff;margin-top:18px}
+ body.application-shell .focused-studio .builder-steps{max-width:900px;margin-inline:auto}
+ body.application-shell .focused-studio .device-setup{padding:12px 20px;background:#f5f6fb}
+ body.application-shell .studio-device-tools>summary{font-size:16px;font-weight:650;cursor:pointer}
+ body.application-shell .focused-studio #notes,body.application-shell .focused-studio #topicInstructions{min-height:40vh}
+ body.application-shell .focused-studio .setup-section legend{font-size:22px}
+ body.application-shell .focused-studio .builder-recommended{padding:10px 18px}
+ body.application-shell .focused-studio .builder-recommended>summary{font-size:16px;font-weight:650;cursor:pointer}
+ body.application-shell .focused-studio .builder-purpose>a{background:#edf2ff;border:1px solid #cbd7ed}
+ body.application-shell :is(.studio-taskbar,.lesson-taskbar){display:flex;gap:12px;max-width:1240px;margin:20px auto 24px;flex-wrap:wrap;padding:6px;background:#e6ecf8;border:1px solid #cbd7ed;border-radius:16px}
+ body.application-shell :is(.studio-taskbar,.lesson-taskbar)>button{flex:1;min-width:180px;padding:14px 20px;border:1px solid transparent;border-radius:11px;background:transparent;color:#415375;font-size:18px;font-weight:650;text-align:left;line-height:1.5}
+ body.application-shell :is(.studio-taskbar,.lesson-taskbar)>button[aria-pressed=true]{background:#fff;color:#233d82;border-color:#cbd7ed;box-shadow:0 3px 8px #233d820b}
+ body.application-shell .lesson-taskbar button>span{display:block;font-size:16px;font-weight:500;margin-top:4px;color:#53617a}
+ body.application-shell .lesson-heading{max-width:1240px;margin-inline:auto;margin-bottom:20px}
+ body.application-shell .lesson-heading h1{font-size:clamp(30px,3vw,42px);margin-bottom:8px}
+ body.application-shell .lesson-focus-layout :is(.lesson-catalogue,.lesson-writing){padding:28px;border:1px solid #cbd7ed;background:#fff}
+ body.application-shell .lesson-focus-layout .lesson-writing{max-width:none}
+ body.application-shell .lesson-panel-heading{margin-bottom:20px}
+ body.application-shell .lesson-layout label{color:#344565}
+ body.application-shell :is(.lesson-filter-drawer,.lesson-metadata){padding:0 18px;background:#f3f6fd;border:1px solid #d4dff0;border-radius:12px;margin:18px 0 24px}
+ body.application-shell :is(.lesson-filter-drawer,.lesson-metadata)>summary{font-size:17px;font-weight:650;cursor:pointer;color:#304774;line-height:1.6}
+ body.application-shell .lesson-metadata>summary>span{display:block;margin-left:20px;font-size:16px;font-weight:500;color:#53617a}
+ body.application-shell .lesson-metadata .lesson-fields{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:20px}
+ body.application-shell .lesson-filter-drawer .lesson-filters{grid-template-columns:repeat(4,minmax(0,1fr))}
+ body.application-shell .lesson-focus-layout #lesson-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+ body.application-shell .lesson-focus-layout .lesson-card{margin:0}
+ body.application-shell .lesson-focus-layout .lesson-empty{grid-column:1/-1}
+ body.application-shell .lesson-focus-layout .lesson-choice{margin-bottom:4px}
+ body.application-shell .lesson-focus-layout :is(.lesson-excerpt,.lesson-card-meta,.lesson-selection p,.lesson-preview-hint,#lesson-length,#lesson-save-state){color:#53617a}
+ body.application-shell .lesson-focus-layout #lesson-body{min-height:52vh;line-height:1.9;padding:24px;background:#fff;border-color:#aebfdd}
+ body.application-shell .lesson-focus-layout #lesson-topic{font-size:22px;font-weight:650;padding:16px}
+ body.application-shell .lesson-focus-layout .lesson-selection{margin-top:24px}
+ body.application-shell .lesson-focus-layout .lesson-selection>p:last-child{font-size:16px;max-width:85ch}
+ body.application-shell .lesson-utilities{max-width:1240px;margin:24px auto;border-top:1px solid #d4ddea;padding-top:10px}
+ body.application-shell .lesson-utilities>summary{font-size:17px;font-weight:650;cursor:pointer;color:#405780}
+ body.application-shell .lesson-utilities .lesson-storage{margin-top:14px;padding:12px 20px;background:#f4f6fc}
+ body.application-shell #lesson-status:not(:empty){max-width:1240px;margin:14px auto;padding:10px 16px;background:#eaf1fc;border-color:#cbd7ed;color:#344565}
+ body.application-shell #lesson-error{max-width:1240px;margin-inline:auto}
+ body.application-shell :is(.page-intro h1 em,.workflow-steps b){color:#304b94;background:#e8eefc}
+ body.application-shell .page-intro h1 em{background:transparent}
+ @media(max-width:750px){body.application-shell .lesson-focus-layout #lesson-list{grid-template-columns:1fr}body.application-shell :is(.lesson-metadata .lesson-fields,.lesson-filter-drawer .lesson-filters){grid-template-columns:repeat(2,minmax(0,1fr))}body.application-shell .lesson-focus-layout :is(.lesson-catalogue,.lesson-writing){padding:20px}body.application-shell .lesson-focus-layout #lesson-body{padding:18px}body.application-shell :is(.studio-taskbar,.lesson-taskbar)>button{min-width:130px;padding:12px;font-size:17px}body.application-shell .lesson-taskbar button>span{display:none}}
+ @media(max-width:390px){body.application-shell :is(.lesson-metadata .lesson-fields,.lesson-filter-drawer .lesson-filters){grid-template-columns:1fr}}
+}
+@media screen {
+ body.application-shell[data-page=create] .page-intro{padding-block:16px;margin-bottom:20px}
+ body.application-shell[data-page=create] .page-intro h1{font-size:clamp(30px,3vw,40px);max-width:none}
+ body.application-shell[data-page=create] .page-intro .workflow-steps{display:none}
+ body.application-shell .lesson-focus-layout .lesson-selection{margin:0 0 22px;padding:18px}
+ body.application-shell .lesson-focus-layout .lesson-selection>p:last-child{margin-bottom:0}
+ body.application-shell .lesson-panel-heading>span{color:#53617a}
+}

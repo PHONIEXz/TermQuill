@@ -342,3 +342,7 @@ Provider selector, explicit consent, Google-only/Groq-only isolation and consent
 ## Stage showcases, October 29
 
 Seven original hand-authored six-question papers, public source/student/marking views, and explicit editable-copy handoff. Build generates 28 public PDF/PowerPoint files from the same validated draft data. Sample exports say hand-authored example rather than falsely asserting teacher review. These are demonstration files, not real school papers or live model outputs. Automated checks cover exact evidence, mark totals, copy isolation, level switching and no implicit persistence. Hosted gallery verification is recorded after deployment.
+
+### Focused lesson and assessment tasks, October 29
+- Added reversible library/writer and setup/paper views, preserving unsaved text and existing save/review behavior. Navigation starts closed. Metadata validation reveals hidden fields; errors remain outside hidden assessment panes.
+- 272 tests passed, including task-switch preservation, selection tool visibility, metadata validation and busy/loaded assessment transitions. Syntax checks and build passed. These automated checks do not establish phone usability or live model quality.

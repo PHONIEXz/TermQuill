@@ -6,7 +6,7 @@ export function initBuilderGuide(doc=document) {
  const win=doc.defaultView,$=id=>doc.getElementById(id),make=(tag,text,cls)=>{const n=doc.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;};
  const sections=[...form.querySelectorAll(':scope > .setup-section')],names=['Choose your class','Add your material','Shape your questions'];
  if(sections.length!==3)return;
- let current=0,paperStatus=null,invalidPending=false,invalidField=null;
+ let current=0,paperStatus=null,invalidPending=false,invalidField=null,hadPaper=false;
  const steps=make('nav',null,'builder-steps');steps.setAttribute('aria-label','Assessment setup steps');
  const announcement=make('p',null,'micro');announcement.id='builder-progress';announcement.setAttribute('role','status');
  const buttons=sections.map((section,i)=>{section.id=`builder-step-${i+1}`;section.querySelector('legend').textContent=`${i+1}. ${names[i]}`;const b=make('button',`${i+1}. ${['Class','Material','Questions'][i]}`);b.setAttribute('aria-label',`${i+1}. ${names[i]}`);b.type='button';b.setAttribute('aria-controls',section.id);b.addEventListener('click',()=>{if(!working())show(i,true);});steps.append(b);return b;});
@@ -24,7 +24,7 @@ export function initBuilderGuide(doc=document) {
  const cards=make('div',null,'question-style-cards');cards.setAttribute('role','group');cards.setAttribute('aria-label','Choose a question style');
  for(const [value,title,example] of [['mixed','A balanced mix','A. B. C. D. + space to write'],['mcq','Multiple choice','○ A   ○ B   ○ C   ○ D'],['short','Written / visual','Write, count, match or draw'],['custom','Your own mix','Describe the styles you need']]){const b=make('button',null,'question-style-card');b.type='button';b.dataset.format=value;b.append(make('span',example,'style-example'),make('strong',title));b.addEventListener('click',()=>{$('format').value=value;$('format').dispatchEvent(new win.Event('change',{bubbles:true}));refresh();});cards.append(b);}
  const formatLabel=form.querySelector('label[for="format"]');formatLabel.closest('.two').before(cards);
- const recommended=make('div',null,'builder-recommended'),preset=make('button','Use recommended settings','outline');preset.type='button';preset.addEventListener('click',()=>{$('educationStage').dispatchEvent(new win.Event('change',{bubbles:true}));refresh();});recommended.append(make('strong','Start with a sensible setup'),make('p','Class-based defaults are ready. Adjust any choice below, or reset the setup for this stage.'),preset);sections[2].querySelector('legend').after(recommended);
+ const recommended=make('details',null,'builder-recommended'),preset=make('button','Use recommended settings','outline');preset.type='button';preset.addEventListener('click',()=>{$('educationStage').dispatchEvent(new win.Event('change',{bubbles:true}));refresh();});recommended.append(make('summary','Recommended settings for this class'),make('p','Class-based defaults are ready. Adjust any choice below, or reset the setup for this stage.'),preset);sections[2].querySelector('legend').after(recommended);
  const controls=make('div',null,'builder-controls'),back=make('button','← Back','outline'),next=make('button','Continue →','primary');back.type=next.type='button';back.addEventListener('click',()=>show(current-1,true));next.addEventListener('click',()=>{if(validateStep())show(current+1,true);});controls.append(back,next);sections[2].after(controls);
  const final=make('div');final.id='builder-final';while(controls.nextSibling)final.append(controls.nextSibling);controls.after(final);
  const sample=make('section',null,'builder-paper-sample no-print');sample.id='builder-paper-sample';sample.setAttribute('aria-label','Illustrative paper layout');
@@ -33,17 +33,25 @@ export function initBuilderGuide(doc=document) {
  const saveState=make('p',null,'builder-save-state no-print');saveState.setAttribute('role','status');doc.querySelector('.draft-actions').before(saveState);
  const saveHint=make('p','Device drafts are saved in this browser. Lesson-library saves go to your private cloud collection. Sending to a school is a separate action.','micro no-print');doc.querySelector('.draft-actions').after(saveHint);
  const branding=make('details',null,'builder-extras no-print');branding.append(make('summary','School logo & header designer'));$('paper-logo').before(branding);branding.append($('paper-logo'));
- const work=doc.querySelector('#workspace');work.classList.add('guided-builder');
+ const work=doc.querySelector('#workspace');work.classList.add('guided-builder','focused-studio');
+ const taskbar=make('div',null,'studio-taskbar no-print');taskbar.setAttribute('role','group');taskbar.setAttribute('aria-label','Choose your assessment task');
+ const setupTask=make('button','1. Prepare paper'),paperTask=make('button','2. Edit & preview');setupTask.id='studio-setup-task';paperTask.id='studio-paper-task';setupTask.type=paperTask.type='button';setupTask.setAttribute('aria-controls','setup-drawer');paperTask.setAttribute('aria-controls','studio-output');doc.querySelector('.output').id='studio-output';
+ taskbar.append(setupTask,paperTask);work.before(taskbar);for(const id of ['live-status','error']){const notice=$(id);if(notice)taskbar.before(notice);}
+ function focusWorkspace(view,focus=false){const paper=view==='paper';work.classList.toggle('studio-paper-active',paper);work.querySelector('.setup').hidden=paper;work.querySelector('.output').hidden=!paper;setupTask.setAttribute('aria-pressed',String(!paper));paperTask.setAttribute('aria-pressed',String(paper));if(!paper)$('setup-drawer').open=true;if(focus){const panel=work.querySelector(paper?'.output':'.setup');panel.tabIndex=-1;panel.focus();panel.scrollIntoView({block:'start'});}}
+ setupTask.addEventListener('click',()=>{if(!working())focusWorkspace('setup',true);});paperTask.addEventListener('click',()=>focusWorkspace('paper',true));
+ // Secondary device tools remain available without competing with the active task.
+ const device=doc.querySelector('.device-setup');if(device){const drawer=make('details',null,'studio-device-tools');drawer.append(make('summary','Device setup & saved preferences'));while(device.firstChild)drawer.append(device.firstChild);device.append(drawer);drawer.querySelector('h3')?.remove();}
+ focusWorkspace('setup');
  const toolbar=doc.querySelector('.toolbar');$('tab-edit').textContent='Edit questions & review';$('tab-teacher').textContent='View marking guide';$('print').textContent='Print / save PDF';
  function working(){return doc.querySelector('.output').getAttribute('aria-busy')==='true';}
  function show(i,focus=false){current=Math.max(0,Math.min(2,i));sections.forEach((s,j)=>s.hidden=j!==current);buttons.forEach((b,j)=>{if(j===current)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});back.hidden=current===0;next.hidden=current===2;final.hidden=current!==2;announcement.textContent=`Step ${current+1} of 3 · ${names[current]}`;if(focus){const legend=sections[current].querySelector('legend');legend.tabIndex=-1;legend.focus();}refresh();}
- function reveal(control){const index=sections.findIndex(s=>s.contains(control));if(index>=0)show(index);for(let p=control.parentElement;p&&p!==form;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;$('setup-drawer').open=true;}
+ function reveal(control){focusWorkspace('setup');const index=sections.findIndex(s=>s.contains(control));if(index>=0)show(index);for(let p=control.parentElement;p&&p!==form;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;$('setup-drawer').open=true;}
  function validateStep(){for(const control of sections[current].querySelectorAll('input,select,textarea'))if(control.willValidate&&!control.validity.valid){reveal(control);control.reportValidity();return false;}return true;}
  form.addEventListener('invalid',e=>{e.preventDefault();if(invalidPending)return;invalidPending=true;invalidField=e.target;reveal(invalidField);invalidField.setAttribute('aria-invalid','true');const label=form.querySelector(`label[for="${invalidField.id}"]`);$('error').textContent=`${label?.textContent||'Check this field'}: ${invalidField.validationMessage||'Please check your entry.'}`;$('error').hidden=false;win.queueMicrotask(()=>{invalidField?.focus();invalidPending=false;});},true);
  form.addEventListener('input',e=>{if(e.target===invalidField){invalidField.removeAttribute('aria-invalid');invalidField=null;$('error').hidden=true;}},true);
  form.addEventListener('submit',e=>{if(current!==2){e.preventDefault();e.stopImmediatePropagation();if(validateStep())show(current+1,true);}},true);
  function refresh(){
-  const busy=working();[...buttons,back,next,preset,...cards.querySelectorAll('button'),...purpose.querySelectorAll('button')].forEach(b=>b.disabled=busy);
+  const busy=working();setupTask.disabled=busy;if(busy)focusWorkspace('paper');[...buttons,back,next,preset,...cards.querySelectorAll('button'),...purpose.querySelectorAll('button')].forEach(b=>b.disabled=busy);
   cards.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.format===$('format').value)));
   purpose.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.purpose===$('assessmentMode').value)));
   heading.textContent=$('title').value||'Your assessment title';meta.textContent=`${$('subject').value} · ${$('level').value} · ${$('minutes').value} minutes · ${Number($('count').value)*Number($('marksEach').value)} marks`;
@@ -57,13 +65,13 @@ export function initBuilderGuide(doc=document) {
    else if(style==='matching'){const pair=make('div',null,'sample-matching');pair.append(make('span','1. Picture'),make('span','A. Match'));art.append(pair);
    }else for(let n=0;n<2;n++)art.append(make('div',null,'sample-rule'));
    art.setAttribute('aria-label',`${style} response space illustration`);row.append(art);rows.append(row);}
-  const started=$('draft-badge').textContent!=='NOT STARTED';sample.hidden=started;doc.querySelector('.draft-actions').hidden=!started;saveHint.hidden=!started;saveState.hidden=!started;$('preview').classList.toggle('builder-empty-hidden',!started);toolbar.hidden=!started;
+  const started=$('draft-badge').textContent!=='NOT STARTED';if(started&&!hadPaper)focusWorkspace('paper');hadPaper=started;paperTask.textContent=started?'2. Edit & preview':'See a layout example';sample.hidden=started;doc.querySelector('.draft-actions').hidden=!started;saveHint.hidden=!started;saveState.hidden=!started;$('preview').classList.toggle('builder-empty-hidden',!started);toolbar.hidden=!started;
   // Derive saved status from the existing successful save acknowledgement, never from a click.
   saveState.textContent=!started?'No paper generated yet.':paperStatus?.saved&&!paperStatus.dirty?'Saved copy open on this device.':'Unsaved changes. Save this paper on your device to keep your latest work.';
  }
  doc.addEventListener('termquill:paper-state',e=>{paperStatus=e.detail;refresh();});
  form.addEventListener('input',refresh);form.addEventListener('change',refresh);form.addEventListener('click',()=>win.queueMicrotask(refresh));
  const observer=new win.MutationObserver(refresh);observer.observe($('draft-badge'),{childList:true,characterData:true,subtree:true});observer.observe($('live-status'),{childList:true,characterData:true,subtree:true});observer.observe(doc.querySelector('.output'),{attributes:true,attributeFilter:['aria-busy']});
- show(0);return {show,refresh,disconnect:()=>observer.disconnect()};
+ show(0);return {show,refresh,focusWorkspace,disconnect:()=>observer.disconnect()};
 }
 if(typeof document!=='undefined')initBuilderGuide();

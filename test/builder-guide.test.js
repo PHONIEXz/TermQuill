@@ -24,3 +24,17 @@ test('cards update real fields, layout remains illustrative and saved feedback u
  w.document.querySelector('.output').setAttribute('aria-busy','true');await new Promise(r=>setTimeout(r,0));assert.equal(w.document.querySelector('[data-format="mcq"]').disabled,true);
  }finally{guide.disconnect();dom.window.close();}});
 test('enhancement leaves public home and other pages alone',()=>{const dom=new JSDOM(html,{url:'https://termquill.vercel.app/'});try{assert.equal(initBuilderGuide(dom.window.document),undefined);assert.equal(dom.window.document.querySelector('.builder-steps'),null);}finally{dom.window.close();}});
+
+test('focused studio shows one task, preserves source text and reveals generation or validation in context',async()=>{
+ const {dom,w,$,guide}=setup();try{
+  const setupPanel=w.document.querySelector('.setup'),output=w.document.querySelector('.output');
+  assert.equal(setupPanel.hidden,false);assert.equal(output.hidden,true);
+  $('notes').value='The complete teacher source stays intact when changing working panes.';
+  $('studio-paper-task').click();assert.equal(setupPanel.hidden,true);assert.equal(output.hidden,false);assert.equal($('builder-paper-sample').hidden,false);
+  $('studio-setup-task').click();assert.equal(setupPanel.hidden,false);assert.match($('notes').value,/stays intact/);
+  assert.equal($('error').closest('.output'),null);assert.equal($('live-status').closest('.output'),null);
+  output.setAttribute('aria-busy','true');guide.refresh();assert.equal(output.hidden,false);assert.equal(setupPanel.hidden,true);assert.equal($('studio-setup-task').disabled,true);
+  output.removeAttribute('aria-busy');guide.refresh();$('topicInstructions').disabled=false;$('topicInstructions').dispatchEvent(new w.Event('invalid'));assert.equal(setupPanel.hidden,false);assert.equal(output.hidden,true);assert.equal($('builder-step-2').hidden,false);
+  $('draft-badge').textContent='REVIEW NEEDED';w.document.dispatchEvent(new w.CustomEvent('termquill:paper-state',{detail:{exists:true,saved:false,dirty:true}}));assert.equal(output.hidden,false);assert.equal(setupPanel.hidden,true);
+ }finally{guide.disconnect();dom.window.close();}
+});

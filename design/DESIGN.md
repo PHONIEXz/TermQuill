@@ -191,3 +191,9 @@ User rejected the washed-out sage workspace palette. Internal application pages 
 ## Book and quill identity (October 29)
 
 Replace the old green T tile with the navy open-book and rising quill mark. Cobalt page edges and a violet tip connect it to the workspace palette. Use the same SVG in navigation, public headers and browser favicons, with a versioned URL to refresh cached icons. Keep the TermQuill wordmark as selectable accessible text. The production SVG is a compact adaptation of an original generated concept and is independent of school logos printed on assessments.
+
+## Task focus correction (October 29)
+
+User clarified that colour changes did not solve overload. The primary requirement is one focused working pane, clear choice groups and supporting tools available on demand. Navigation now starts collapsed on all screen sizes. Lesson library and writing are separate reversible task views; changing views preserves unsaved text and selection. The writer gives the lesson title and full-width notes priority. Class/term metadata has a labelled summary and opens automatically on validation failure. Catalogue filters and backup/example tools use explicit disclosures. Assessment assembly appears only after selection. Editing a saved note opens the writing view.
+
+Assessment setup and paper editing/preview are separate task views, with existing three-step setup preserved. Generation reveals the result/progress pane; a newly loaded paper reveals its preview. Validation brings the relevant setup step back into view. Error and status messages stay outside either hidden pane. Extra device preferences and recommendations are collapsed. No cloud-save, provider, role, approval, export or draft semantics change.

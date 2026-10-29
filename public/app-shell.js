@@ -36,12 +36,12 @@ if(['access','workspace','lessons','create','drafts','question-bank','school','g
  bar.prepend(brand);rail.classList.add('top-navigation-panel');
  document.body.prepend(bar,rail);document.body.classList.add('application-shell');
  const media=globalThis.matchMedia?.('(max-width: 980px)');
- let navigationOpen=!media?.matches;
+ let navigationOpen=false;
  function setNavigation(open,restore=false){navigationOpen=open;rail.hidden=!open;rail.inert=!open;toggle.textContent=open?'Hide navigation ↑':'Show navigation ↓';toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Hide workspace navigation':'Show workspace navigation');document.body.classList.toggle('navigation-hidden',!open);if(restore)toggle.focus();}
  toggle.addEventListener('click',()=>setNavigation(!navigationOpen));
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.defaultPrevented&&navigationOpen){setNavigation(false,true);}});
  rail.addEventListener('click',event=>{if(media?.matches&&event.target.closest('a'))setNavigation(false);});
- media?.addEventListener('change',()=>setNavigation(!media.matches,rail.contains(document.activeElement)));
+ media?.addEventListener('change',()=>setNavigation(false,rail.contains(document.activeElement)));
  setNavigation(navigationOpen);
  if(schoolNav){const panel=document.getElementById('workspace-panel');const sync=()=>{document.body.classList.toggle('shell-school-ready',!panel.hidden);};new MutationObserver(sync).observe(panel,{attributes:true,attributeFilter:['hidden']});sync();}
 }

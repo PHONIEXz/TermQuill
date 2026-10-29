@@ -1,3 +1,4 @@
+import {shuffleQuestions} from '../lib/term-plans.js';
 import {showcaseDraft} from '../lib/showcases.js';
 import * as deviceSetup from '../lib/device-setup.js';
 import {readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,writeLessons,validateLesson} from '../lib/lessons.js';
@@ -15,7 +16,7 @@ const html=await readFile(new URL('../public/index.html',import.meta.url),'utf8'
 const script=(await readFile(new URL('../public/app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
 async function setup(generate,route="/create",seed,lessonSeed,cloudActual,setupSeed,brandingSeed) {
   const dom=new JSDOM(html,{url:`http://localhost:3000${route}`,runScripts:'outside-only'}),w=dom.window;
-  Object.assign(w,deviceSetup,{showcaseDraft,readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,saveBankQuestions,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
+  Object.assign(w,deviceSetup,{shuffleQuestions,showcaseDraft,readLessons,prepareLessonCollection,LESSON_TRANSFER_KEY,structuredClone,saveBankQuestion,saveBankQuestions,validateRequest,auditAssessment,parseModelOutput,sampleSpec,samplePaper,readDrafts,saveDraft,deleteDraft,validateDraft});
   w.document.getElementById('provider-consent').checked=true; // Existing generation scenarios explicitly consent.
   installVisuals(w);const guide=initBuilderGuide(w.document);guide?.show(2);
   w.HTMLElement.prototype.scrollIntoView=()=>{};w.confirm=()=>true;

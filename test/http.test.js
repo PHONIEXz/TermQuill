@@ -28,7 +28,7 @@ test('bad JSON, methods, inputs and cross-site calls are rejected',async()=>fixt
   assert.equal((await fetch(base,{method:'POST',headers:{'Content-Type':'application/json',origin:new URL(base).origin},body:'{'})).status,400);
   assert.equal((await post(base,{...sampleSpec,count:99})).status,400);
   assert.equal((await post(base,sampleSpec,{'Sec-Fetch-Site':'cross-site'})).status,403);
-  assert.equal((await post(base,{...sampleSpec,notes:'a'.repeat(110000)})).status,413);
+  assert.equal((await post(base,{...sampleSpec,notes:'a'.repeat(310000)})).status,413);
 },createHandler({limiter:()=>true,generate:()=>assert.fail('invalid request reached model')})));
 test('quota rejection never calls model',async()=>fixture(async base=>assert.equal((await post(base,sampleSpec)).status,429),createHandler({limiter:()=>false,generate:()=>assert.fail()})));
 test('provider errors are redacted',async()=>fixture(async base=>{const response=await post(base,sampleSpec);assert.equal(response.status,502);assert.ok(!(await response.text()).includes('SECRET'));},createHandler({limiter:()=>true,generate:()=>{throw new Error('SECRET upstream key');}})));

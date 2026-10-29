@@ -1,0 +1,36 @@
+/* Term workflow: one work surface and the same restrained preview hierarchy. */
+@media screen {
+ body.application-shell[data-page=lessons]{background:#f3f5fa;color:#202d49}
+ body.application-shell[data-page=lessons] #lesson-main{max-width:1320px}
+ body.application-shell[data-page=lessons] .lesson-heading{margin-bottom:18px}
+ body.application-shell[data-page=lessons] .lesson-heading h1{font-size:clamp(28px,3vw,38px);max-width:26ch;line-height:1.2}
+ body.application-shell .term-context{display:flex;align-items:end;gap:24px;flex-wrap:wrap;max-width:1240px;margin:0 auto 18px}
+ .term-context>label{flex:1;min-width:230px;margin:0;font-size:16px;color:#344565}
+ .term-switch{display:flex;gap:8px;flex-wrap:wrap}
+ .term-switch button{min-height:46px;padding:10px 16px;border:1px solid transparent;border-radius:10px;color:#53617a;font-size:16px}
+ .term-switch button[aria-pressed=true]{background:white;border-color:#cbd7ed;color:#2949a3}
+ body.application-shell[data-page=lessons] .lesson-taskbar{margin-top:12px}
+ body.application-shell[data-page=lessons] .lesson-taskbar>button{min-width:130px;padding:12px 14px;font-size:16px;text-align:center}
+ body.application-shell[data-page=lessons] .lesson-taskbar>button>span{display:none}
+ body.application-shell[data-page=lessons] :is(.lesson-catalogue,.lesson-writing,.term-panel){background:#fff;border:1px solid #cbd7ed;border-radius:16px;padding:26px;max-width:1240px;margin-inline:auto;color:#202d49}
+ .term-panel h2{font-size:27px;letter-spacing:-.6px;margin:0 0 22px}.term-panel h3{font-size:21px;margin:22px 0 12px}
+ .term-panel p{font-size:16px;line-height:1.75;color:#53617a}.term-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+ .term-panel label,.note-photo label{font-size:16px;font-weight:600;margin:0 0 18px;color:#344565}.term-panel label>select,.term-panel label>input{margin-top:8px}
+ .term-week-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:22px 0 16px}
+ .term-week-grid button{min-height:58px;border:1px solid #cbd7ed;border-radius:10px;background:#f6f8fc;color:#53617a;font-size:17px}
+ .term-week-grid button[data-saved=true]{background:#eaf0fc;color:#2949a3}
+ .term-week-grid button[aria-pressed=true]{outline:2px solid #2949a3;outline-offset:2px}
+ .term-panel progress{width:100%;height:12px;accent-color:#2949a3}
+ .term-panel .lesson-actions{margin:18px 0}.term-panel .term-delivery-status{padding:16px;background:#f0edfa;color:#3d345c;border-radius:10px}
+ .term-reminder-days{display:flex;flex-wrap:wrap;gap:16px;margin:18px 0 22px}.term-reminder-days label{display:flex;gap:8px;align-items:center;min-height:44px;margin:0}.term-reminder-days input{width:20px!important;min-height:20px!important;margin:0!important}
+ body.application-shell .photo-consent{display:flex!important;align-items:start;gap:12px;margin:20px 0;font-size:16px;font-weight:500;line-height:1.7;color:#344565}
+ body.application-shell .photo-consent input{width:20px!important;min-width:20px;height:20px;min-height:20px!important;flex:0 0 20px;margin:5px 0 0!important}
+ body.application-shell .note-photo{padding:0 20px;background:#edf2ff;border:1px solid #cbd7ed;border-radius:12px;margin:20px 0}
+ .note-photo>summary{font-size:18px;font-weight:650;color:#2949a3;cursor:pointer}.note-photo p{font-size:16px;color:#53617a;line-height:1.75}
+ .photo-pickers{display:grid;grid-template-columns:1fr 1fr;gap:16px}.photo-pickers input{background:white!important;padding:12px!important}
+ #note-photo-pages{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}#note-photo-pages figure{margin:0;max-width:160px;overflow-wrap:anywhere}#note-photo-pages img{width:100%;height:180px;object-fit:contain;background:white;border:1px solid #cbd7ed;border-radius:8px}#note-photo-pages figcaption{font-size:14px;color:#53617a}
+ #note-photo-result{border-top:1px solid #cbd7ed;padding-top:20px;margin-top:20px}#note-photo-text{background:white!important}
+ body.application-shell .term-feedback{max-width:1240px;margin:12px auto;padding:12px 16px;border-left:3px solid #2949a3;background:#eaf0fc;color:#344565;font-size:16px;line-height:1.7}
+ .term-mobile-view{display:none}
+ @media(max-width:700px){.term-fields,.photo-pickers{grid-template-columns:1fr}.term-week-grid{grid-template-columns:repeat(3,minmax(0,1fr))}body.application-shell[data-page=lessons] .lesson-taskbar>button{display:none}body.application-shell[data-page=lessons] .term-mobile-view{display:block;width:100%;margin:0;padding:4px 8px;font-size:16px;color:#344565}.term-mobile-view select{margin-top:5px}body.application-shell[data-page=lessons] :is(.lesson-catalogue,.lesson-writing,.term-panel){padding:20px}.term-context{gap:14px!important}.term-context>label{min-width:0;flex-basis:100%}}
+}

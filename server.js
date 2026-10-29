@@ -1,3 +1,5 @@
+import noteScan from './api/note-scan.js';
+import termWorkspace from './api/term-workspace.js';
 import exportPaper from './api/export.js';
 import media from './api/media.js';
 import access from './api/access.js';
@@ -20,11 +22,13 @@ const routes = new Map([
   ...['/school','/school/bank','/school/library','/school/reviews','/school/team','/school/paper','/school/trust','/school/location'].map(path=>[path,'public/school.html']),['/school.js','public/school.js'],['/school.css','public/school.css'],
   ['/find-schools','public/find-schools.html'],['/places.js','public/places.js'],['/places.css','public/places.css'],['/location.js','lib/location.js'],
   ['/privacy','public/privacy.html'],['/landing.css','public/landing.css'],['/','public/index.html'],['/create','public/index.html'],['/drafts','public/index.html'],['/guide','public/index.html'],['/question-bank','public/index.html'],['/bank-page.js','public/bank-page.js'],['/app.js','public/app.js'],['/styles.css','public/styles.css'],['/workspace.css','public/workspace.css'],['/navigation.js','public/navigation.js'],['/experience.js','public/experience.js'],['/fonts/InterVariable-5a8d3e72.woff2','public/fonts/InterVariable-5a8d3e72.woff2'],['/fonts/Inter-OFL.txt','public/fonts/Inter-OFL.txt'],
-  ...['showcases','paper-icons','generation-timing','diagrams','edit-history','objectives','quality','coverage','device-setup','lesson-examples','educator','identity','personal-import','visuals','early-years','bank','references','review','lessons'].map(name=>[`/${name}.js`,`lib/${name}.js`]),...['objective-plan.js','quality-review.js','creation-plan.js','builder-guide.js','paper-blocks.js','paper-blocks.css','visual-editor.js','reference-picker.js','school-review.js','school-bank-view.js'].map(name=>[`/${name}`,`public/${name}`]),
+  ...['term-plans','showcases','paper-icons','generation-timing','diagrams','edit-history','objectives','quality','coverage','device-setup','lesson-examples','educator','identity','personal-import','visuals','early-years','bank','references','review','lessons'].map(name=>[`/${name}.js`,`lib/${name}.js`]),...['term-workspace.js','term-workspace.css','note-photo.js','objective-plan.js','quality-review.js','creation-plan.js','builder-guide.js','paper-blocks.js','paper-blocks.css','visual-editor.js','reference-picker.js','school-review.js','school-bank-view.js'].map(name=>[`/${name}`,`public/${name}`]),
   ['/assessment.js','lib/assessment.js'],['/drafts.js','lib/drafts.js'],['/sample.js','lib/sample.js'],['/favicon.svg','public/favicon.svg']
 ]);
 export const server = http.createServer(async (req,res) => {
   const path = new URL(req.url,'http://localhost').pathname.replace(/\/$/,'')||'/';
+  if (path === '/api/note-scan') return noteScan(req,res);
+  if (path === '/api/term-workspace') return termWorkspace(req,res);
   if (path === '/api/export') return exportPaper(req,res);
   if (path === '/api/media') return media(req,res);
   if (path === '/api/access') return access(req,res);

@@ -23,6 +23,9 @@
     "api/export.js": {
       "maxDuration": 60,
       "includeFiles": "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans*.ttf"
+    },
+    "api/note-scan.js": {
+      "maxDuration": 120
     }
   },
   "headers": [

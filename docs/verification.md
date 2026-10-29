@@ -346,3 +346,11 @@ Seven original hand-authored six-question papers, public source/student/marking 
 ### Focused lesson and assessment tasks, October 29
 - Added reversible library/writer and setup/paper views, preserving unsaved text and existing save/review behavior. Navigation starts closed. Metadata validation reveals hidden fields; errors remain outside hidden assessment panes.
 - 272 tests passed, including task-switch preservation, selection tool visibility, metadata validation and busy/loaded assessment transitions. Syntax checks and build passed. These automated checks do not establish phone usability or live model quality.
+
+### Daily note photos and term workspace, October 29
+- Real photo-transcription endpoint checks educator access, same origin, account binding, explicit provider consent, 1–3 genuine supported image payloads, aggregate byte limits and request limits. Client re-encodes photos before sending and retains existing notes until the teacher confirms the returned editable text. No photos are stored in the cloud library.
+- Private term-workspace schema applied, with RLS enabled and no direct authenticated/anonymous table access. The authenticated RPC binds data to auth.uid() and checks educator access plus optimistic versions. Isolation/stale-write tests passed in PGlite. Existing note RPC bounds expanded without changing the educator wrapper or existing rows: 500 notes / 3 MB.
+- Three terms support 10–12 teaching weeks. Legacy weeks remain available. Weekly source grouping retains all included text and accepts 60,000 combined characters; larger collections stop explicitly. Random ordering retains section headings. Individual lessons remain limited to 18,000 characters.
+- Email delivery is not configured and is not represented as active. Account preferences, return-to-app nudges and a recurring-calendar download are implemented; calendar events cannot conditionally suppress themselves after upload. Actual phone-calendar import/delivery is not verified here.
+
+- Release verification: 279 tests passed; syntax checks and production build passed. Live photo reading and browser layout are checked separately after deployment.

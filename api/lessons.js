@@ -9,7 +9,7 @@ export function createLessonsHandler({authenticate=requireEducator,limiter=allow
  if(req.method==='POST'){
   if(!(req.headers['content-type']||'').startsWith('application/json'))return json(res,415,{error:'Send JSON.'});
   if(!limiter(user.id))return json(res,429,{error:'Too many library changes. Wait before retrying.'});
-  const body=await readBody(req,2100000);action=body.action;
+  const body=await readBody(req,3200000);action=body.action;
   if(action==='import'){if(body.confirmImport!==true)return json(res,400,{error:'Confirm the selected notes belong to you and should be copied to your private cloud library.'});payload={items:validateLessons(body.backup)};}
   else if(action==='save')payload={note:validateLesson(body.note),expectedVersion:body.expectedVersion};
   else if(['remove','restore'].includes(action))payload={id:body.id,expectedVersion:body.expectedVersion};

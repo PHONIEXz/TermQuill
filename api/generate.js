@@ -20,7 +20,7 @@ export function createHandler({generate = generateAssessment, limiter = allow, a
     const address = process.env.VERCEL ? String(req.headers['x-vercel-forwarded-for'] || 'unknown').split(',')[0] : req.socket.remoteAddress;
     if (!limiter(account.user.id+':'+address)) { res.setHeader('Retry-After','3600'); return json(res,429,{error:'Generation limit reached. Try again in an hour; you can still edit and print your draft.'}); }
     let spec,provider;
-    try { const body=await readBody(req);provider=body.provider??'google';if(!['google','groq','automatic'].includes(provider))throw new Error('Choose a supported AI provider.');if(provider!=='google'&&body.providerConsent!==true)throw new Error('Confirm permission to send this request to the selected provider.');spec = validateRequest(body,{forGeneration:true}); }
+    try { const body=await readBody(req,300000);provider=body.provider??'google';if(!['google','groq','automatic'].includes(provider))throw new Error('Choose a supported AI provider.');if(provider!=='google'&&body.providerConsent!==true)throw new Error('Confirm permission to send this request to the selected provider.');spec = validateRequest(body,{forGeneration:true}); }
     catch (error) { return json(res,error.status || 400,{error:error.message}); }
     const startedAt=Date.now();let providerCalls=0,completedBatches=0,lastModel=null;
     const onProgress=event=>{if(event.event==='provider_call'){providerCalls++;lastModel=event.model;}if(event.event==='batch_completed')completedBatches++;};

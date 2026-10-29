@@ -7,7 +7,7 @@ import { makeLimiter } from '../lib/http.js';
 const copy=()=>structuredClone(samplePaper);
 test('sample passes every structural check',()=>assert.deepEqual(auditAssessment(copy(),sampleSpec),[]));
 test('rejects overlong notes, fractional counts and unknown formats',()=>{
-  for(const patch of [{notes:'x'.repeat(18001)},{count:4.5},{format:'essay'},{marksEach:0},{count:21},{notes:'Too short'}])assert.throws(()=>validateRequest({...sampleSpec,...patch}));
+  for(const patch of [{notes:'x'.repeat(60001)},{count:4.5},{format:'essay'},{marksEach:0},{count:21},{notes:'Too short'}])assert.throws(()=>validateRequest({...sampleSpec,...patch}));
 });
 test('mixed allocation is deterministic for odd counts',()=>assert.deepEqual(expectedKinds({...sampleSpec,count:5}),['mcq','mcq','mcq','short','short']));
 test('detects wrong question count',()=>{const p=copy();p.questions.pop();assert.match(auditAssessment(p,sampleSpec)[0].message,/Expected 6/);});

@@ -197,7 +197,7 @@ My workspace offers an explicit ownership-confirmed copy of earlier anonymous br
 
 ### Private cloud lesson library and educator-only tools
 
-Apply migrations 004 and 005 after 001–003. `lp_personal_lessons` derives ownership from `auth.uid()` and serialises per-account writes. Active plus recoverable notes are capped at 100 / 2 MB. Saves, removals and restores use server-issued versions; imports validate first and commit atomically, skip identical content and preserve conflicting identifiers as copies. Removed notes remain recoverable seven days and are pruned on later writes. Original browser notes are uploaded only through an explicit copy/import action. Drafts and question-bank records remain browser-local.
+Apply migrations 004 and 005 after 001–003. `lp_personal_lessons` derives ownership from `auth.uid()` and serialises per-account writes. Active plus recoverable notes are capped at 500 / 3 MB. Saves, removals and restores use server-issued versions; imports validate first and commit atomically, skip identical content and preserve conflicting identifiers as copies. Removed notes remain recoverable seven days and are pruned on later writes. Original browser notes are uploaded only through an explicit copy/import action. Drafts and question-bank records remain browser-local.
 
 Educator access is independent of profile occupation and email verification. `lp_educator` accepts requests and returns only the current user's status. Verified membership of an independently verified school grants access; independent educators require manual review. `lessonpress.review_educator` is callable only by the database owner/service role and records a review history. Operators must independently check professional context before approval; form accuracy alone proves nothing. No automatic school email or review notification is sent. Corrections are allowed; there is no typo-based dishonesty classifier.
 
@@ -244,3 +244,13 @@ The builder offers Google Gemma, Groq GPT-OSS and Automatic. Set server-only `GR
 ## Seven-level public showcase
 
 `/demo` contains seven hand-authored example papers, six questions per level, for Early Years, Primary, Secondary, vocational, undergraduate, postgraduate and adult education. Student, marking-guide and source views use the actual structured visual renderer. Each offers PDF and PowerPoint downloads for both copies, generated at build time without provider requests or user data. Sign-in remains required to open an editable unsaved copy. No sample overwrites saved drafts or grants school approval. Examples demonstrate tools, not universal curriculum suitability. Early Years matching awards one mark per pair.
+
+### Daily notes and term planning
+
+Lesson library has focused Upload / write, My lessons, Term planner, Build a paper and Reminders views, with a compact workspace chooser on phones. Photos use explicit per-request provider consent and are resized/re-encoded in the browser before 1–3 pages are sent for transcription. Google uses the configured vision-capable Gemma model; Groq uses `qwen/qwen3.8-27b` by default. These differ from Groq's text-generation model. No original photo is stored in the cloud library. Teachers correct and confirm extracted text, then explicitly save it as an ordinary lesson.
+
+Each teaching course has first, second and third terms, with 10, 11 or 12 weeks and multiple dated notes per week. Older notes outside those weeks remain available in My lessons. Term settings and reminder preferences are private account records with optimistic version checks. Combined assessment source accepts up to 60,000 characters; a larger collection stops with a size explanation, without dropping notes. Term papers group coverage by teaching week, preserve the included lesson text, and can shuffle generated questions. Source coverage does not certify curriculum completeness or factual accuracy.
+
+In-app reminders can show when a teacher returns after their chosen time if no new lesson was saved that local day. Calendar downloads create recurring events that can notify while the site is closed, but cannot cancel themselves after a lesson upload. Importing the file is required. Email delivery is **not active**: no mail service or scheduled email job is configured. The UI states this explicitly and never claims an email was scheduled.
+
+Daily-note rollout migrations: `supabase/migrations/20261029054049_term_workspace.sql` and `supabase/migrations/20261029055553_expand_daily_lessons.sql`. Apply after the existing educator/personal-lesson migrations.
